@@ -64,20 +64,24 @@ export default function App() {
           <>
             <StatsRow scheduleData={scheduleData} />
 
-            <Calendar
-              view={view}
-              currentDate={currentDate}
-              eventsByDate={eventsByDate}
-              onDayClick={handleDayClick}
-            />
+            <div className="flex gap-6">
+              <div className="flex-1 min-w-0">
+                <Calendar
+                  view={view}
+                  currentDate={currentDate}
+                  eventsByDate={eventsByDate}
+                  onDayClick={handleDayClick}
+                />
+              </div>
 
-            <Legend
-              availableGroups={availableGroups}
-              selectedGroups={selectedGroups}
-              onToggleGroup={toggleGroup}
-              onSelectAll={selectAllGroups}
-              onDeselectAll={deselectAllGroups}
-            />
+              <Legend
+                availableGroups={availableGroups}
+                selectedGroups={selectedGroups}
+                onToggleGroup={toggleGroup}
+                onSelectAll={selectAllGroups}
+                onDeselectAll={deselectAllGroups}
+              />
+            </div>
           </>
         )}
       </div>

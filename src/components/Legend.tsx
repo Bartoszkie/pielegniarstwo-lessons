@@ -24,36 +24,36 @@ export function Legend({
   }
 
   return (
-    <div className="mt-6 p-5 bg-bg-secondary rounded-[12px] border border-border">
-      {/* Header with bulk actions */}
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-        <span className="text-sm font-semibold text-text-primary">
+    <div className="w-[200px] shrink-0 p-4 bg-bg-secondary rounded-[12px] border border-border self-start sticky top-6">
+      {/* Header */}
+      <div className="mb-4">
+        <span className="text-sm font-semibold text-text-primary block mb-3">
           Filtruj grupy ({selectedGroups.size}/{availableGroups.length})
         </span>
         <div className="flex gap-2">
           <button
             onClick={onSelectAll}
             disabled={allSelected}
-            className="px-3 py-1.5 text-xs font-medium text-text-secondary
+            className="flex-1 px-2 py-1.5 text-xs font-medium text-text-secondary
                        bg-bg-hover rounded-lg transition-colors
                        hover:text-text-primary disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            Zaznacz wszystkie
+            Wszystkie
           </button>
           <button
             onClick={onDeselectAll}
             disabled={noneSelected}
-            className="px-3 py-1.5 text-xs font-medium text-text-secondary
+            className="flex-1 px-2 py-1.5 text-xs font-medium text-text-secondary
                        bg-bg-hover rounded-lg transition-colors
                        hover:text-text-primary disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            Odznacz wszystkie
+            Żadne
           </button>
         </div>
       </div>
 
-      {/* Group toggles */}
-      <div className="flex flex-wrap gap-2">
+      {/* Group toggles - vertical grid */}
+      <div className="grid grid-cols-2 gap-2">
         {availableGroups.map(group => {
           const color = GROUP_COLORS[group];
           const isSelected = selectedGroups.has(group);
@@ -63,7 +63,7 @@ export function Legend({
               key={group}
               onClick={() => onToggleGroup(group)}
               className={`
-                flex items-center gap-1.5 px-3 py-1.5 rounded-lg
+                flex items-center justify-center gap-1 px-2 py-2 rounded-lg
                 text-sm font-medium transition-all duration-200
                 ${isSelected
                   ? 'ring-2 ring-offset-2 ring-offset-bg-secondary'
@@ -79,7 +79,7 @@ export function Legend({
             >
               <span>{group}</span>
               {isSelected && (
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
                 </svg>
               )}
