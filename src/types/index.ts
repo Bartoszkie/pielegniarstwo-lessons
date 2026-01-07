@@ -1,7 +1,19 @@
+export type GroupId =
+  | '1A' | '1B' | '2A' | '2B'
+  | '3A' | '3B' | '4A' | '4B'
+  | '5A' | '5B' | '6A' | '6B'
+  | '7A' | '7B' | '8A' | '8B';
+
+export const ALL_GROUPS: GroupId[] = [
+  '1A', '1B', '2A', '2B', '3A', '3B', '4A', '4B',
+  '5A', '5B', '6A', '6B', '7A', '7B', '8A', '8B'
+];
+
 export interface ClassEvent {
   start_time: string;
   end_time: string;
   description: string;
+  group: GroupId;
 }
 
 export interface ScheduleDay {

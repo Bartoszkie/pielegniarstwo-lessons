@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { scheduleData } from '../data/scheduleData';
+import { ScheduleDay } from '../types';
 
 interface UseStatsReturn {
   totalClasses: number;
@@ -7,7 +7,7 @@ interface UseStatsReturn {
   nextClassText: string;
 }
 
-export function useStats(): UseStatsReturn {
+export function useStats(scheduleData: ScheduleDay[]): UseStatsReturn {
   return useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -34,7 +34,7 @@ export function useStats(): UseStatsReturn {
       const diffTime = nextClassTimestamp - today.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       if (diffDays === 0) {
-        nextClassText = 'Dziś!';
+        nextClassText = 'Dzis!';
       } else if (diffDays === 1) {
         nextClassText = 'Jutro';
       } else {
@@ -47,5 +47,5 @@ export function useStats(): UseStatsReturn {
       upcomingClasses: upcoming,
       nextClassText,
     };
-  }, []);
+  }, [scheduleData]);
 }

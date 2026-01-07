@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { ScheduleDay } from '../types';
 import { parseDescription } from '../utils/eventUtils';
+import { getGroupColor } from '../constants/groupColors';
 
 interface EventModalProps {
   isOpen: boolean;
@@ -61,26 +62,38 @@ export function EventModal({ isOpen, onClose, data }: EventModalProps) {
         <div className="p-6">
           {data.classes.map((classEvent, index) => {
             const parsed = parseDescription(classEvent.description);
+            const groupColor = getGroupColor(classEvent.group);
 
             return (
               <div
                 key={index}
                 className="p-5 bg-bg-secondary rounded-xl border border-border mb-4 last:mb-0"
               >
-                <div className="font-mono text-sm text-accent-secondary font-medium mb-3 flex items-center gap-2">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10" />
-                    <polyline points="12 6 12 12 16 14" />
-                  </svg>
-                  {classEvent.start_time} - {classEvent.end_time}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="font-mono text-sm text-accent-secondary font-medium flex items-center gap-2">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                    {classEvent.start_time} - {classEvent.end_time}
+                  </div>
+                  <span
+                    className="px-2.5 py-1 rounded-md text-xs font-semibold"
+                    style={{
+                      background: groupColor.backgroundGradient,
+                      color: groupColor.text
+                    }}
+                  >
+                    {classEvent.group}
+                  </span>
                 </div>
                 <div className="text-base font-semibold text-text-primary mb-2 leading-relaxed">
                   {parsed.title}
                 </div>
                 <div className="text-sm text-text-secondary leading-relaxed">
-                  {parsed.instructor && <div>👩‍🏫 {parsed.instructor}</div>}
+                  {parsed.instructor && <div>{parsed.instructor}</div>}
                   {parsed.notes && (
-                    <div className="text-event-secondary mt-2">⚠️ {parsed.notes}</div>
+                    <div className="text-event-secondary mt-2">{parsed.notes}</div>
                   )}
                 </div>
                 {parsed.location && (

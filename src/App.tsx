@@ -5,18 +5,34 @@ import { StatsRow } from './components/StatsRow';
 import { Calendar } from './components/Calendar';
 import { Legend } from './components/Legend';
 import { EventModal } from './components/EventModal';
+import { FileUpload } from './components/FileUpload';
 import { useCalendar } from './hooks/useCalendar';
-import { eventsByDate } from './data/scheduleData';
+import { useSchedule } from './hooks/useSchedule';
 
 export default function App() {
   const { currentDate, view, setView, goToPrev, goToNext, goToToday, label } = useCalendar();
+  const {
+    scheduleData,
+    eventsByDate,
+    availableGroups,
+    selectedGroups,
+    isLoaded,
+    isLoading,
+    error,
+    loadFile,
+    toggleGroup,
+    selectAllGroups,
+    deselectAllGroups,
+    clearData
+  } = useSchedule();
+
   const [modalData, setModalData] = useState<string | null>(null);
 
   const handleDayClick = useCallback((dateStr: string) => {
     if (eventsByDate[dateStr]) {
       setModalData(dateStr);
     }
-  }, []);
+  }, [eventsByDate]);
 
   const handleCloseModal = useCallback(() => {
     setModalData(null);
@@ -34,18 +50,36 @@ export default function App() {
           onNext={goToNext}
           onToday={goToToday}
           label={label}
+          isDataLoaded={isLoaded}
+          onClearData={clearData}
         />
 
-        <StatsRow />
+        {!isLoaded ? (
+          <FileUpload
+            onFileSelect={loadFile}
+            isLoading={isLoading}
+            error={error}
+          />
+        ) : (
+          <>
+            <StatsRow scheduleData={scheduleData} />
 
-        <Calendar
-          view={view}
-          currentDate={currentDate}
-          eventsByDate={eventsByDate}
-          onDayClick={handleDayClick}
-        />
+            <Calendar
+              view={view}
+              currentDate={currentDate}
+              eventsByDate={eventsByDate}
+              onDayClick={handleDayClick}
+            />
 
-        <Legend />
+            <Legend
+              availableGroups={availableGroups}
+              selectedGroups={selectedGroups}
+              onToggleGroup={toggleGroup}
+              onSelectAll={selectAllGroups}
+              onDeselectAll={deselectAllGroups}
+            />
+          </>
+        )}
       </div>
 
       <EventModal
