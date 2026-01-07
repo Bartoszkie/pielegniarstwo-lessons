@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plan Zajęć - Grupa 7B | Pielęgniarstwo</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a25;
+            --bg-hover: #22222f;
+            --accent-primary: #6366f1;
+            --accent-secondary: #818cf8;
+            --accent-glow: rgba(99, 102, 241, 0.15);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: rgba(255, 255, 255, 0.06);
+            --today-bg: rgba(99, 102, 241, 0.12);
+            --event-primary: #10b981;
+            --event-secondary: #f59e0b;
+            --radius: 12px;
+            --radius-sm: 8px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .noise-overlay {
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .gradient-orb {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.4;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .orb-1 {
+            top: -200px;
+            right: -100px;
+            background: linear-gradient(135deg, var(--accent-primary), #7c3aed);
+        }
+
+        .orb-2 {
+            bottom: -300px;
+            left: -200px;
+            background: linear-gradient(135deg, #0ea5e9, var(--accent-primary));
+            opacity: 0.2;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 48px;
+            flex-wrap: wrap;
+            gap: 24px;
+        }
+
+        .header-content h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-content .subtitle {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: var(--accent-glow);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 100px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--accent-secondary);
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .view-toggle {
+            display: flex;
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 4px;
+            border: 1px solid var(--border);
+        }
+
+        .view-btn {
+            padding: 10px 20px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: var(--radius-sm);
+            transition: all 0.2s ease;
+        }
+
+        .view-btn.active {
+            background: var(--accent-primary);
+            color: var(--text-primary);
+            box-shadow: 0 2px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .view-btn:hover:not(.active) {
+            color: var(--text-secondary);
+            background: var(--bg-hover);
+        }
+
+        .nav-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-btn {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--border);
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent-primary);
+            color: var(--text-primary);
+        }
+
+        .today-btn {
+            padding: 10px 20px;
+            width: auto;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .month-label {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            min-width: 180px;
+            text-align: center;
+        }
+
+        .calendar-wrapper {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .calendar-header {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-card);
+        }
+
+        .calendar-header-day {
+            padding: 16px;
+            text-align: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+        }
+
+        .calendar-day {
+            min-height: 120px;
+            padding: 12px;
+            border-right: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-secondary);
+            transition: background 0.2s ease;
+            cursor: default;
+            position: relative;
+        }
+
+        .calendar-day:nth-child(7n) {
+            border-right: none;
+        }
+
+        .calendar-day:hover {
+            background: var(--bg-hover);
+        }
+
+        .calendar-day.other-month {
+            opacity: 0.3;
+        }
+
+        .calendar-day.today {
+            background: var(--today-bg);
+            box-shadow: inset 0 0 0 2px var(--accent-primary);
+        }
+
+        .calendar-day.has-event {
+            cursor: pointer;
+        }
+
+        .day-number {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .calendar-day.today .day-number {
+            color: var(--accent-secondary);
+            font-weight: 700;
+        }
+
+        .calendar-day.weekend .day-number {
+            color: var(--text-muted);
+        }
+
+        .event-indicator {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: 4px;
+        }
+
+        .event-dot {
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: transform 0.15s ease;
+        }
+
+        .event-dot:hover {
+            transform: scale(1.02);
+        }
+
+        .event-dot.podstawy {
+            background: linear-gradient(135deg, var(--event-primary), #059669);
+        }
+
+        .event-dot.badanie {
+            background: linear-gradient(135deg, var(--event-secondary), #d97706);
+        }
+
+        /* Week View */
+        .week-view {
+            display: none;
+        }
+
+        .week-view.active {
+            display: block;
+        }
+
+        .month-view.hidden {
+            display: none;
+        }
+
+        .week-grid {
+            display: grid;
+            grid-template-columns: 80px repeat(7, 1fr);
+        }
+
+        .week-header {
+            display: grid;
+            grid-template-columns: 80px repeat(7, 1fr);
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-card);
+        }
+
+        .week-header-cell {
+            padding: 20px 12px;
+            text-align: center;
+        }
+
+        .week-header-cell.time-gutter {
+            background: transparent;
+        }
+
+        .week-day-name {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .week-day-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+
+        .week-header-cell.today .week-day-number {
+            width: 44px;
+            height: 44px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            color: var(--text-primary);
+        }
+
+        .week-body {
+            display: grid;
+            grid-template-columns: 80px repeat(7, 1fr);
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .time-column {
+            border-right: 1px solid var(--border);
+        }
+
+        .time-slot {
+            height: 60px;
+            padding: 8px;
+            font-size: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-muted);
+            text-align: right;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .day-column {
+            border-right: 1px solid var(--border);
+            position: relative;
+            min-height: 840px;
+        }
+
+        .day-column:last-child {
+            border-right: none;
+        }
+
+        .hour-line {
+            height: 60px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .week-event {
+            position: absolute;
+            left: 4px;
+            right: 4px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            color: var(--text-primary);
+            overflow: hidden;
+            z-index: 10;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .week-event:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .week-event.podstawy {
+            background: linear-gradient(135deg, var(--event-primary), #059669);
+        }
+
+        .week-event.badanie {
+            background: linear-gradient(135deg, var(--event-secondary), #d97706);
+        }
+
+        .week-event-time {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            margin-bottom: 4px;
+            opacity: 0.9;
+        }
+
+        .week-event-title {
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        .week-event-location {
+            margin-top: 4px;
+            opacity: 0.8;
+            font-size: 0.7rem;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            max-width: 500px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
+            animation: modalIn 0.25s ease;
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .modal-date {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .modal-day {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+            text-transform: capitalize;
+        }
+
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: var(--bg-secondary);
+            color: var(--text-muted);
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-event {
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+
+        .modal-event:last-child {
+            margin-bottom: 0;
+        }
+
+        .modal-event-time {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--accent-secondary);
+            font-weight: 500;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-event-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .modal-event-details {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .modal-event-location {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            gap: 24px;
+            margin-top: 24px;
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .legend-color {
+            width: 14px;
+            height: 14px;
+            border-radius: 4px;
+        }
+
+        .legend-color.podstawy {
+            background: linear-gradient(135deg, var(--event-primary), #059669);
+        }
+
+        .legend-color.badanie {
+            background: linear-gradient(135deg, var(--event-secondary), #d97706);
+        }
+
+        /* Stats */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 16px;
+            }
+
+            header {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .header-content h1 {
+                font-size: 1.5rem;
+            }
+
+            .controls {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+
+            .nav-controls {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .month-label {
+                min-width: auto;
+            }
+
+            .calendar-day {
+                min-height: 80px;
+                padding: 8px;
+            }
+
+            .day-number {
+                font-size: 0.85rem;
+            }
+
+            .event-dot {
+                padding: 4px 6px;
+                font-size: 0.6rem;
+            }
+
+            .legend {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .stats-row {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="noise-overlay"></div>
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <h1>Plan Zajęć</h1>
+                <div class="subtitle">
+                    <span class="badge">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                        Grupa 7B
+                    </span>
+                    <span>Pielęgniarstwo • Semestr 1 • Katowice NST</span>
+                </div>
+            </div>
+
+            <div class="controls">
+                <div class="view-toggle">
+                    <button class="view-btn active" data-view="month">Miesiąc</button>
+                    <button class="view-btn" data-view="week">Tydzień</button>
+                </div>
+
+                <div class="nav-controls">
+                    <button class="nav-btn" id="prevBtn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                    </button>
+                    <button class="nav-btn today-btn" id="todayBtn">Dziś</button>
+                    <button class="nav-btn" id="nextBtn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="month-label" id="currentMonthLabel"></div>
+            </div>
+        </header>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-value" id="totalClasses">20</div>
+                <div class="stat-label">Wszystkie zajęcia</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="upcomingClasses">-</div>
+                <div class="stat-label">Nadchodzące</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="nextClass">-</div>
+                <div class="stat-label">Następne zajęcia</div>
+            </div>
+        </div>
+
+        <div class="calendar-wrapper">
+            <div class="month-view">
+                <div class="calendar-header">
+                    <div class="calendar-header-day">Pon</div>
+                    <div class="calendar-header-day">Wt</div>
+                    <div class="calendar-header-day">Śr</div>
+                    <div class="calendar-header-day">Czw</div>
+                    <div class="calendar-header-day">Pt</div>
+                    <div class="calendar-header-day">Sob</div>
+                    <div class="calendar-header-day">Ndz</div>
+                </div>
+                <div class="calendar-grid" id="calendarGrid"></div>
+            </div>
+
+            <div class="week-view">
+                <div class="week-header" id="weekHeader"></div>
+                <div class="week-body" id="weekBody"></div>
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color podstawy"></div>
+                <span>Podstawy pielęgniarstwa</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color badanie"></div>
+                <span>Badanie fizykalne</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <div class="modal-date" id="modalDate"></div>
+                    <div class="modal-day" id="modalDay"></div>
+                </div>
+                <button class="modal-close" id="modalClose">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <script>
+        const scheduleData = [
+            {"date":"2025-10-11","day":"sobota","classes":[{"start_time":"08:00","end_time":"08:45","description":"Podstawy pielęgniarstwa (I-II) mgr Monika Miśkiewicz/mgr Aleksandra Rachwał laboratorium Katowice, sala A104"}]},
+            {"date":"2025-10-18","day":"sobota","classes":[{"start_time":"15:45","end_time":"16:30","description":"Podstawy pielęgniarstwa (I-II) mgr Monika Miśkiewicz/mgr Aleksandra Rachwał laboratorium Katowice, sala A104"}]},
+            {"date":"2025-10-26","day":"niedziela","classes":[{"start_time":"15:45","end_time":"16:30","description":"Podstawy pielęgniarstwa (I-II) mgr Monika Miśkiewicz/mgr Aleksandra Rachwał laboratorium Katowice, sala B405"}]},
+            {"date":"2025-11-08","day":"sobota","classes":[{"start_time":"15:45","end_time":"16:30","description":"Podstawy pielęgniarstwa (I-II) mgr Monika Miśkiewicz/mgr Aleksandra Rachwał laboratorium Katowice, sala B405"}]},
+            {"date":"2025-11-09","day":"niedziela","classes":[{"start_time":"08:00","end_time":"08:45","description":"Podstawy pielęgniarstwa (I-II) mgr Monika Miśkiewicz/mgr Aleksandra Rachwał laboratorium Katowice, sala B405"}]},
+            {"date":"2025-11-22","day":"sobota","classes":[{"start_time":"08:00","end_time":"08:45","description":"Podstawy pielęgniarstwa (I-II) mgr Monika Miśkiewicz/mgr Aleksandra Rachwał laboratorium Katowice, sala C101.1"}]},
+            {"date":"2025-11-23","day":"niedziela","classes":[{"start_time":"08:00","end_time":"08:45","description":"Podstawy pielęgniarstwa (I-II) mgr Monika Miśkiewicz/mgr Aleksandra Rachwał laboratorium Katowice, sala A314"},{"start_time":"11:50","end_time":"12:35","description":"Badanie fizykalne w praktyce zawodowej pielęgniarki (I-II) mgr Karolina Śliwa laboratorium Katowice, sala B102"}]},
+            {"date":"2025-11-29","day":"sobota","classes":[{"start_time":"08:00","end_time":"08:45","description":"Podstawy pielęgniarstwa (I-II) mgr Monika Miśkiewicz/mgr Aleksandra Rachwał laboratorium Katowice, sala A207.1"},{"start_time":"11:50","end_time":"12:35","description":"Badanie fizykalne w praktyce zawodowej pielęgniarki (I-II) mgr Karolina Śliwa laboratorium Katowice, sala C100"}]},
+            {"date":"2025-11-30","day":"niedziela","classes":[{"start_time":"15:45","end_time":"16:30","description":"Podstawy pielęgniarstwa (I-II) mgr Monika Miśkiewicz/mgr Aleksandra Rachwał laboratorium Katowice, sala A207.1"}]},
+            {"date":"2025-12-06","day":"sobota","classes":[{"start_time":"15:45","end_time":"16:30","description":"Podstawy pielęgniarstwa (I-II) mgr Monika Miśkiewicz/mgr Aleksandra Rachwał laboratorium Katowice, sala C101.1"}]},
+            {"date":"2025-12-07","day":"niedziela","classes":[{"start_time":"08:00","end_time":"08:45","description":"Podstawy pielęgniarstwa (I-II) mgr Monika Miśkiewicz/mgr Aleksandra Rachwał laboratorium Katowice, sala B405"},{"start_time":"11:50","end_time":"12:35","description":"Badanie fizykalne w praktyce zawodowej pielęgniarki (I-II) mgr Karolina Śliwa laboratorium Katowice, sala C102"}]},
+            {"date":"2025-12-13","day":"sobota","classes":[{"start_time":"16:30","end_time":"17:15","description":"Podstawy pielęgniarstwa (I-II) mgr Monika Miśkiewicz/mgr Aleksandra Rachwał laboratorium Katowice, sala A207.1\nZMIANA GODZINY"}]},
+            {"date":"2025-12-14","day":"niedziela","classes":[{"start_time":"08:00","end_time":"08:45","description":"Podstawy pielęgniarstwa (I-II) mgr Monika Miśkiewicz/mgr Aleksandra Rachwał laboratorium Katowice, sala C100"}]},
+            {"date":"2025-12-20","day":"sobota","classes":[{"start_time":"15:45","end_time":"16:30","description":"Podstawy pielęgniarstwa (I-II) mgr Monika Miśkiewicz/mgr Aleksandra Rachwał laboratorium Katowice, sala A314"}]},
+            {"date":"2025-12-21","day":"niedziela","classes":[{"start_time":"15:45","end_time":"16:30","description":"Podstawy pielęgniarstwa (I-II) mgr Monika Miśkiewicz/mgr Aleksandra Rachwał laboratorium Katowice, sala B405"}]},
+            {"date":"2026-01-10","day":"sobota","classes":[{"start_time":"08:00","end_time":"08:45","description":"Podstawy pielęgniarstwa (I-II) mgr Monika Miśkiewicz/mgr Aleksandra Rachwał laboratorium Katowice, sala A214"}]},
+            {"date":"2026-01-17","day":"sobota","classes":[{"start_time":"15:45","end_time":"16:30","description":"Podstawy pielęgniarstwa (I-II) mgr Monika Miśkiewicz/mgr Aleksandra Rachwał laboratorium Katowice, sala A104"}]},
+            {"date":"2026-01-18","day":"niedziela","classes":[{"start_time":"16:30","end_time":"17:15","description":"Podstawy pielęgniarstwa (I-II) mgr Monika Miśkiewicz/mgr Aleksandra Rachwał laboratorium Katowice, sala B405"}]},
+            {"date":"2026-01-25","day":"niedziela","classes":[{"start_time":"08:00","end_time":"08:45","description":"Podstawy pielęgniarstwa (I-II) mgr Monika Miśkiewicz/mgr Aleksandra Rachwał laboratorium Katowice, sala A314"}]},
+            {"date":"2026-01-31","day":"sobota","classes":[{"start_time":"11:50","end_time":"12:35","description":"Badanie fizykalne w praktyce zawodowej pielęgniarki (I-II) mgr Karolina Śliwa laboratorium Katowice, sala C105"},{"start_time":"15:45","end_time":"16:30","description":"Podstawy pielęgniarstwa (I-II) mgr Monika Miśkiewicz/mgr Aleksandra Rachwał laboratorium Katowice, sala A314"}]}
+        ];
+
+        const eventsByDate = {};
+        scheduleData.forEach(day => {
+            eventsByDate[day.date] = day;
+        });
+
+        let currentDate = new Date();
+        let currentView = 'month';
+
+        const monthNames = ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 
+                          'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'];
+        const dayNames = ['Ndz', 'Pon', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob'];
+        const dayNamesFull = ['niedziela', 'poniedziałek', 'wtorek', 'środa', 'czwartek', 'piątek', 'sobota'];
+
+        function formatDate(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        function isToday(date) {
+            const today = new Date();
+            return date.getDate() === today.getDate() && 
+                   date.getMonth() === today.getMonth() && 
+                   date.getFullYear() === today.getFullYear();
+        }
+
+        function getEventClass(description) {
+            if (description.toLowerCase().includes('badanie fizykalne')) {
+                return 'badanie';
+            }
+            return 'podstawy';
+        }
+
+        function getShortTitle(description) {
+            if (description.toLowerCase().includes('badanie fizykalne')) {
+                return 'Badanie fizykalne';
+            }
+            return 'Podstawy pielęgn.';
+        }
+
+        function parseDescription(description) {
+            const lines = description.split('\n');
+            const mainLine = lines[0];
+            
+            let title = '';
+            let instructor = '';
+            let location = '';
+            
+            const match = mainLine.match(/^(.+?)\s+(mgr\s+.+?)\s+laboratorium\s+(.+)$/i);
+            if (match) {
+                title = match[1].trim();
+                instructor = match[2].trim();
+                location = match[3].trim();
+            } else {
+                title = mainLine;
+            }
+            
+            const notes = lines.slice(1).join(' ').trim();
+            
+            return { title, instructor, location, notes };
+        }
+
+        function updateStats() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            let upcoming = 0;
+            let nextClassDate = null;
+            
+            scheduleData.forEach(day => {
+                const eventDate = new Date(day.date);
+                if (eventDate >= today) {
+                    upcoming += day.classes.length;
+                    if (!nextClassDate || eventDate < nextClassDate) {
+                        nextClassDate = eventDate;
+                    }
+                }
+            });
+            
+            document.getElementById('upcomingClasses').textContent = upcoming;
+            
+            if (nextClassDate) {
+                const diffTime = nextClassDate - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                if (diffDays === 0) {
+                    document.getElementById('nextClass').textContent = 'Dziś!';
+                } else if (diffDays === 1) {
+                    document.getElementById('nextClass').textContent = 'Jutro';
+                } else {
+                    document.getElementById('nextClass').textContent = `Za ${diffDays} dni`;
+                }
+            }
+        }
+
+        function renderMonthView() {
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+            
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            document.getElementById('currentMonthLabel').textContent = 
+                `${monthNames[month]} ${year}`;
+            
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            
+            let startDay = firstDay.getDay() - 1;
+            if (startDay < 0) startDay = 6;
+            
+            const prevMonthLastDay = new Date(year, month, 0).getDate();
+            
+            for (let i = startDay - 1; i >= 0; i--) {
+                const day = prevMonthLastDay - i;
+                const date = new Date(year, month - 1, day);
+                createDayCell(date, true);
+            }
+            
+            for (let day = 1; day <= lastDay.getDate(); day++) {
+                const date = new Date(year, month, day);
+                createDayCell(date, false);
+            }
+            
+            const totalCells = grid.children.length;
+            const remainingCells = 42 - totalCells;
+            for (let day = 1; day <= remainingCells; day++) {
+                const date = new Date(year, month + 1, day);
+                createDayCell(date, true);
+            }
+        }
+
+        function createDayCell(date, isOtherMonth) {
+            const grid = document.getElementById('calendarGrid');
+            const cell = document.createElement('div');
+            cell.className = 'calendar-day';
+            
+            if (isOtherMonth) cell.classList.add('other-month');
+            if (isToday(date)) cell.classList.add('today');
+            
+            const dayOfWeek = date.getDay();
+            if (dayOfWeek === 0 || dayOfWeek === 6) {
+                cell.classList.add('weekend');
+            }
+            
+            const dateStr = formatDate(date);
+            const events = eventsByDate[dateStr];
+            
+            if (events) {
+                cell.classList.add('has-event');
+                cell.onclick = () => showModal(dateStr);
+            }
+            
+            cell.innerHTML = `
+                <div class="day-number">${date.getDate()}</div>
+                ${events ? `
+                    <div class="event-indicator">
+                        ${events.classes.map(c => `
+                            <div class="event-dot ${getEventClass(c.description)}">
+                                ${c.start_time} ${getShortTitle(c.description)}
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+            `;
+            
+            grid.appendChild(cell);
+        }
+
+        function renderWeekView() {
+            const header = document.getElementById('weekHeader');
+            const body = document.getElementById('weekBody');
+            
+            const startOfWeek = new Date(currentDate);
+            const day = startOfWeek.getDay();
+            const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
+            startOfWeek.setDate(diff);
+            
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(endOfWeek.getDate() + 6);
+            
+            document.getElementById('currentMonthLabel').textContent = 
+                `${startOfWeek.getDate()} ${monthNames[startOfWeek.getMonth()]} - ${endOfWeek.getDate()} ${monthNames[endOfWeek.getMonth()]} ${endOfWeek.getFullYear()}`;
+            
+            header.innerHTML = `
+                <div class="week-header-cell time-gutter"></div>
+                ${Array(7).fill(0).map((_, i) => {
+                    const d = new Date(startOfWeek);
+                    d.setDate(d.getDate() + i);
+                    return `
+                        <div class="week-header-cell ${isToday(d) ? 'today' : ''}">
+                            <div class="week-day-name">${dayNames[(i + 1) % 7 || 7]}</div>
+                            <div class="week-day-number">${d.getDate()}</div>
+                        </div>
+                    `;
+                }).join('')}
+            `;
+            
+            const hours = [];
+            for (let h = 7; h <= 21; h++) {
+                hours.push(`${String(h).padStart(2, '0')}:00`);
+            }
+            
+            body.innerHTML = `
+                <div class="time-column">
+                    ${hours.map(h => `<div class="time-slot">${h}</div>`).join('')}
+                </div>
+                ${Array(7).fill(0).map((_, i) => {
+                    const d = new Date(startOfWeek);
+                    d.setDate(d.getDate() + i);
+                    const dateStr = formatDate(d);
+                    const events = eventsByDate[dateStr];
+                    
+                    return `
+                        <div class="day-column">
+                            ${hours.map(() => '<div class="hour-line"></div>').join('')}
+                            ${events ? events.classes.map(c => {
+                                const startParts = c.start_time.split(':');
+                                const endParts = c.end_time.split(':');
+                                const startHour = parseInt(startParts[0]);
+                                const startMin = parseInt(startParts[1]);
+                                const endHour = parseInt(endParts[0]);
+                                const endMin = parseInt(endParts[1]);
+                                
+                                const top = (startHour - 7) * 60 + startMin;
+                                const height = (endHour - startHour) * 60 + (endMin - startMin);
+                                const parsed = parseDescription(c.description);
+                                
+                                return `
+                                    <div class="week-event ${getEventClass(c.description)}" 
+                                         style="top: ${top}px; height: ${Math.max(height, 40)}px;"
+                                         onclick="showModal('${dateStr}')">
+                                        <div class="week-event-time">${c.start_time} - ${c.end_time}</div>
+                                        <div class="week-event-title">${parsed.title}</div>
+                                        ${parsed.location ? `<div class="week-event-location">📍 ${parsed.location}</div>` : ''}
+                                    </div>
+                                `;
+                            }).join('') : ''}
+                        </div>
+                    `;
+                }).join('')}
+            `;
+        }
+
+        function showModal(dateStr) {
+            const data = eventsByDate[dateStr];
+            if (!data) return;
+            
+            const date = new Date(dateStr);
+            const options = { day: 'numeric', month: 'long', year: 'numeric' };
+            
+            document.getElementById('modalDate').textContent = date.toLocaleDateString('pl-PL', options);
+            document.getElementById('modalDay').textContent = data.day;
+            
+            const body = document.getElementById('modalBody');
+            body.innerHTML = data.classes.map(c => {
+                const parsed = parseDescription(c.description);
+                return `
+                    <div class="modal-event">
+                        <div class="modal-event-time">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            ${c.start_time} - ${c.end_time}
+                        </div>
+                        <div class="modal-event-title">${parsed.title}</div>
+                        <div class="modal-event-details">
+                            ${parsed.instructor ? `<div>👩‍🏫 ${parsed.instructor}</div>` : ''}
+                            ${parsed.notes ? `<div style="color: var(--event-secondary); margin-top: 8px;">⚠️ ${parsed.notes}</div>` : ''}
+                        </div>
+                        ${parsed.location ? `
+                            <div class="modal-event-location">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                    <circle cx="12" cy="10" r="3"></circle>
+                                </svg>
+                                ${parsed.location}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('modalOverlay').classList.add('active');
+        }
+
+        function hideModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+        }
+
+        function render() {
+            if (currentView === 'month') {
+                document.querySelector('.month-view').classList.remove('hidden');
+                document.querySelector('.week-view').classList.remove('active');
+                renderMonthView();
+            } else {
+                document.querySelector('.month-view').classList.add('hidden');
+                document.querySelector('.week-view').classList.add('active');
+                renderWeekView();
+            }
+        }
+
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentView = btn.dataset.view;
+                render();
+            });
+        });
+
+        document.getElementById('prevBtn').addEventListener('click', () => {
+            if (currentView === 'month') {
+                currentDate.setMonth(currentDate.getMonth() - 1);
+            } else {
+                currentDate.setDate(currentDate.getDate() - 7);
+            }
+            render();
+        });
+
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            if (currentView === 'month') {
+                currentDate.setMonth(currentDate.getMonth() + 1);
+            } else {
+                currentDate.setDate(currentDate.getDate() + 7);
+            }
+            render();
+        });
+
+        document.getElementById('todayBtn').addEventListener('click', () => {
+            currentDate = new Date();
+            render();
+        });
+
+        document.getElementById('modalClose').addEventListener('click', hideModal);
+        document.getElementById('modalOverlay').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) hideModal();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') hideModal();
+        });
+
+        // Initialize
+        updateStats();
+        render();
+    </script>
+</body>
+</html>
