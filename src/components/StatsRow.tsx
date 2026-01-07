@@ -7,13 +7,13 @@ interface StatsRowProps {
 }
 
 export function StatsRow({ scheduleData }: StatsRowProps) {
-  const { totalClasses, upcomingClasses, nextClassText } = useStats(scheduleData);
+  const { remainingClasses, thisWeekClasses, nextClassText } = useStats(scheduleData);
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-      <StatCard value={totalClasses} label="Wszystkie zajecia" />
-      <StatCard value={upcomingClasses} label="Nadchodzace" />
-      <StatCard value={nextClassText} label="Nastepne zajecia" />
+      <StatCard value={remainingClasses} label="Pozostałe zajęcia" />
+      <StatCard value={thisWeekClasses} label="W tym tygodniu" />
+      <StatCard value={nextClassText} label="Następne zajęcia" />
     </div>
   );
 }
