@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { ScheduleDay } from '../types';
+import { ScheduleDay, ClassEvent, GroupId } from '../types';
 import { parseDescription } from '../utils/eventUtils';
 import { getGroupColor } from '../constants/groupColors';
 
@@ -7,6 +7,37 @@ interface EventModalProps {
   isOpen: boolean;
   onClose: () => void;
   data: ScheduleDay | null;
+}
+
+interface MergedClass {
+  start_time: string;
+  end_time: string;
+  description: string;
+  groups: GroupId[];
+}
+
+function mergeClasses(classes: ClassEvent[]): MergedClass[] {
+  const merged = new Map<string, MergedClass>();
+
+  for (const cls of classes) {
+    const key = `${cls.start_time}-${cls.end_time}-${cls.description}`;
+    if (merged.has(key)) {
+      const existing = merged.get(key)!;
+      if (!existing.groups.includes(cls.group)) {
+        existing.groups.push(cls.group);
+      }
+    } else {
+      merged.set(key, {
+        start_time: cls.start_time,
+        end_time: cls.end_time,
+        description: cls.description,
+        groups: [cls.group]
+      });
+    }
+  }
+
+  return Array.from(merged.values())
+    .sort((a, b) => a.start_time.localeCompare(b.start_time));
 }
 
 export function EventModal({ isOpen, onClose, data }: EventModalProps) {
@@ -60,32 +91,39 @@ export function EventModal({ isOpen, onClose, data }: EventModalProps) {
 
         {/* Modal Body */}
         <div className="p-6">
-          {data.classes.map((classEvent, index) => {
-            const parsed = parseDescription(classEvent.description);
-            const groupColor = getGroupColor(classEvent.group);
+          {mergeClasses(data.classes).map((mergedClass, index) => {
+            const parsed = parseDescription(mergedClass.description);
 
             return (
               <div
                 key={index}
                 className="p-5 bg-bg-secondary rounded-xl border border-border mb-4 last:mb-0"
               >
-                <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center justify-between mb-3 gap-2">
                   <div className="font-mono text-sm text-accent-secondary font-medium flex items-center gap-2">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <circle cx="12" cy="12" r="10" />
                       <polyline points="12 6 12 12 16 14" />
                     </svg>
-                    {classEvent.start_time} - {classEvent.end_time}
+                    {mergedClass.start_time} - {mergedClass.end_time}
                   </div>
-                  <span
-                    className="px-2.5 py-1 rounded-md text-xs font-semibold"
-                    style={{
-                      background: groupColor.backgroundGradient,
-                      color: groupColor.text
-                    }}
-                  >
-                    {classEvent.group}
-                  </span>
+                  <div className="flex gap-1 flex-wrap justify-end">
+                    {mergedClass.groups.sort().map(group => {
+                      const groupColor = getGroupColor(group);
+                      return (
+                        <span
+                          key={group}
+                          className="px-2.5 py-1 rounded-md text-xs font-semibold"
+                          style={{
+                            background: groupColor.backgroundGradient,
+                            color: groupColor.text
+                          }}
+                        >
+                          {group}
+                        </span>
+                      );
+                    })}
+                  </div>
                 </div>
                 <div className="text-base font-semibold text-text-primary mb-2 leading-relaxed">
                   {parsed.title}

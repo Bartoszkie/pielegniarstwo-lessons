@@ -45,10 +45,88 @@ export async function parseExcelFile(file: File): Promise<ParseResult> {
     // Convert to JSON array (rows)
     const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 }) as unknown[][];
 
+    // Handle merged cells - SELECTIVELY copy values for shared classes only
+    // Only handle small merges (2 rows max) in time slot columns to avoid
+    // copying large holiday break regions to all cells
+    const merges = sheet['!merges'] || [];
+
+    for (const merge of merges) {
+      const startRow = merge.s.r;
+      const startCol = merge.s.c;
+      const endRow = merge.e.r;
+      const endCol = merge.e.c;
+
+      // Skip merges that span more than 2 rows (likely holidays/headers)
+      const rowSpan = endRow - startRow + 1;
+      if (rowSpan > 2) continue;
+
+      // Only process merges in time slot columns (2-18)
+      if (startCol < 2 || startCol > 18) continue;
+
+      // Get the value from the top-left cell
+      const sourceValue = rows[startRow]?.[startCol];
+
+      if (sourceValue !== undefined && sourceValue !== null) {
+        const valueStr = String(sourceValue);
+        // Skip if it looks like a holiday/break message
+        if (valueStr.toUpperCase().includes('PRZERWA') ||
+            valueStr.toUpperCase().includes('ŚWIĘT') ||
+            valueStr.toUpperCase().includes('SWIAT')) continue;
+
+        // Copy to other cells in the merge (shared class between groups)
+        for (let r = startRow; r <= endRow; r++) {
+          for (let c = startCol; c <= endCol; c++) {
+            if (r !== startRow || c !== startCol) {
+              if (!rows[r]) rows[r] = [];
+              (rows[r] as unknown[])[c] = sourceValue;
+            }
+          }
+        }
+      }
+    }
+
+    // Dynamically find GRUPA column from header row (row index 3 = Excel row 4)
+    const headerRow = rows[3] as unknown[];
+    let grupaColIndex = -1;
+
+    // Search header row for GRUPA column
+    if (headerRow) {
+      for (let i = 0; i < headerRow.length; i++) {
+        const header = String(headerRow[i] || '').trim().toUpperCase();
+        if (header === 'GRUPA') {
+          grupaColIndex = i;
+          break;
+        }
+      }
+    }
+
+    // Fallback: if GRUPA header not found, detect by finding valid group values in first data row
+    if (grupaColIndex === -1) {
+      const firstDataRow = rows[4];
+      if (firstDataRow) {
+        for (let testCol = 15; testCol < Math.min(firstDataRow.length, 30); testCol++) {
+          const testValue = String(firstDataRow[testCol] || '').trim().toUpperCase();
+          if (ALL_GROUPS.includes(testValue as GroupId)) {
+            grupaColIndex = testCol;
+            break;
+          }
+        }
+      }
+    }
+
+    if (grupaColIndex === -1) {
+      return {
+        success: false,
+        data: [],
+        groups: [],
+        errors: ['Nie znaleziono kolumny GRUPA w pliku Excel']
+      };
+    }
+
     // Skip header rows (0-3), start from row 4 (index 4)
     for (let rowIndex = 4; rowIndex < rows.length; rowIndex++) {
       const row = rows[rowIndex];
-      if (!row || row.length < 20) continue;
+      if (!row || row.length < grupaColIndex) continue;
 
       // Column A: Date (index 0)
       const dateValue = row[0];
@@ -60,8 +138,8 @@ export async function parseExcelFile(file: File): Promise<ParseResult> {
         continue;
       }
 
-      // Column T: Group (index 19)
-      const groupValue = String(row[19] || '').trim().toUpperCase();
+      // Get group from dynamically detected column
+      const groupValue = String(row[grupaColIndex] || '').trim().toUpperCase();
       if (!isValidGroup(groupValue)) {
         if (groupValue) {
           errors.push(`Row ${rowIndex + 1}: Invalid group "${groupValue}"`);
