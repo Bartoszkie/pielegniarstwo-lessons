@@ -1,6 +1,7 @@
 import { ScheduleDay } from '../types';
 import { getStartOfWeek, formatDate, isToday, DAY_NAMES } from '../utils/dateUtils';
 import { WeekEvent } from './WeekEvent';
+import { mergeClasses } from '../utils/classMerger';
 
 interface WeekViewProps {
   currentDate: Date;
@@ -71,7 +72,7 @@ export function WeekView({ currentDate, eventsByDate, onDayClick }: WeekViewProp
               {HOURS.map((_, hourIndex) => (
                 <div key={hourIndex} className="h-[60px] border-b border-border" />
               ))}
-              {dayEvents?.classes.map((event, eventIndex) => (
+              {dayEvents && mergeClasses(dayEvents.classes).map((event, eventIndex) => (
                 <WeekEvent
                   key={eventIndex}
                   event={event}

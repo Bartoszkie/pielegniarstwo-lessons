@@ -1,5 +1,6 @@
 import { ScheduleDay } from '../types';
 import { EventIndicator } from './EventIndicator';
+import { mergeClasses } from '../utils/classMerger';
 
 interface CalendarDayProps {
   date: Date;
@@ -19,6 +20,7 @@ export function CalendarDay({
   onClick,
 }: CalendarDayProps) {
   const hasEvents = events && events.classes.length > 0;
+  const mergedEvents = events ? mergeClasses(events.classes) : [];
 
   return (
     <div
@@ -42,10 +44,10 @@ export function CalendarDay({
       >
         {date.getDate()}
       </div>
-      {events && (
+      {mergedEvents.length > 0 && (
         <div className="flex flex-col gap-1 mt-1">
-          {events.classes.map((classEvent, index) => (
-            <EventIndicator key={index} event={classEvent} />
+          {mergedEvents.map((mergedClass, index) => (
+            <EventIndicator key={index} event={mergedClass} />
           ))}
         </div>
       )}

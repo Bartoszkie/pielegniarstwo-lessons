@@ -1,15 +1,16 @@
-import { ClassEvent } from '../types';
+import { MergedClass } from '../utils/classMerger';
 import { parseDescription } from '../utils/eventUtils';
 import { getGroupStyle } from '../constants/groupColors';
 
 interface WeekEventProps {
-  event: ClassEvent;
+  event: MergedClass;
   onClick: () => void;
 }
 
 export function WeekEvent({ event, onClick }: WeekEventProps) {
   const parsed = parseDescription(event.description);
-  const groupStyle = getGroupStyle(event.group);
+  const groupStyle = getGroupStyle(event.groups[0]);
+  const groupsLabel = event.groups.sort().join(' ');
 
   const startParts = event.start_time.split(':');
   const endParts = event.end_time.split(':');
@@ -28,7 +29,7 @@ export function WeekEvent({ event, onClick }: WeekEventProps) {
       style={{ top: `${top}px`, height: `${height}px`, ...groupStyle }}
     >
       <div className="font-mono font-medium mb-1 opacity-90">
-        <span className="opacity-70">[{event.group}]</span> {event.start_time} - {event.end_time}
+        <span className="opacity-70">[{groupsLabel}]</span> {event.start_time} - {event.end_time}
       </div>
       <div className="font-semibold leading-tight">{parsed.title}</div>
       {parsed.location && (
