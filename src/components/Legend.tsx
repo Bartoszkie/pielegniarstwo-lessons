@@ -24,7 +24,7 @@ export function Legend({
   }
 
   return (
-    <div className="w-[200px] shrink-0 p-4 bg-bg-secondary rounded-[12px] border border-border self-start sticky top-6">
+    <div className="w-full lg:w-[200px] shrink-0 p-3 lg:p-4 bg-bg-secondary rounded-[12px] border border-border self-start lg:sticky lg:top-6">
       {/* Header */}
       <div className="mb-4">
         <span className="text-sm font-semibold text-text-primary block mb-3">
@@ -52,8 +52,8 @@ export function Legend({
         </div>
       </div>
 
-      {/* Group toggles - vertical grid */}
-      <div className="grid grid-cols-2 gap-2">
+      {/* Group toggles - responsive grid */}
+      <div className="grid grid-cols-4 lg:grid-cols-2 gap-1.5 lg:gap-2">
         {availableGroups.map(group => {
           const color = GROUP_COLORS[group];
           const isSelected = selectedGroups.has(group);
@@ -63,8 +63,8 @@ export function Legend({
               key={group}
               onClick={() => onToggleGroup(group)}
               className={`
-                flex items-center justify-center gap-1 px-2 py-2 rounded-lg
-                text-sm font-medium transition-all duration-200
+                flex items-center justify-center gap-0.5 lg:gap-1 px-1.5 lg:px-2 py-1.5 lg:py-2 rounded-lg
+                text-xs lg:text-sm font-medium transition-all duration-200
                 ${isSelected
                   ? 'ring-2 ring-offset-2 ring-offset-bg-secondary'
                   : 'opacity-40 hover:opacity-70'

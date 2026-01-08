@@ -14,10 +14,10 @@ export function EventIndicator({ event }: EventIndicatorProps) {
 
   return (
     <div
-      className="px-2.5 py-1.5 rounded-md text-[11px] font-medium whitespace-nowrap overflow-hidden text-ellipsis transition-transform duration-150 hover:scale-[1.02]"
+      className="px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-md text-[9px] sm:text-[11px] font-medium whitespace-nowrap overflow-hidden text-ellipsis transition-transform duration-150 hover:scale-[1.02]"
       style={groupStyle}
     >
-      <span className="opacity-70">[{groupsLabel}]</span> {event.start_time} {shortTitle}
+      <span className="opacity-70">[{groupsLabel}]</span> {event.start_time} <span className="hidden sm:inline">{shortTitle}</span>
     </div>
   );
 }

@@ -25,7 +25,7 @@ export function CalendarDay({
   return (
     <div
       onClick={hasEvents ? onClick : undefined}
-      className={`min-h-[120px] p-3 border-r border-b border-border bg-bg-secondary transition-colors duration-200 relative
+      className={`min-h-[70px] sm:min-h-[100px] lg:min-h-[120px] p-1.5 sm:p-2 lg:p-3 border-r border-b border-border bg-bg-secondary transition-colors duration-200 relative
         ${isOtherMonth ? 'opacity-30' : ''}
         ${isToday ? 'bg-today shadow-[inset_0_0_0_2px_#6366f1]' : ''}
         ${hasEvents ? 'cursor-pointer' : 'cursor-default'}
@@ -34,7 +34,7 @@ export function CalendarDay({
       `}
     >
       <div
-        className={`text-sm font-semibold mb-2 ${
+        className={`text-xs sm:text-sm font-semibold mb-1 sm:mb-2 ${
           isToday
             ? 'text-accent-secondary font-bold'
             : isWeekend
@@ -45,10 +45,15 @@ export function CalendarDay({
         {date.getDate()}
       </div>
       {mergedEvents.length > 0 && (
-        <div className="flex flex-col gap-1 mt-1">
-          {mergedEvents.map((mergedClass, index) => (
+        <div className="flex flex-col gap-0.5 sm:gap-1 mt-0.5 sm:mt-1">
+          {mergedEvents.slice(0, 2).map((mergedClass, index) => (
             <EventIndicator key={index} event={mergedClass} />
           ))}
+          {mergedEvents.length > 2 && (
+            <div className="text-[9px] sm:text-[10px] text-text-muted font-medium">
+              +{mergedEvents.length - 2} więcej
+            </div>
+          )}
         </div>
       )}
     </div>

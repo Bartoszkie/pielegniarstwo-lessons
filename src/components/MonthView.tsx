@@ -8,7 +8,8 @@ interface MonthViewProps {
   onDayClick: (dateStr: string) => void;
 }
 
-const DAY_HEADERS = ['Pon', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob', 'Ndz'];
+const DAY_HEADERS_SHORT = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'So', 'Nd'];
+const DAY_HEADERS_FULL = ['Pon', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob', 'Ndz'];
 
 export function MonthView({ currentDate, eventsByDate, onDayClick }: MonthViewProps) {
   const year = currentDate.getFullYear();
@@ -18,12 +19,13 @@ export function MonthView({ currentDate, eventsByDate, onDayClick }: MonthViewPr
   return (
     <div>
       <div className="grid grid-cols-7 border-b border-border bg-bg-card">
-        {DAY_HEADERS.map((day) => (
+        {DAY_HEADERS_SHORT.map((day, index) => (
           <div
             key={day}
-            className="p-4 text-center text-xs font-semibold uppercase tracking-widest text-text-muted"
+            className="p-2 sm:p-4 text-center text-[10px] sm:text-xs font-semibold uppercase tracking-wide sm:tracking-widest text-text-muted"
           >
-            {day}
+            <span className="sm:hidden">{day}</span>
+            <span className="hidden sm:inline">{DAY_HEADERS_FULL[index]}</span>
           </div>
         ))}
       </div>

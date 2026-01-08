@@ -42,7 +42,7 @@ export default function App() {
     <>
       <BackgroundEffects />
 
-      <div className="max-w-[1400px] mx-auto px-6 py-10">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-6 sm:py-10">
         <Header
           currentView={view}
           onViewChange={setView}
@@ -64,7 +64,7 @@ export default function App() {
           <>
             <StatsRow scheduleData={scheduleData} />
 
-            <div className="flex gap-6">
+            <div className="flex flex-col-reverse lg:flex-row gap-4 lg:gap-6">
               <div className="flex-1 min-w-0">
                 <Calendar
                   view={view}

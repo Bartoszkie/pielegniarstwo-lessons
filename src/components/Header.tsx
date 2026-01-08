@@ -24,12 +24,12 @@ export function Header({
   onClearData,
 }: HeaderProps) {
   return (
-    <header className="flex justify-between items-start mb-12 flex-wrap gap-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight mb-2 bg-gradient-to-br from-text-primary to-text-secondary bg-clip-text text-transparent">
+    <header className="flex flex-col sm:flex-row justify-between items-center sm:items-start mb-6 sm:mb-12 gap-4 sm:gap-6">
+      <div className="text-center sm:text-left">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2 bg-gradient-to-br from-text-primary to-text-secondary bg-clip-text text-transparent">
           Plan Zajec
         </h1>
-        <div className="flex items-center gap-3 text-text-muted text-sm">
+        <div className="flex items-center justify-center sm:justify-start gap-2 sm:gap-3 text-text-muted text-xs sm:text-sm flex-wrap">
           <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-accent-glow border border-[rgba(99,102,241,0.2)] rounded-full text-xs font-semibold text-accent-secondary">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -43,7 +43,7 @@ export function Header({
         </div>
       </div>
 
-      <div className="flex gap-3 items-center flex-wrap">
+      <div className="flex gap-2 sm:gap-3 items-center flex-wrap justify-center sm:justify-end">
         {isDataLoaded && onClearData && (
           <button
             onClick={onClearData}

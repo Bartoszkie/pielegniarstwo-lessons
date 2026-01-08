@@ -20,22 +20,23 @@ export function WeekView({ currentDate, eventsByDate, onDayClick }: WeekViewProp
   });
 
   return (
-    <div>
+    <div className="overflow-x-auto">
+      <div className="min-w-[700px]">
       {/* Week Header */}
-      <div className="grid grid-cols-[80px_repeat(7,1fr)] border-b border-border bg-bg-card">
-        <div className="p-5" />
+      <div className="grid grid-cols-[60px_repeat(7,1fr)] sm:grid-cols-[80px_repeat(7,1fr)] border-b border-border bg-bg-card">
+        <div className="p-3 sm:p-5" />
         {weekDays.map((date, index) => (
           <div
             key={index}
-            className={`py-5 px-3 text-center ${isToday(date) ? 'today' : ''}`}
+            className={`py-3 sm:py-5 px-2 sm:px-3 text-center ${isToday(date) ? 'today' : ''}`}
           >
-            <div className="text-xs font-semibold uppercase tracking-widest text-text-muted mb-1">
+            <div className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide sm:tracking-widest text-text-muted mb-1">
               {DAY_NAMES[(index + 1) % 7 || 7]}
             </div>
             <div
-              className={`text-2xl font-bold ${
+              className={`text-lg sm:text-2xl font-bold ${
                 isToday(date)
-                  ? 'w-11 h-11 mx-auto flex items-center justify-center bg-accent-primary rounded-full text-text-primary'
+                  ? 'w-8 h-8 sm:w-11 sm:h-11 mx-auto flex items-center justify-center bg-accent-primary rounded-full text-text-primary'
                   : 'text-text-secondary'
               }`}
             >
@@ -46,13 +47,13 @@ export function WeekView({ currentDate, eventsByDate, onDayClick }: WeekViewProp
       </div>
 
       {/* Week Body */}
-      <div className="grid grid-cols-[80px_repeat(7,1fr)] max-h-[600px] overflow-y-auto">
+      <div className="grid grid-cols-[60px_repeat(7,1fr)] sm:grid-cols-[80px_repeat(7,1fr)] max-h-[500px] sm:max-h-[600px] overflow-y-auto">
         {/* Time Column */}
         <div className="border-r border-border">
           {HOURS.map((hour) => (
             <div
               key={hour}
-              className="h-[60px] p-2 text-xs font-mono text-text-muted text-right border-b border-border"
+              className="h-[50px] sm:h-[60px] p-1.5 sm:p-2 text-[10px] sm:text-xs font-mono text-text-muted text-right border-b border-border"
             >
               {hour}
             </div>
@@ -67,10 +68,10 @@ export function WeekView({ currentDate, eventsByDate, onDayClick }: WeekViewProp
           return (
             <div
               key={dayIndex}
-              className="border-r border-border relative min-h-[840px] last:border-r-0"
+              className="border-r border-border relative min-h-[700px] sm:min-h-[840px] last:border-r-0"
             >
               {HOURS.map((_, hourIndex) => (
-                <div key={hourIndex} className="h-[60px] border-b border-border" />
+                <div key={hourIndex} className="h-[50px] sm:h-[60px] border-b border-border" />
               ))}
               {dayEvents && mergeClasses(dayEvents.classes).map((event, eventIndex) => (
                 <WeekEvent
@@ -82,6 +83,7 @@ export function WeekView({ currentDate, eventsByDate, onDayClick }: WeekViewProp
             </div>
           );
         })}
+      </div>
       </div>
     </div>
   );

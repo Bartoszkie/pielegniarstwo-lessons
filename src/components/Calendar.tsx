@@ -11,7 +11,7 @@ interface CalendarProps {
 
 export function Calendar({ view, currentDate, eventsByDate, onDayClick }: CalendarProps) {
   return (
-    <div className="bg-bg-secondary rounded-[20px] border border-border overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.4)]">
+    <div className="bg-bg-secondary rounded-[12px] sm:rounded-[20px] border border-border overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.3)] sm:shadow-[0_20px_60px_rgba(0,0,0,0.4)]">
       {view === 'month' ? (
         <MonthView
           currentDate={currentDate}
