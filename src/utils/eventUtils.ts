@@ -1,17 +1,26 @@
-import { EventType, ParsedEvent } from '../types';
-
-export function getEventClass(description: string): EventType {
-  if (description.toLowerCase().includes('badanie fizykalne')) {
-    return 'badanie';
-  }
-  return 'podstawy';
-}
+import { ParsedEvent } from '../types';
 
 export function getShortTitle(description: string): string {
-  if (description.toLowerCase().includes('badanie fizykalne')) {
-    return 'Badanie fizykalne';
+  // Extract the title - typically the first part before "mgr" or instructor info
+  const lines = description.split('\n');
+  const mainLine = lines[0];
+
+  // Try to extract title before instructor name (mgr, dr, lek, etc.)
+  const instructorMatch = mainLine.match(/^(.+?)\s+(mgr|dr|lek|prof)\s/i);
+  let title = instructorMatch ? instructorMatch[1].trim() : mainLine;
+
+  // If no match, try to get just the subject name (first meaningful part)
+  if (!instructorMatch) {
+    // Remove room/location info at the end (e.g., "sala A214", "Katowice")
+    title = title.replace(/\s+(sala\s+\S+|Katowice.*|laboratorium.*)$/i, '').trim();
   }
-  return 'Podstawy pielęgn.';
+
+  // Truncate if too long (max ~20 chars for display)
+  if (title.length > 20) {
+    return title.substring(0, 18) + '...';
+  }
+
+  return title;
 }
 
 export function parseDescription(description: string): ParsedEvent {
