@@ -113,3 +113,12 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #32323f;
 }
+
+/* Button press effect - subtle scale down on active */
+.btn-press {
+  transition: transform 0.1s ease;
+}
+
+.btn-press:active {
+  transform: scale(0.96);
+}

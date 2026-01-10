@@ -45,11 +45,14 @@ export function Legend({
     return null;
   }
 
+  // Get selected groups for display when collapsed
+  const selectedGroupsList = Array.from(selectedGroups);
+
   return (
     <div className="w-full lg:w-[200px] shrink-0 p-3 lg:p-4 bg-bg-secondary rounded-[12px] border border-border self-start lg:sticky lg:top-6">
       {/* Header with toggle */}
       <div
-        className="flex items-center justify-between cursor-pointer select-none"
+        className="flex items-center justify-between cursor-pointer select-none btn-press"
         onClick={toggleExpanded}
       >
         <span className="text-sm font-semibold text-text-primary">
@@ -66,15 +69,26 @@ export function Legend({
         </svg>
       </div>
 
-      {/* Collapsible content */}
-      {isExpanded && (
-        <>
+      {/* Show selected groups when collapsed */}
+      {!isExpanded && selectedGroups.size > 0 && selectedGroups.size < availableGroups.length && (
+        <div className="mt-2 text-xs text-text-muted truncate">
+          Wybrane:{' '}
+          <span className="text-text-secondary">
+            {selectedGroupsList.slice(0, 4).join(', ')}
+            {selectedGroups.size > 4 && ` +${selectedGroups.size - 4}`}
+          </span>
+        </div>
+      )}
+
+      {/* Collapsible content with smooth animation */}
+      <div className={`grid transition-[grid-template-rows] duration-200 ease-out ${isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
+        <div className="overflow-hidden">
           {/* All/None buttons */}
           <div className="flex gap-2 mt-3 mb-4">
             <button
               onClick={(e) => { e.stopPropagation(); onSelectAll(); }}
               disabled={allSelected}
-              className="flex-1 px-2 py-1.5 text-xs font-medium text-text-secondary
+              className="btn-press flex-1 px-2 py-1.5 text-xs font-medium text-text-secondary
                          bg-bg-hover rounded-lg transition-colors
                          hover:text-text-primary disabled:opacity-40 disabled:cursor-not-allowed"
             >
@@ -83,7 +97,7 @@ export function Legend({
             <button
               onClick={(e) => { e.stopPropagation(); onDeselectAll(); }}
               disabled={noneSelected}
-              className="flex-1 px-2 py-1.5 text-xs font-medium text-text-secondary
+              className="btn-press flex-1 px-2 py-1.5 text-xs font-medium text-text-secondary
                          bg-bg-hover rounded-lg transition-colors
                          hover:text-text-primary disabled:opacity-40 disabled:cursor-not-allowed"
             >
@@ -102,7 +116,7 @@ export function Legend({
                   key={group}
                   onClick={() => onToggleGroup(group)}
                   className={`
-                    flex items-center justify-center gap-0.5 lg:gap-1 px-1.5 lg:px-2 py-1.5 lg:py-2 rounded-lg
+                    btn-press flex items-center justify-center gap-0.5 lg:gap-1 px-1.5 lg:px-2 py-1.5 lg:py-2 rounded-lg
                     text-xs lg:text-sm font-medium transition-all duration-200
                     ${isSelected
                       ? 'ring-2 ring-offset-2 ring-offset-bg-secondary'
@@ -126,8 +140,8 @@ export function Legend({
               );
             })}
           </div>
-        </>
-      )}
+        </div>
+      </div>
     </div>
   );
 }
