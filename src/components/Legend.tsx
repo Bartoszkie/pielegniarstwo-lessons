@@ -123,7 +123,7 @@ export function Legend({
           </div>
 
           {/* Group toggles - responsive grid */}
-          <div className="grid grid-cols-4 lg:grid-cols-2 gap-1.5 lg:gap-2">
+          <div className="grid grid-cols-4 lg:grid-cols-2 gap-1.5 lg:gap-2 pb-2">
             {availableGroups.map(group => {
               const color = GROUP_COLORS[group];
               const isSelected = selectedGroups.has(group);
