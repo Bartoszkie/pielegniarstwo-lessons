@@ -108,14 +108,13 @@ export function useSchedule(): UseScheduleReturn {
       setRawScheduleData(result.data);
       setAvailableGroups(result.groups);
 
-      // Select all groups by default
-      const allGroups = new Set(result.groups);
-      setSelectedGroups(allGroups);
+      // No groups selected by default - user must choose
+      setSelectedGroups(new Set());
 
       // Persist to localStorage
       saveToStorage(STORAGE_KEYS.DATA, result.data);
       saveToStorage(STORAGE_KEYS.GROUPS, result.groups);
-      saveToStorage(STORAGE_KEYS.SELECTED, result.groups);
+      saveToStorage(STORAGE_KEYS.SELECTED, []);
 
       if (result.errors.length > 0) {
         console.warn('Parser warnings:', result.errors);

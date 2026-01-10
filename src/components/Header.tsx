@@ -11,6 +11,7 @@ interface HeaderProps {
   label: string;
   isDataLoaded?: boolean;
   onClearData?: () => void;
+  onHowItWorks?: () => void;
 }
 
 export function Header({
@@ -22,13 +23,29 @@ export function Header({
   label,
   isDataLoaded,
   onClearData,
+  onHowItWorks,
 }: HeaderProps) {
   return (
     <header className="flex flex-col sm:flex-row justify-between items-center sm:items-start mb-6 sm:mb-12 gap-4 sm:gap-6">
       <div className="text-center sm:text-left">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2 bg-gradient-to-br from-text-primary to-text-secondary bg-clip-text text-transparent">
-          Plan Zajec
-        </h1>
+        <div className="flex items-center justify-center sm:justify-start gap-3 mb-2">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight bg-gradient-to-br from-text-primary to-text-secondary bg-clip-text text-transparent">
+            Plan Zajec
+          </h1>
+          {onHowItWorks && (
+            <button
+              onClick={onHowItWorks}
+              className="px-3 py-1.5 text-xs font-medium text-white bg-white/10 border border-white/20 rounded-lg transition-all hover:bg-white/20 hover:border-white/30 flex items-center gap-1.5"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+              Jak to działa?
+            </button>
+          )}
+        </div>
         <div className="flex items-center justify-center sm:justify-start gap-2 sm:gap-3 text-text-muted text-xs sm:text-sm flex-wrap">
           <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-accent-glow border border-[rgba(99,102,241,0.2)] rounded-full text-xs font-semibold text-accent-secondary">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -47,9 +64,9 @@ export function Header({
         {isDataLoaded && onClearData && (
           <button
             onClick={onClearData}
-            className="px-4 py-2 text-sm font-medium text-text-secondary bg-bg-secondary border border-border rounded-xl transition-colors hover:bg-bg-hover hover:text-text-primary"
+            className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-emerald-600 to-emerald-500 border border-emerald-500/50 rounded-xl transition-all hover:from-emerald-500 hover:to-emerald-400 hover:shadow-lg hover:shadow-emerald-500/25"
           >
-            Wczytaj nowy plik
+            Prześlij nowy plan zajęć
           </button>
         )}
         {isDataLoaded && (
