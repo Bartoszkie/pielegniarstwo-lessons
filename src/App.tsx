@@ -89,7 +89,10 @@ export default function App() {
                     Plan zajęć poprawnie załadowany!
                   </p>
                   <p className="text-sm text-text-secondary">
-                    Wybierz grupę w panelu po prawej stronie, aby zobaczyć plan zajęć
+                    Wybierz grupę w panelu{' '}
+                    <span className="hidden lg:inline">po prawej stronie</span>
+                    <span className="lg:hidden">poniżej</span>
+                    , aby zobaczyć plan zajęć
                   </p>
                 </div>
               </div>

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { ViewType } from '../types';
 import { ViewToggle } from './ViewToggle';
 import { NavigationControls } from './NavigationControls';
@@ -25,6 +26,26 @@ export function Header({
   onClearData,
   onHowItWorks,
 }: HeaderProps) {
+  const [isViewControlsExpanded, setIsViewControlsExpanded] = useState(() => {
+    try {
+      const saved = localStorage.getItem('view-controls-expanded');
+      return saved !== 'false';
+    } catch {
+      return true;
+    }
+  });
+
+  const toggleViewControls = () => {
+    setIsViewControlsExpanded(prev => {
+      const newValue = !prev;
+      try {
+        localStorage.setItem('view-controls-expanded', String(newValue));
+      } catch {
+        // Ignore localStorage errors
+      }
+      return newValue;
+    });
+  };
   return (
     <header className="mb-4 sm:mb-8 space-y-3 sm:space-y-4">
       {/* Section 1: Navbar */}
@@ -74,18 +95,56 @@ export function Header({
       {/* Section 2: View Controls */}
       {isDataLoaded && (
         <div className="bg-bg-secondary border border-border rounded-xl p-3 sm:p-4">
-          {/* Date label on top */}
-          <div className="text-sm sm:text-lg font-semibold text-text-primary text-center mb-3">
-            {label}
+          {/* Header - always visible */}
+          <div
+            className="flex items-center justify-between cursor-pointer select-none btn-press"
+            onClick={toggleViewControls}
+          >
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-md bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <rect x="3" y="4" width="18" height="18" rx="2" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                  <line x1="9" y1="2" x2="9" y2="6" />
+                  <line x1="15" y1="2" x2="15" y2="6" />
+                </svg>
+              </div>
+              <span className="text-sm font-semibold text-text-primary">{label}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {!isViewControlsExpanded && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onToday(); }}
+                  className="btn-press px-3 py-1 text-xs font-medium text-text-secondary bg-bg-hover rounded-lg transition-colors hover:text-text-primary"
+                >
+                  Dziś
+                </button>
+              )}
+              <svg
+                className={`w-5 h-5 text-text-muted transition-transform duration-200 ${isViewControlsExpanded ? 'rotate-180' : ''}`}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </div>
           </div>
-          {/* Controls row */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
-            <ViewToggle currentView={currentView} onViewChange={onViewChange} />
-            <NavigationControls
-              onPrev={onPrev}
-              onNext={onNext}
-              onToday={onToday}
-            />
+
+          {/* Collapsible content */}
+          <div className={`grid transition-[grid-template-rows] duration-200 ease-out ${isViewControlsExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
+            <div className="overflow-hidden">
+              {/* Controls row */}
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 pt-3">
+                <ViewToggle currentView={currentView} onViewChange={onViewChange} />
+                <NavigationControls
+                  onPrev={onPrev}
+                  onNext={onNext}
+                  onToday={onToday}
+                />
+              </div>
+            </div>
           </div>
         </div>
       )}

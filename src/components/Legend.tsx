@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { GroupId } from '../types';
 import { GROUP_COLORS } from '../constants/groupColors';
 
@@ -18,13 +18,23 @@ export function Legend({
   onDeselectAll
 }: LegendProps) {
   const [isExpanded, setIsExpanded] = useState(() => {
+    // Always expand if no groups selected (first time use)
+    if (selectedGroups.size === 0) return true;
+
     try {
       const saved = localStorage.getItem('filters-expanded');
-      return saved !== 'false'; // Default to expanded
+      return saved !== 'false';
     } catch {
       return true;
     }
   });
+
+  // Auto-expand when all groups deselected
+  useEffect(() => {
+    if (selectedGroups.size === 0) {
+      setIsExpanded(true);
+    }
+  }, [selectedGroups.size]);
 
   const allSelected = availableGroups.length > 0 && availableGroups.every(g => selectedGroups.has(g));
   const noneSelected = availableGroups.every(g => !selectedGroups.has(g));
@@ -55,9 +65,16 @@ export function Legend({
         className="flex items-center justify-between cursor-pointer select-none btn-press"
         onClick={toggleExpanded}
       >
-        <span className="text-sm font-semibold text-text-primary">
-          Filtruj grupy ({selectedGroups.size}/{availableGroups.length})
-        </span>
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded-md bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
+            <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+            </svg>
+          </div>
+          <span className="text-sm font-semibold text-text-primary">
+            Filtruj grupy ({selectedGroups.size}/{availableGroups.length})
+          </span>
+        </div>
         <svg
           className={`w-5 h-5 text-text-muted transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
           viewBox="0 0 24 24"
@@ -119,8 +136,8 @@ export function Legend({
                     btn-press flex items-center justify-center gap-0.5 lg:gap-1 px-1.5 lg:px-2 py-1.5 lg:py-2 rounded-lg
                     text-xs lg:text-sm font-medium transition-all duration-200
                     ${isSelected
-                      ? 'ring-2 ring-offset-2 ring-offset-bg-secondary'
-                      : 'opacity-40 hover:opacity-70'
+                      ? 'ring-2 ring-offset-2 ring-offset-bg-secondary shadow-lg scale-105'
+                      : 'opacity-40 hover:opacity-70 hover:scale-[1.02]'
                     }
                   `}
                   style={{
