@@ -1,3 +1,4 @@
+import { useRef, useEffect } from 'react';
 import { ScheduleDay } from '../types';
 import { getStartOfWeek, formatDate, isToday, DAY_NAMES } from '../utils/dateUtils';
 import { WeekEvent } from './WeekEvent';
@@ -12,6 +13,7 @@ interface WeekViewProps {
 const HOURS = Array.from({ length: 15 }, (_, i) => `${String(i + 7).padStart(2, '0')}:00`);
 
 export function WeekView({ currentDate, eventsByDate, onDayClick }: WeekViewProps) {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const startOfWeek = getStartOfWeek(currentDate);
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(startOfWeek);
@@ -19,8 +21,25 @@ export function WeekView({ currentDate, eventsByDate, onDayClick }: WeekViewProp
     return d;
   });
 
+  // Find which day index is today (if it's in the current week)
+  const todayIndex = weekDays.findIndex((date) => isToday(date));
+
+  // Auto-scroll to current day on mobile
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container || todayIndex === -1) return;
+
+    // Only scroll on mobile (when content is scrollable)
+    if (container.scrollWidth > container.clientWidth) {
+      const timeColumnWidth = 60; // matches min-w on mobile
+      const dayColumnWidth = (container.scrollWidth - timeColumnWidth) / 7;
+      const scrollTarget = timeColumnWidth + (todayIndex * dayColumnWidth) - (container.clientWidth / 2) + (dayColumnWidth / 2);
+      container.scrollLeft = Math.max(0, scrollTarget);
+    }
+  }, [todayIndex, currentDate]);
+
   return (
-    <div className="overflow-x-auto">
+    <div ref={scrollContainerRef} className="overflow-x-auto">
       <div className="min-w-[700px]">
       {/* Week Header */}
       <div className="grid grid-cols-[60px_repeat(7,1fr)] sm:grid-cols-[80px_repeat(7,1fr)] border-b border-border bg-bg-card">

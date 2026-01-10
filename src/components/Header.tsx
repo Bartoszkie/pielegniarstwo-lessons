@@ -60,24 +60,28 @@ export function Header({
         </div>
       </div>
 
-      <div className="flex gap-2 sm:gap-3 items-center flex-wrap justify-center sm:justify-end">
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-center w-full sm:w-auto">
         {isDataLoaded && onClearData && (
           <button
             onClick={onClearData}
-            className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-emerald-600 to-emerald-500 border border-emerald-500/50 rounded-xl transition-all hover:from-emerald-500 hover:to-emerald-400 hover:shadow-lg hover:shadow-emerald-500/25"
+            className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-emerald-600 to-emerald-500 border border-emerald-500/50 rounded-xl transition-all hover:from-emerald-500 hover:to-emerald-400 hover:shadow-lg hover:shadow-emerald-500/25"
           >
             Prześlij nowy plan zajęć
           </button>
         )}
         {isDataLoaded && (
           <>
-            <ViewToggle currentView={currentView} onViewChange={onViewChange} />
-            <NavigationControls
-              onPrev={onPrev}
-              onNext={onNext}
-              onToday={onToday}
-              label={label}
-            />
+            <div className="w-full sm:w-auto flex justify-center">
+              <ViewToggle currentView={currentView} onViewChange={onViewChange} />
+            </div>
+            <div className="flex justify-center">
+              <NavigationControls
+                onPrev={onPrev}
+                onNext={onNext}
+                onToday={onToday}
+                label={label}
+              />
+            </div>
           </>
         )}
       </div>

@@ -33,7 +33,7 @@ export function WeekEvent({ event, onClick }: WeekEventProps) {
       </div>
       <div className="font-semibold leading-tight">{parsed.title}</div>
       {parsed.location && (
-        <div className="mt-1 opacity-80 text-[10px]">{parsed.location}</div>
+        <div className="mt-1 text-[10px] font-semibold text-amber-300">{parsed.location}</div>
       )}
     </div>
   );

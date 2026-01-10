@@ -105,12 +105,12 @@ export function EventModal({ isOpen, onClose, data }: EventModalProps) {
                   )}
                 </div>
                 {parsed.location && (
-                  <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border text-text-muted text-sm">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-amber-400 flex-shrink-0">
                       <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                       <circle cx="12" cy="10" r="3" />
                     </svg>
-                    {parsed.location}
+                    <span className="text-sm font-semibold text-amber-400">{parsed.location}</span>
                   </div>
                 )}
               </div>
