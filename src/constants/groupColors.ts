@@ -111,6 +111,19 @@ export const GROUP_COLORS: Record<GroupId, GroupColor> = {
     backgroundGradient: 'linear-gradient(135deg, #A855F7, #9333EA)',
     text: '#ffffff',
     border: '#C084FC'
+  },
+  // Year 9 - Violets/Indigos
+  '9A': {
+    background: '#8B5CF6',
+    backgroundGradient: 'linear-gradient(135deg, #8B5CF6, #7C3AED)',
+    text: '#ffffff',
+    border: '#A78BFA'
+  },
+  '9B': {
+    background: '#6366F1',
+    backgroundGradient: 'linear-gradient(135deg, #6366F1, #4F46E5)',
+    text: '#ffffff',
+    border: '#818CF8'
   }
 };
 
