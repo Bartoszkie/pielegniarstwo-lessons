@@ -4,6 +4,7 @@ import { Header } from './components/Header';
 import { StatsRow } from './components/StatsRow';
 import { Calendar } from './components/Calendar';
 import { Legend } from './components/Legend';
+import { TeacherFilter } from './components/TeacherFilter';
 import { EventModal } from './components/EventModal';
 import { HowItWorksModal } from './components/HowItWorksModal';
 import { FileUpload } from './components/FileUpload';
@@ -24,7 +25,14 @@ export default function App() {
     toggleGroup,
     selectAllGroups,
     deselectAllGroups,
-    clearData
+    clearData,
+    mode,
+    setMode,
+    availableTeachers,
+    selectedTeachers,
+    toggleTeacher,
+    selectAllTeachers,
+    deselectAllTeachers
   } = useSchedule();
 
   const [modalData, setModalData] = useState<string | null>(null);
@@ -63,6 +71,8 @@ export default function App() {
           isDataLoaded={isLoaded}
           onClearData={clearData}
           onHowItWorks={handleOpenHowItWorks}
+          mode={mode}
+          onModeChange={setMode}
         />
 
         {!isLoaded ? (
@@ -75,10 +85,19 @@ export default function App() {
           <>
             <StatsRow scheduleData={scheduleData} />
 
-            {/* Info banner when no groups selected */}
-            {selectedGroups.size === 0 && (
-              <div className="mb-4 lg:mb-6 p-4 bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-3">
-                <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-lg flex items-center justify-center text-white">
+            {/* Info banner when no filters selected */}
+            {((mode === 'student' && selectedGroups.size === 0) ||
+              (mode === 'teacher' && selectedTeachers.size === 0)) && (
+              <div className={`mb-4 lg:mb-6 p-4 rounded-xl flex items-center gap-3 ${
+                mode === 'student'
+                  ? 'bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 border border-emerald-500/20'
+                  : 'bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20'
+              }`}>
+                <div className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center text-white ${
+                  mode === 'student'
+                    ? 'bg-gradient-to-br from-emerald-500 to-cyan-500'
+                    : 'bg-gradient-to-br from-amber-500 to-orange-500'
+                }`}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                     <polyline points="22 4 12 14.01 9 11.01" />
@@ -89,10 +108,21 @@ export default function App() {
                     Plan zajęć poprawnie załadowany!
                   </p>
                   <p className="text-sm text-text-secondary">
-                    Wybierz grupę w panelu{' '}
-                    <span className="hidden lg:inline">po prawej stronie</span>
-                    <span className="lg:hidden">poniżej</span>
-                    , aby zobaczyć plan zajęć
+                    {mode === 'student' ? (
+                      <>
+                        Wybierz grupę w panelu{' '}
+                        <span className="hidden lg:inline">po prawej stronie</span>
+                        <span className="lg:hidden">poniżej</span>
+                        , aby zobaczyć plan zajęć
+                      </>
+                    ) : (
+                      <>
+                        Wybierz wykładowcę w panelu{' '}
+                        <span className="hidden lg:inline">po prawej stronie</span>
+                        <span className="lg:hidden">poniżej</span>
+                        , aby zobaczyć harmonogram
+                      </>
+                    )}
                   </p>
                 </div>
               </div>
@@ -108,13 +138,23 @@ export default function App() {
                 />
               </div>
 
-              <Legend
-                availableGroups={availableGroups}
-                selectedGroups={selectedGroups}
-                onToggleGroup={toggleGroup}
-                onSelectAll={selectAllGroups}
-                onDeselectAll={deselectAllGroups}
-              />
+              {mode === 'student' ? (
+                <Legend
+                  availableGroups={availableGroups}
+                  selectedGroups={selectedGroups}
+                  onToggleGroup={toggleGroup}
+                  onSelectAll={selectAllGroups}
+                  onDeselectAll={deselectAllGroups}
+                />
+              ) : (
+                <TeacherFilter
+                  availableTeachers={availableTeachers}
+                  selectedTeachers={selectedTeachers}
+                  onToggleTeacher={toggleTeacher}
+                  onSelectAll={selectAllTeachers}
+                  onDeselectAll={deselectAllTeachers}
+                />
+              )}
             </div>
           </>
         )}

@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { ScheduleDay, GroupId } from '../types';
+import { ScheduleDay, GroupId, ScheduleMode } from '../types';
 import { parseExcelFile } from '../utils/excelParser';
 
 interface UseScheduleReturn {
@@ -15,12 +15,23 @@ interface UseScheduleReturn {
   selectAllGroups: () => void;
   deselectAllGroups: () => void;
   clearData: () => void;
+  // Teacher mode
+  mode: ScheduleMode;
+  setMode: (mode: ScheduleMode) => void;
+  availableTeachers: string[];
+  selectedTeachers: Set<string>;
+  toggleTeacher: (teacher: string) => void;
+  selectAllTeachers: () => void;
+  deselectAllTeachers: () => void;
 }
 
 const STORAGE_KEYS = {
   DATA: 'schedule-data',
   GROUPS: 'schedule-groups',
-  SELECTED: 'schedule-selected'
+  SELECTED: 'schedule-selected',
+  MODE: 'schedule-mode',
+  TEACHERS: 'schedule-teachers',
+  SELECTED_TEACHERS: 'schedule-selected-teachers'
 };
 
 function loadFromStorage<T>(key: string, defaultValue: T): T {
@@ -65,17 +76,38 @@ export function useSchedule(): UseScheduleReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Teacher mode state
+  const [mode, setModeState] = useState<ScheduleMode>(() =>
+    loadFromStorage<ScheduleMode>(STORAGE_KEYS.MODE, 'student')
+  );
+  const [availableTeachers, setAvailableTeachers] = useState<string[]>(() =>
+    loadFromStorage<string[]>(STORAGE_KEYS.TEACHERS, [])
+  );
+  const [selectedTeachers, setSelectedTeachers] = useState<Set<string>>(() =>
+    new Set(loadFromStorage<string[]>(STORAGE_KEYS.SELECTED_TEACHERS, []))
+  );
+
   const isLoaded = rawScheduleData.length > 0;
 
-  // Filter schedule data based on selected groups
+  // Filter schedule data based on mode and selected filters
   const filteredScheduleData = useMemo(() => {
-    if (selectedGroups.size === 0) return [];
-
-    return rawScheduleData.map(day => ({
-      ...day,
-      classes: day.classes.filter(cls => selectedGroups.has(cls.group))
-    })).filter(day => day.classes.length > 0);
-  }, [rawScheduleData, selectedGroups]);
+    if (mode === 'student') {
+      if (selectedGroups.size === 0) return [];
+      return rawScheduleData.map(day => ({
+        ...day,
+        classes: day.classes.filter(cls => selectedGroups.has(cls.group))
+      })).filter(day => day.classes.length > 0);
+    } else {
+      // Teacher mode - check if ANY of the class instructors are selected
+      if (selectedTeachers.size === 0) return [];
+      return rawScheduleData.map(day => ({
+        ...day,
+        classes: day.classes.filter(cls =>
+          cls.instructor && cls.instructor.some(instr => selectedTeachers.has(instr))
+        )
+      })).filter(day => day.classes.length > 0);
+    }
+  }, [rawScheduleData, selectedGroups, selectedTeachers, mode]);
 
   // Build eventsByDate lookup
   const eventsByDate = useMemo(() => {
@@ -107,14 +139,18 @@ export function useSchedule(): UseScheduleReturn {
 
       setRawScheduleData(result.data);
       setAvailableGroups(result.groups);
+      setAvailableTeachers(result.teachers);
 
-      // No groups selected by default - user must choose
+      // No groups/teachers selected by default - user must choose
       setSelectedGroups(new Set());
+      setSelectedTeachers(new Set());
 
       // Persist to localStorage
       saveToStorage(STORAGE_KEYS.DATA, result.data);
       saveToStorage(STORAGE_KEYS.GROUPS, result.groups);
+      saveToStorage(STORAGE_KEYS.TEACHERS, result.teachers);
       saveToStorage(STORAGE_KEYS.SELECTED, []);
+      saveToStorage(STORAGE_KEYS.SELECTED_TEACHERS, []);
 
       if (result.errors.length > 0) {
         console.warn('Parser warnings:', result.errors);
@@ -150,10 +186,44 @@ export function useSchedule(): UseScheduleReturn {
     saveToStorage(STORAGE_KEYS.SELECTED, []);
   }, []);
 
+  // Mode switching
+  const setMode = useCallback((newMode: ScheduleMode) => {
+    setModeState(newMode);
+    saveToStorage(STORAGE_KEYS.MODE, newMode);
+  }, []);
+
+  // Teacher selection functions
+  const toggleTeacher = useCallback((teacher: string) => {
+    setSelectedTeachers(prev => {
+      const next = new Set(prev);
+      if (next.has(teacher)) {
+        next.delete(teacher);
+      } else {
+        next.add(teacher);
+      }
+      saveToStorage(STORAGE_KEYS.SELECTED_TEACHERS, Array.from(next));
+      return next;
+    });
+  }, []);
+
+  const selectAllTeachers = useCallback(() => {
+    const allTeachers = new Set(availableTeachers);
+    setSelectedTeachers(allTeachers);
+    saveToStorage(STORAGE_KEYS.SELECTED_TEACHERS, availableTeachers);
+  }, [availableTeachers]);
+
+  const deselectAllTeachers = useCallback(() => {
+    setSelectedTeachers(new Set());
+    saveToStorage(STORAGE_KEYS.SELECTED_TEACHERS, []);
+  }, []);
+
   const clearData = useCallback(() => {
     setRawScheduleData([]);
     setAvailableGroups([]);
     setSelectedGroups(new Set());
+    setAvailableTeachers([]);
+    setSelectedTeachers(new Set());
+    setModeState('student');
     setError(null);
     clearStorage();
   }, []);
@@ -170,6 +240,14 @@ export function useSchedule(): UseScheduleReturn {
     toggleGroup,
     selectAllGroups,
     deselectAllGroups,
-    clearData
+    clearData,
+    // Teacher mode
+    mode,
+    setMode,
+    availableTeachers,
+    selectedTeachers,
+    toggleTeacher,
+    selectAllTeachers,
+    deselectAllTeachers
   };
 }

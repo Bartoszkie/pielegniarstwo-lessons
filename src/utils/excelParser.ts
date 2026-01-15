@@ -26,13 +26,38 @@ export interface ParseResult {
   success: boolean;
   data: ScheduleDay[];
   groups: GroupId[];
+  teachers: string[];
   errors: string[];
+}
+
+function extractInstructors(description: string): string[] {
+  const instructors: string[] = [];
+
+  // Pattern: academic title (mgr/dr/lek/prof) followed by FirstName LastName
+  // Uses matchAll to find ALL instructors, not just the first one
+  // Handles: "mgr Monika Mikke/mgr Małgorzata Zaborowska" -> extracts both
+  const pattern = /\b(mgr|dr|lek\.?|prof\.?)\s+([A-ZĄĆĘŁŃÓŚŹŻa-ząćęłńóśźż]+)\s+([A-ZĄĆĘŁŃÓŚŹŻa-ząćęłńóśźż-]+)/gi;
+
+  const matches = description.matchAll(pattern);
+  for (const match of matches) {
+    const fullMatch = match[0].trim();
+    // Exclude if match contains location keywords (shouldn't happen with this pattern, but safety check)
+    const lowerMatch = fullMatch.toLowerCase();
+    if (!lowerMatch.includes('laboratorium') &&
+        !lowerMatch.includes('sala') &&
+        !lowerMatch.includes('katowice')) {
+      instructors.push(fullMatch);
+    }
+  }
+
+  return instructors;
 }
 
 export async function parseExcelFile(file: File): Promise<ParseResult> {
   const errors: string[] = [];
   const scheduleMap = new Map<string, Map<GroupId, ClassEvent[]>>();
   const groupsFound = new Set<GroupId>();
+  const teachersFound = new Set<string>();
 
   try {
     const arrayBuffer = await file.arrayBuffer();
@@ -119,6 +144,7 @@ export async function parseExcelFile(file: File): Promise<ParseResult> {
         success: false,
         data: [],
         groups: [],
+        teachers: [],
         errors: ['Nie znaleziono kolumny GRUPA w pliku Excel']
       };
     }
@@ -154,11 +180,20 @@ export async function parseExcelFile(file: File): Promise<ParseResult> {
       for (const slot of TIME_SLOTS) {
         const cellValue = row[slot.col];
         if (cellValue && String(cellValue).trim()) {
+          const description = String(cellValue).trim();
+          const instructors = extractInstructors(description);
+
+          // Add all found instructors to the set
+          for (const instructor of instructors) {
+            teachersFound.add(instructor);
+          }
+
           classes.push({
             start_time: slot.start,
             end_time: slot.end,
-            description: String(cellValue).trim(),
-            group: group
+            description,
+            group: group,
+            instructor: instructors.length > 0 ? instructors : undefined
           });
         }
       }
@@ -203,6 +238,7 @@ export async function parseExcelFile(file: File): Promise<ParseResult> {
       success: true,
       data: scheduleData,
       groups: Array.from(groupsFound).sort(),
+      teachers: Array.from(teachersFound).sort(),
       errors
     };
 
@@ -211,6 +247,7 @@ export async function parseExcelFile(file: File): Promise<ParseResult> {
       success: false,
       data: [],
       groups: [],
+      teachers: [],
       errors: [`Failed to parse Excel file: ${error}`]
     };
   }

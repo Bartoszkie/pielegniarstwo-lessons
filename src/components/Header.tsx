@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { ViewType } from '../types';
+import { ViewType, ScheduleMode } from '../types';
 import { ViewToggle } from './ViewToggle';
 import { NavigationControls } from './NavigationControls';
+import { ModeSwitch } from './ModeSwitch';
 
 interface HeaderProps {
   currentView: ViewType;
@@ -13,6 +14,8 @@ interface HeaderProps {
   isDataLoaded?: boolean;
   onClearData?: () => void;
   onHowItWorks?: () => void;
+  mode?: ScheduleMode;
+  onModeChange?: (mode: ScheduleMode) => void;
 }
 
 export function Header({
@@ -25,6 +28,8 @@ export function Header({
   isDataLoaded,
   onClearData,
   onHowItWorks,
+  mode,
+  onModeChange,
 }: HeaderProps) {
   const [isViewControlsExpanded, setIsViewControlsExpanded] = useState(() => {
     try {
@@ -82,6 +87,11 @@ export function Header({
             <span>Semestr 1 • Katowice NST</span>
           </div>
         </div>
+        {isDataLoaded && mode && onModeChange && (
+          <div className="mt-3">
+            <ModeSwitch currentMode={mode} onModeChange={onModeChange} />
+          </div>
+        )}
         {isDataLoaded && onClearData && (
           <button
             onClick={onClearData}

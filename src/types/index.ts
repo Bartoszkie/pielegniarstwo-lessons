@@ -9,11 +9,14 @@ export const ALL_GROUPS: GroupId[] = [
   '5A', '5B', '6A', '6B', '7A', '7B', '8A', '8B'
 ];
 
+export type ScheduleMode = 'student' | 'teacher';
+
 export interface ClassEvent {
   start_time: string;
   end_time: string;
   description: string;
   group: GroupId;
+  instructor?: string[];
 }
 
 export interface ScheduleDay {
