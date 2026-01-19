@@ -8,6 +8,7 @@ import { TeacherFilter } from './components/TeacherFilter';
 import { EventModal } from './components/EventModal';
 import { HowItWorksModal } from './components/HowItWorksModal';
 import { FileUpload } from './components/FileUpload';
+import { Footer } from './components/Footer';
 import { useCalendar } from './hooks/useCalendar';
 import { useSchedule } from './hooks/useSchedule';
 
@@ -158,6 +159,8 @@ export default function App() {
             </div>
           </>
         )}
+
+        <Footer />
       </div>
 
       <EventModal
