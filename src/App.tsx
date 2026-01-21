@@ -21,6 +21,7 @@ export default function App() {
     isLoaded,
     isLoading,
     error,
+    lastUpdated,
     loadFile,
     toggleGroup,
     selectAllGroups,
@@ -73,6 +74,7 @@ export default function App() {
           onHowItWorks={handleOpenHowItWorks}
           mode={mode}
           onModeChange={setMode}
+          lastUpdated={lastUpdated}
         />
 
         {!isLoaded ? (

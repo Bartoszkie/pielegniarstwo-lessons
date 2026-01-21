@@ -10,6 +10,7 @@ interface UseScheduleReturn {
   isLoaded: boolean;
   isLoading: boolean;
   error: string | null;
+  lastUpdated: string | null;
   loadFile: (file: File) => Promise<void>;
   toggleGroup: (group: GroupId) => void;
   selectAllGroups: () => void;
@@ -31,7 +32,8 @@ const STORAGE_KEYS = {
   SELECTED: 'schedule-selected',
   MODE: 'schedule-mode',
   TEACHERS: 'schedule-teachers',
-  SELECTED_TEACHERS: 'schedule-selected-teachers'
+  SELECTED_TEACHERS: 'schedule-selected-teachers',
+  LAST_UPDATED: 'schedule-last-updated'
 };
 
 function loadFromStorage<T>(key: string, defaultValue: T): T {
@@ -85,6 +87,9 @@ export function useSchedule(): UseScheduleReturn {
   );
   const [selectedTeachers, setSelectedTeachers] = useState<Set<string>>(() =>
     new Set(loadFromStorage<string[]>(STORAGE_KEYS.SELECTED_TEACHERS, []))
+  );
+  const [lastUpdated, setLastUpdated] = useState<string | null>(() =>
+    loadFromStorage<string | null>(STORAGE_KEYS.LAST_UPDATED, null)
   );
 
   const isLoaded = rawScheduleData.length > 0;
@@ -146,11 +151,14 @@ export function useSchedule(): UseScheduleReturn {
       setSelectedTeachers(new Set());
 
       // Persist to localStorage
+      const timestamp = new Date().toISOString();
+      setLastUpdated(timestamp);
       saveToStorage(STORAGE_KEYS.DATA, result.data);
       saveToStorage(STORAGE_KEYS.GROUPS, result.groups);
       saveToStorage(STORAGE_KEYS.TEACHERS, result.teachers);
       saveToStorage(STORAGE_KEYS.SELECTED, []);
       saveToStorage(STORAGE_KEYS.SELECTED_TEACHERS, []);
+      saveToStorage(STORAGE_KEYS.LAST_UPDATED, timestamp);
 
       if (result.errors.length > 0) {
         console.warn('Parser warnings:', result.errors);
@@ -225,6 +233,7 @@ export function useSchedule(): UseScheduleReturn {
     setSelectedTeachers(new Set());
     setModeState('student');
     setError(null);
+    setLastUpdated(null);
     clearStorage();
   }, []);
 
@@ -236,6 +245,7 @@ export function useSchedule(): UseScheduleReturn {
     isLoaded,
     isLoading,
     error,
+    lastUpdated,
     loadFile,
     toggleGroup,
     selectAllGroups,
