@@ -95,8 +95,8 @@ export function BottomDock({ landOn }: { /** Days a new month may open on; by de
           <Popover.Portal>
             <Popover.Content side="top" align="end" sideOffset={8} collisionPadding={12} className="z-50 w-[220px] animate-pop-in rounded-2xl border border-raise bg-surface p-1.5 shadow-pop">
               <span className="block px-2.5 pb-0.5 pt-1 text-[11px] font-semibold text-ink-2">Widok</span>
-              <MenuItem selected={calendar.view === 'week'} onClick={() => chooseView('week')} icon={<Rows size={18} />}>Tydzień</MenuItem>
               <MenuItem selected={calendar.view === 'month'} onClick={() => chooseView('month')} icon={<CalendarGrid size={18} />}>Miesiąc</MenuItem>
+              <MenuItem selected={calendar.view === 'week'} onClick={() => chooseView('week')} icon={<Rows size={18} />}>Tydzień</MenuItem>
               <div className="mx-2 my-1.5 h-px bg-line" />
               <MenuItem onClick={() => { setMenuOpen(false); openFilePicker(); }} icon={<FileUp size={18} />}>Wczytaj nowy plan…</MenuItem>
               {hasWarnings && (

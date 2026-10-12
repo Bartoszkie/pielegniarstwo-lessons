@@ -19,7 +19,7 @@ export function PeriodNav() {
         </button>
       </div>
       <div className="flex gap-1">
-        {(['week', 'month'] as ViewType[]).map(view => (
+        {(['month', 'week'] as ViewType[]).map(view => (
           <button
             key={view}
             type="button"

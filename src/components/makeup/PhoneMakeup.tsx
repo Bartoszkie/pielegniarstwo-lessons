@@ -72,7 +72,7 @@ export function ViewSwitch() {
   const { calendar } = useApp();
   return (
     <div role="group" aria-label="Widok" className="pressed flex gap-1 rounded-[14px] p-[3px]">
-      {(['week', 'month'] as const).map(view => {
+      {(['month', 'week'] as const).map(view => {
         const selected = calendar.view === view;
         return (
           <button

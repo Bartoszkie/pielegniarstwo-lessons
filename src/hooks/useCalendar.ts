@@ -15,10 +15,6 @@ function getDefaultView(): ViewType {
     // Ignore localStorage errors
   }
 
-  // Default: week on phones and tablets, month on desktop
-  if (typeof window !== 'undefined' && window.innerWidth < 1024) {
-    return 'week';
-  }
   return 'month';
 }
 
