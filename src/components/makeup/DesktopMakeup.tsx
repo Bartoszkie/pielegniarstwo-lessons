@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { MakeupFlow, useApp } from '../../app/AppContext';
 import { ClassBlock, isAttended, layoutLanes, subjectKey } from '../../utils/blocks';
 import { addDays, formatDate, getMonthDays, getMonthLabel, getWeekLabel, isSameMonth, parseDate, shortDateLabel, WEEKDAYS_SHORT } from '../../utils/dateUtils';
@@ -6,11 +6,19 @@ import { getGroupColor } from '../../constants/groupColors';
 import { MakeupOption } from '../../utils/makeup';
 import { DisplayTitle } from '../ui/DisplayTitle';
 import { GroupTags } from '../ui/GroupTag';
-import { Check, Warning } from '../ui/icons';
+import { Check, ChevronRight, Warning } from '../ui/icons';
 import { PeriodNav } from '../desktop/PeriodNav';
-import { KIND_SHORT, MakeupBar, MakeupResults, NoOptions, optionStatus, OptionStatus, termsLabel, useMakeupResults, useOptionFilter, whenLabel } from './shared';
+import {
+  KIND_SHORT, MakeupBar, MakeupResults, NoOptions, optionStatus, OptionStatus, pickedNote, termsLabel,
+  useConfirmMakeup, useMakeupResults, useOptionFilter, useOptionSelection, whenLabel,
+} from './shared';
 
 type ResultsFlow = Extract<MakeupFlow, { step: 'results' }>;
+
+interface Picking {
+  selected: MakeupOption | null;
+  select: (option: MakeupOption) => void;
+}
 
 const HOUR_PX = 56;
 
@@ -26,15 +34,19 @@ export function DesktopMakeup({ flow }: { flow: ResultsFlow }) {
   const { calendar } = useApp();
   const results = useMakeupResults(flow);
   const { shown, chips } = useOptionFilter(results);
+  const { selected, select } = useOptionSelection(results, shown);
+  const { confirm, remove, previous } = useConfirmMakeup(flow, results);
+  const picking = { selected, select };
 
-  const flowKey = `${flow.group}|${flow.key}|${flow.n}`;
-  const opened = useRef('');
+  // Open on the soonest date that fits, else the first one (this view is remounted per class)
   useEffect(() => {
-    if (opened.current === flowKey) return;
-    opened.current = flowKey;
     const target = results.best ?? results.options[0];
     if (target) calendar.setCursor(parseDate(target.block.date));
-  }, [flowKey, results, calendar]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const previousDate = previous && selected && !(previous.date === selected.block.date && previous.start === selected.block.start)
+    ? `${shortDateLabel(parseDate(previous.date))}, ${previous.start}`
+    : null;
 
   const isWeek = calendar.view === 'week';
   const title = isWeek ? getWeekLabel(calendar.weekStart) : getMonthLabel(calendar.cursor);
@@ -64,11 +76,12 @@ export function DesktopMakeup({ flow }: { flow: ResultsFlow }) {
           <div className="flex flex-wrap items-start gap-5">
             <div className="min-w-0 flex-[3_1_560px]">
               {isWeek
-                ? <WeekOptionsGrid key={title} results={results} shown={shown} flow={flow} />
-                : <MonthOptionsGrid key={title} results={results} shown={shown} flow={flow} />}
+                ? <WeekOptionsGrid key={title} results={results} shown={shown} flow={flow} picking={picking} />
+                : <MonthOptionsGrid key={title} results={results} shown={shown} flow={flow} picking={picking} />}
             </div>
-            <OptionsList results={results} shown={shown} />
+            <OptionsList results={results} shown={shown} picking={picking} />
           </div>
+          <ConfirmBar selected={selected} results={results} previousDate={previousDate} onConfirm={confirm} onRemove={remove} />
         </>
       )}
     </main>
@@ -80,7 +93,59 @@ type Item =
   | { type: 'own'; block: ClassBlock }
   | { type: 'option'; block: ClassBlock; option: MakeupOption };
 
-function WeekOptionsGrid({ results, shown, flow }: { results: MakeupResults; shown: MakeupOption[]; flow: ResultsFlow }) {
+function ConfirmBar({ selected, results, previousDate, onConfirm, onRemove }: {
+  selected: MakeupOption | null;
+  results: MakeupResults;
+  previousDate: string | null;
+  onConfirm: (option: MakeupOption) => void;
+  onRemove: () => void;
+}) {
+  const chosen = !!selected && selected.id === results.chosenId;
+  return (
+    <div
+      role="region"
+      aria-label="Wybrany termin"
+      className="sticky bottom-4 z-10 mt-auto flex flex-wrap items-center gap-x-5 gap-y-3 rounded-[18px] border border-raise bg-surface py-3 pl-4 pr-3 shadow-[0_18px_40px_-12px_rgba(28,25,23,.3),0_2px_6px_rgba(28,25,23,.08)]"
+    >
+      {selected ? (
+        <>
+          <span aria-hidden="true" className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-ink text-bg"><Check size={14} strokeWidth={3.2} /></span>
+          <span className="flex min-w-0 flex-[1_1_260px] flex-col" aria-live="polite">
+            <span className="text-xs leading-4 text-ink-2">{chosen ? 'Już w Twoim planie' : 'Wybrany termin'}</span>
+            <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+              <span className="text-[17px] font-bold leading-6">{shortDateLabel(parseDate(selected.block.date))}, {selected.block.start}–{selected.block.end}</span>
+              <span className="flex gap-[3px]"><GroupTags groups={selected.block.groups} size="sm" /></span>
+              <span className={`text-[13px] font-semibold leading-[18px] ${selected.clashes.length ? 'text-warn-ink' : 'text-ink-2'}`}>{pickedNote(selected, previousDate)}</span>
+            </span>
+          </span>
+          {chosen ? (
+            <button type="button" onClick={onRemove} className="raised h-12 rounded-[14px] px-5 text-[15px] font-semibold">Usuń z mojego planu</button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => onConfirm(selected)}
+              className="flex h-12 items-center gap-2 rounded-[14px] bg-ink px-[22px] text-[15px] font-semibold text-bg shadow-[0_1px_2px_rgba(28,25,23,.2),0_8px_18px_-8px_rgba(28,25,23,.55)] transition-transform active:scale-[.98]"
+            >
+              Potwierdź termin
+              <ChevronRight size={16} strokeWidth={2.4} />
+            </button>
+          )}
+        </>
+      ) : (
+        <>
+          <span aria-hidden="true" className="h-7 w-7 shrink-0 rounded-full border-2 border-dashed border-ink-3" />
+          <span className="flex min-w-0 flex-[1_1_260px] flex-col">
+            <span className="text-[17px] font-bold leading-6">Wybierz termin</span>
+            <span className="text-[13px] text-ink-2">Kliknij zajęcia innej grupy w kalendarzu albo na liście.</span>
+          </span>
+          <button type="button" disabled className="h-12 cursor-not-allowed rounded-[14px] bg-surface-2 px-[22px] text-[15px] font-semibold text-ink-2">Potwierdź termin</button>
+        </>
+      )}
+    </div>
+  );
+}
+
+function WeekOptionsGrid({ results, shown, flow, picking }: { results: MakeupResults; shown: MakeupOption[]; flow: ResultsFlow; picking: Picking }) {
   const { calendar, blocksByDate, todayKey } = useApp();
   const days = Array.from({ length: 7 }, (_, i) => addDays(calendar.weekStart, i));
   const keys = days.map(formatDate);
@@ -158,7 +223,7 @@ function WeekOptionsGrid({ results, shown, flow }: { results: MakeupResults; sho
                       width: `calc(${100 / lanes}% - 6px)`,
                     };
                     Object.assign(style, { '--i': i });
-                    return <GridItem key={block.id} item={item} style={style} results={results} flow={flow} />;
+                    return <GridItem key={block.id} item={item} style={style} results={results} flow={flow} picking={picking} />;
                   })}
                 </div>
               );
@@ -170,8 +235,7 @@ function WeekOptionsGrid({ results, shown, flow }: { results: MakeupResults; sho
   );
 }
 
-function GridItem({ item, style, results, flow }: { item: Item; style: React.CSSProperties; results: MakeupResults; flow: ResultsFlow }) {
-  const { setPendingMakeup } = useApp();
+function GridItem({ item, style, results, flow, picking }: { item: Item; style: React.CSSProperties; results: MakeupResults; flow: ResultsFlow; picking: Picking }) {
   const { block } = item;
 
   if (item.type === 'plan') {
@@ -206,21 +270,28 @@ function GridItem({ item, style, results, flow }: { item: Item; style: React.CSS
 
   const status = optionStatus(item.option, results);
   const color = getGroupColor(block.groups[0]);
-  const emphasised = status === 'best' || status === 'chosen';
+  const selected = picking.selected?.id === item.option.id;
   return (
     <button
       type="button"
-      onClick={() => setPendingMakeup(item.option)}
-      aria-label={`${block.start}–${block.end}, grupy ${block.groups.join(', ')}, ${STATUS_TEXT[status]}. Wybierz ten termin`}
+      role="radio"
+      aria-checked={selected}
+      onClick={() => picking.select(item.option)}
+      aria-label={`${block.start}–${block.end}, grupy ${block.groups.join(', ')}, ${STATUS_TEXT[status]}`}
       className="enter absolute flex flex-col items-start gap-[3px] overflow-hidden rounded-[10px] px-2 pb-1.5 pt-2 text-left transition-transform hover:-translate-y-px"
       style={{
         ...style,
         background: `color-mix(in oklab, ${color} 13%, rgb(var(--surface)))`,
-        border: status === 'clash' ? '1.5px solid rgb(var(--warn))' : emphasised ? '2px solid rgb(var(--ink))' : `1px solid color-mix(in oklab, ${color} 30%, rgb(var(--surface)))`,
-        boxShadow: emphasised ? '0 8px 18px -10px rgba(28,25,23,.55)' : undefined,
-        zIndex: emphasised ? 2 : 1,
+        border: selected ? '2px solid rgb(var(--ink))' : status === 'clash' ? '1.5px solid rgb(var(--warn))' : `1px solid color-mix(in oklab, ${color} 30%, rgb(var(--surface)))`,
+        boxShadow: selected ? '0 10px 20px -10px rgba(28,25,23,.6)' : undefined,
+        zIndex: selected ? 2 : 1,
       }}
     >
+      {selected && (
+        <span aria-hidden="true" className="absolute right-1.5 top-1.5 grid h-5 w-5 place-items-center rounded-full bg-ink text-bg">
+          <Check size={12} strokeWidth={3.2} />
+        </span>
+      )}
       <span className="flex flex-wrap gap-[3px]"><GroupTags groups={block.groups} size="sm" /></span>
       <span className="text-[13px] font-bold leading-4">{results.title} · nr {flow.n}</span>
       <span className="tabular-nums text-[11px] leading-[14px] text-ink-2">{block.start}–{block.end}{block.event.location ? ` · ${block.event.location}` : ''}</span>
@@ -232,8 +303,8 @@ function GridItem({ item, style, results, flow }: { item: Item; style: React.CSS
   );
 }
 
-function MonthOptionsGrid({ results, shown, flow }: { results: MakeupResults; shown: MakeupOption[]; flow: ResultsFlow }) {
-  const { calendar, todayKey, setPendingMakeup } = useApp();
+function MonthOptionsGrid({ results, shown, flow, picking }: { results: MakeupResults; shown: MakeupOption[]; flow: ResultsFlow; picking: Picking }) {
+  const { calendar, todayKey } = useApp();
   const { cursor } = calendar;
   const days = getMonthDays(cursor.getFullYear(), cursor.getMonth());
 
@@ -268,20 +339,24 @@ function MonthOptionsGrid({ results, shown, flow }: { results: MakeupResults; sh
                 )}
                 {options.map(option => {
                   const status = optionStatus(option, results);
+                  const selected = picking.selected?.id === option.id;
                   return (
                     <button
                       key={option.id}
                       type="button"
-                      onClick={() => setPendingMakeup(option)}
-                      aria-label={`${option.block.start}–${option.block.end}, grupy ${option.block.groups.join(', ')}, ${STATUS_TEXT[status]}. Wybierz ten termin`}
-                      className={`flex h-6 w-full min-w-0 items-center gap-1.5 rounded-md px-1.5 text-left ${
-                        status === 'clash' ? 'border border-warn bg-warn-bg' : status === 'best' || status === 'chosen' ? 'pressed' : 'bg-bg'
+                      role="radio"
+                      aria-checked={selected}
+                      onClick={() => picking.select(option)}
+                      aria-label={`${option.block.start}–${option.block.end}, grupy ${option.block.groups.join(', ')}, ${STATUS_TEXT[status]}`}
+                      className={`flex h-[26px] w-full min-w-0 items-center gap-1.5 rounded-[7px] px-1.5 text-left ${
+                        selected ? 'bg-ink text-bg shadow-[0_4px_10px_-4px_rgba(28,25,23,.5)]' : status === 'clash' ? 'border border-warn bg-warn-bg text-warn-ink' : 'border border-line bg-bg'
                       }`}
                     >
+                      {selected && <Check size={12} strokeWidth={3.2} className="shrink-0" />}
                       <span aria-hidden="true" className="flex shrink-0 gap-0.5">
                         {option.block.groups.slice(0, 2).map(g => <span key={g} className="h-3 w-1.5 rounded-sm" style={{ background: getGroupColor(g) }} />)}
                       </span>
-                      <span className="shrink-0 tabular-nums text-xs text-ink-2">{option.block.start}</span>
+                      <span className={`shrink-0 tabular-nums text-xs ${selected ? '' : 'text-ink-2'}`}>{option.block.start}</span>
                       <span className="min-w-0 truncate text-xs font-semibold">{option.block.groups.join(' · ')}</span>
                       {status === 'clash' && <Warning size={12} strokeWidth={2.4} className="ml-auto shrink-0 text-warn-ink" />}
                     </button>
@@ -297,36 +372,44 @@ function MonthOptionsGrid({ results, shown, flow }: { results: MakeupResults; sh
   );
 }
 
-function OptionsList({ results, shown }: { results: MakeupResults; shown: MakeupOption[] }) {
-  const { calendar, todayKey, setPendingMakeup } = useApp();
+function OptionsList({ results, shown, picking }: { results: MakeupResults; shown: MakeupOption[]; picking: Picking }) {
+  const { calendar, todayKey } = useApp();
   return (
     <section aria-labelledby="makeup-all" className="flex min-w-0 flex-[1_1_300px] flex-col gap-2.5">
       <div className="flex items-baseline justify-between px-1">
         <h2 id="makeup-all" className="text-base font-bold">Wszystkie terminy</h2>
-        <span className="text-[13px] text-ink-2">od najbliższego</span>
+        <span className="text-[13px] text-ink-2">wybierz jeden</span>
       </div>
       <div className="overflow-hidden rounded-2xl border border-line bg-surface">
         {shown.map((option, i) => {
           const status = optionStatus(option, results);
-          const emphasised = status === 'best' || status === 'chosen';
+          const selected = picking.selected?.id === option.id;
+          const previousOn = i > 0 && picking.selected?.id === shown[i - 1].id;
           const date = parseDate(option.block.date);
           return (
             <button
               key={option.id}
               type="button"
+              role="radio"
+              aria-checked={selected}
               onClick={() => {
                 calendar.setCursor(date);
-                setPendingMakeup(option);
+                picking.select(option);
               }}
-              className={`relative grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2.5 gap-y-1 px-3.5 py-2.5 text-left ${emphasised ? 'bg-pressed shadow-press' : 'hover:bg-surface-2'}`}
+              className={`relative grid w-full grid-cols-[22px_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 px-3.5 py-2.5 text-left ${
+                selected ? 'rounded-[14px] bg-pressed shadow-[var(--shadow-press),inset_0_0_0_2px_rgb(var(--ink))]' : 'hover:bg-surface-2'
+              }`}
             >
-              {i > 0 && !emphasised && <span aria-hidden="true" className="absolute inset-x-3.5 top-0 h-px bg-line" />}
+              {i > 0 && !selected && !previousOn && <span aria-hidden="true" className="absolute inset-x-3.5 top-0 h-px bg-line" />}
+              <span aria-hidden="true" className={`grid h-[22px] w-[22px] place-items-center self-start rounded-full ${selected ? 'bg-ink text-bg' : 'border-2 border-line-strong bg-surface'}`}>
+                {selected && <Check size={12} strokeWidth={3.4} />}
+              </span>
               <span className="flex min-w-0 flex-col">
                 <span className="text-sm font-bold leading-[19px]">{shortDateLabel(date)}</span>
                 <span className="tabular-nums text-xs text-ink-2">{option.block.start}–{option.block.end} · {whenLabel(option.block.date, todayKey)}</span>
               </span>
               <span className="flex gap-[3px]"><GroupTags groups={option.block.groups} size="sm" /></span>
-              <span className={`col-span-2 text-xs font-bold leading-4 ${status === 'clash' ? 'text-warn-ink' : ''}`}>
+              <span className={`col-start-2 col-end-4 text-xs font-bold leading-4 ${status === 'clash' ? 'text-warn-ink' : ''}`}>
                 {status === 'clash' ? `kolizja: ${option.clashes.map(c => c.event.title).join(', ')}` : status === 'best' ? 'Najbliższy wolny termin' : status === 'chosen' ? 'W Twoim planie' : 'bez kolizji'}
               </span>
             </button>

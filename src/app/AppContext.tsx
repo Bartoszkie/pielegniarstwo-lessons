@@ -4,7 +4,7 @@ import { useSchedule } from '../hooks/useSchedule';
 import { UseCalendarReturn } from '../hooks/useCalendar';
 import { useMakeups } from '../hooks/useMakeups';
 import { buildDayBlocks, ClassBlock, isAttended, isClass, matchesKind, subjectKey } from '../utils/blocks';
-import { applyMakeups, buildClassIndex, ClassIndex, ClassNumber, findNumber, MakeupOption, SavedMakeup } from '../utils/makeup';
+import { applyMakeups, buildClassIndex, ClassIndex, ClassNumber, findNumber, SavedMakeup } from '../utils/makeup';
 import { addDays, formatDate, getStartOfWeek, parseDate, isSameMonth, daysBetween, durationLabel, relativeDayLabel } from '../utils/dateUtils';
 import { normalizeForSearch } from '../utils/eventUtils';
 import { ThemePreference } from '../hooks/useTheme';
@@ -81,9 +81,6 @@ interface AppContextValue extends AppActions {
   setMakeupFlow: (flow: MakeupFlow | null) => void;
   /** Opens odrabianie; with a block, straight at the other groups' dates for that class */
   startMakeup: (block?: ClassBlock) => void;
-  /** The date picked from the results, waiting for confirmation */
-  pendingMakeup: MakeupOption | null;
-  setPendingMakeup: (option: MakeupOption | null) => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -105,7 +102,6 @@ export function AppProvider({
 }) {
   const [kind, setKind] = useState<KindFilter>('all');
   const [makeupFlow, setMakeupFlow] = useState<MakeupFlow | null>(null);
-  const [pendingMakeup, setPendingMakeup] = useState<MakeupOption | null>(null);
   const { makeups, addMakeup, removeMakeup } = useMakeups();
   const todayKey = formatDate(now);
   const nowMin = now.getHours() * 60 + now.getMinutes();
@@ -271,8 +267,6 @@ export function AppProvider({
     makeupFlow,
     setMakeupFlow,
     startMakeup,
-    pendingMakeup,
-    setPendingMakeup,
     ...actions,
   };
 

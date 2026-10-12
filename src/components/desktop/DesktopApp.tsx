@@ -51,7 +51,7 @@ export function DesktopApp() {
   return (
     <div className="fade-enter flex min-h-dvh flex-wrap items-stretch">
       <Sidebar />
-      {makeupFlow?.step === 'results' ? <DesktopMakeup flow={makeupFlow} /> : (
+      {makeupFlow?.step === 'results' ? <DesktopMakeup key={`${makeupFlow.group}|${makeupFlow.key}|${makeupFlow.n}`} flow={makeupFlow} /> : (
       <main className="flex min-w-0 flex-[999_1_560px] flex-col gap-5 px-7 pb-8 pt-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="flex flex-col gap-0.5">

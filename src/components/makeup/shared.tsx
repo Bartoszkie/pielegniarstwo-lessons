@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import { MakeupFlow, useApp } from '../../app/AppContext';
 import { ClassBlock } from '../../utils/blocks';
-import { daysBetween, parseDate, shortDateLabel } from '../../utils/dateUtils';
-import { makeupOptions, MakeupOption } from '../../utils/makeup';
-import { ChevronRight, Redo } from '../ui/icons';
+import { addDays, daysBetween, formatDate, isSameMonth, parseDate, shortDateLabel } from '../../utils/dateUtils';
+import { createSavedMakeup, makeupOptions, MakeupOption } from '../../utils/makeup';
+import { ChevronRight, Close, Redo } from '../ui/icons';
 
 type ResultsFlow = Extract<MakeupFlow, { step: 'results' }>;
 
@@ -138,8 +139,13 @@ export function MakeupBar({ flow, results, wide = false }: { flow: ResultsFlow; 
           Zmień
         </button>
       )}
-      <button type="button" onClick={() => setMakeupFlow(null)} className="h-9 shrink-0 rounded-full bg-white/[.14] px-3.5 text-[13px] font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,.14)] active:bg-white/25">
-        Zakończ
+      <button
+        type="button"
+        aria-label="Zakończ odrabianie"
+        onClick={() => setMakeupFlow(null)}
+        className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/[.14] shadow-[inset_0_1px_0_rgba(255,255,255,.14)] active:bg-white/25"
+      >
+        <Close size={16} strokeWidth={2.6} />
       </button>
     </div>
   );
@@ -164,4 +170,67 @@ export function NoOptions({ results, flow }: { results: MakeupResults; flow: Res
       </button>
     </div>
   );
+}
+
+/** The date the student picked from the results; starts on the soonest one with no clash */
+export function useOptionSelection(results: MakeupResults, shown: MakeupOption[]) {
+  const [selectedId, setSelectedId] = useState<string | null>(() => results.best?.id ?? null);
+  // A filter can hide the picked date: then nothing is picked
+  const selected = shown.find(o => o.id === selectedId) ?? null;
+  return { selected, select: (option: MakeupOption) => setSelectedId(option.id) };
+}
+
+/** Adds the picked date to the plan and goes back to it, on the month view at that day */
+export function useConfirmMakeup(flow: ResultsFlow, results: MakeupResults) {
+  const { calendar, makeups, addMakeup, removeMakeup, setMakeupFlow } = useApp();
+  const previous = makeups.find(m => m.group === flow.group && m.key === flow.key && m.n === flow.n) ?? null;
+
+  const confirm = (option: MakeupOption) => {
+    if (!results.own) return;
+    const saved = createSavedMakeup(option, flow.group, flow.key, flow.n, results.list.length, results.own);
+    const date = parseDate(option.block.date);
+    addMakeup(saved);
+    setMakeupFlow(null);
+    calendar.setView('month');
+    calendar.setCursor(date);
+    window.scrollTo({ top: 0 });
+    toast.success('Dodano do Twojego planu', {
+      description: `${results.title} nr ${flow.n} · ${shortDateLabel(date)}, ${option.block.start}`,
+      action: { label: 'Cofnij', onClick: () => removeMakeup(saved.id) },
+    });
+  };
+
+  const remove = () => {
+    if (!previous) return;
+    removeMakeup(previous.id);
+    toast.success('Usunięto odrabianie z Twojego planu.');
+  };
+
+  return { confirm, remove, previous };
+}
+
+/** Previous or next week or month; a new month opens on today, else on its first date in `landOn` */
+export function usePeriodStep(landOn: string[]) {
+  const { calendar, now } = useApp();
+  return (direction: 1 | -1) => {
+    if (calendar.view === 'week') {
+      calendar.setCursor(addDays(calendar.weekStart, 7 * direction));
+      return;
+    }
+    const month = new Date(calendar.cursor.getFullYear(), calendar.cursor.getMonth() + direction, 1);
+    if (isSameMonth(now, month)) {
+      calendar.goToToday();
+      return;
+    }
+    const prefix = formatDate(month).slice(0, 8);
+    const first = landOn.filter(date => date.startsWith(prefix)).sort()[0];
+    calendar.setCursor(first ? parseDate(first) : month);
+  };
+}
+
+/** Status line for the picked date, under its title */
+export function pickedNote(option: MakeupOption, previousDate: string | null): string {
+  if (option.clashes.length) return `Koliduje z: ${option.clashes.map(c => `${c.event.title}, ${c.start}–${c.end}`).join('; ')}`;
+  const place = option.block.event.location || (option.block.mode === 'online' ? 'online' : '');
+  return ['Bez kolizji', place, previousDate ? `zastąpi ${previousDate}` : ''].filter(Boolean).join(' · ');
 }

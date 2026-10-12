@@ -1,91 +1,178 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { MakeupFlow, useApp } from '../../app/AppContext';
 import { ClassBlock } from '../../utils/blocks';
 import {
   addDays, capitalize, DAY_NAMES_FULL, formatDate, getMonthDays, getWeekLabelShort, isSameDay, isSameMonth,
-  MONTH_NAMES, MONTH_SHORT, parseDate, WEEKDAYS_NARROW,
+  MONTH_NAMES, MONTH_SHORT, parseDate, shortDateLabel, WEEKDAYS_NARROW,
 } from '../../utils/dateUtils';
 import { MakeupOption } from '../../utils/makeup';
 import { DisplayTitle } from '../ui/DisplayTitle';
 import { GroupTag, GroupTags } from '../ui/GroupTag';
-import { Check, ChevronRight, Moon, PlusCircle, UserIcon, Warning } from '../ui/icons';
+import { CalendarGrid, Check, ChevronLeft, ChevronRight, Moon, Rows, UserIcon, Warning } from '../ui/icons';
 import { ModeBadge } from '../ui/ModeBadge';
-import { BottomDock } from '../phone/BottomDock';
+import { SlideToConfirm } from '../ui/SlideToConfirm';
 import {
-  KIND_SHORT, MakeupBar, MakeupResults, NoOptions, optionStatus, OptionStatus, termsLabel, useMakeupResults, useOptionFilter, whenLabel,
+  KIND_SHORT, MakeupBar, MakeupResults, NoOptions, optionStatus, OptionStatus, pickedNote, termsLabel,
+  useConfirmMakeup, useMakeupResults, useOptionFilter, useOptionSelection, usePeriodStep, whenLabel,
 } from './shared';
 
 type ResultsFlow = Extract<MakeupFlow, { step: 'results' }>;
 
-/** Phone: the other groups' dates for the class being made up, in a week list or a month grid */
+interface Picking {
+  selected: MakeupOption | null;
+  select: (option: MakeupOption) => void;
+}
+
+/**
+ * Phone: the other groups' dates for the class being made up, in a week list or a month grid.
+ * Tapping a date only selects it; the bar at the bottom confirms it with a slide.
+ */
 export function PhoneMakeup({ flow }: { flow: ResultsFlow }) {
   const { calendar } = useApp();
   const results = useMakeupResults(flow);
   const { shown, chips } = useOptionFilter(results);
+  const { selected, select } = useOptionSelection(results, shown);
+  const { confirm, remove, previous } = useConfirmMakeup(flow, results);
+  const step = usePeriodStep(shown.map(o => o.block.date));
 
-  // Open on the soonest date that fits (else the first one), once per class
-  const flowKey = `${flow.group}|${flow.key}|${flow.n}`;
-  const opened = useRef('');
+  // Open on the soonest date that fits, else the first one (this view is remounted per class)
   useEffect(() => {
-    if (opened.current === flowKey) return;
-    opened.current = flowKey;
     const target = results.best ?? results.options[0];
     if (target) calendar.setCursor(parseDate(target.block.date));
     window.scrollTo({ top: 0 });
-  }, [flowKey, results, calendar]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const isWeek = calendar.view === 'week';
   const title = isWeek
     ? getWeekLabelShort(calendar.weekStart)
     : `${MONTH_NAMES[calendar.cursor.getMonth()]} ${calendar.cursor.getFullYear()}`;
   const hasOptions = results.options.length > 0;
+  const picking = { selected, select };
+  const previousDate = previous && previous.date && selected && !(previous.date === selected.block.date && previous.start === selected.block.start)
+    ? `${shortDateLabel(parseDate(previous.date))}, ${previous.start}`
+    : null;
 
   return (
-    <div className="fade-enter min-h-dvh pb-[calc(140px+env(safe-area-inset-bottom))]">
-      <header className="sticky top-0 z-20 flex items-center justify-between gap-2 bg-bg/90 pb-1 pl-[18px] pr-3 pt-[max(12px,env(safe-area-inset-top))] backdrop-blur-md">
-        <span key={title} className="enter-quick whitespace-nowrap text-2xl leading-7 tracking-[-0.02em]"><DisplayTitle text={title} /></span>
-        <ViewSwitch />
+    <div className="fade-enter min-h-dvh pb-[calc(200px+env(safe-area-inset-bottom))]">
+      <header className="sticky top-0 z-20 flex items-center gap-1.5 bg-bg/90 px-3 pb-1 pt-[max(12px,env(safe-area-inset-top))] backdrop-blur-md">
+        <button type="button" aria-label={isWeek ? 'Poprzedni tydzień' : 'Poprzedni miesiąc'} onClick={() => step(-1)} className="raised grid h-10 w-10 shrink-0 place-items-center rounded-full">
+          <ChevronLeft size={18} strokeWidth={2.4} />
+        </button>
+        <span key={title} className="enter-quick min-w-0 flex-1 truncate text-center text-[22px] leading-7 tracking-[-0.02em]"><DisplayTitle text={title} /></span>
+        <button type="button" aria-label={isWeek ? 'Następny tydzień' : 'Następny miesiąc'} onClick={() => step(1)} className="raised grid h-10 w-10 shrink-0 place-items-center rounded-full">
+          <ChevronRight size={18} strokeWidth={2.4} />
+        </button>
       </header>
 
       <div className="flex flex-col gap-3 px-3 pt-2.5">
         <MakeupBar flow={flow} results={results} />
-        {hasOptions && <div className="px-1">{chips}</div>}
+        {hasOptions && (
+          <div className="flex items-center gap-2 px-1">
+            {chips}
+            <ViewIcons />
+          </div>
+        )}
       </div>
 
       <main className="flex flex-col gap-4 px-3 pt-3">
         {!hasOptions ? (
           <NoOptions results={results} flow={flow} />
         ) : isWeek ? (
-          <WeekOptions results={results} shown={shown} flow={flow} />
+          <WeekOptions results={results} shown={shown} flow={flow} picking={picking} />
         ) : (
-          <MonthOptions results={results} shown={shown} flow={flow} />
+          <MonthOptions results={results} shown={shown} flow={flow} picking={picking} />
         )}
       </main>
 
-      <BottomDock landOn={shown.map(o => o.block.date)} />
+      {hasOptions && (
+        <ConfirmBar
+          selected={selected}
+          results={results}
+          previousDate={previousDate}
+          onConfirm={confirm}
+          onRemove={remove}
+        />
+      )}
     </div>
   );
 }
 
-/** Week or month, as a pressed track with the current view raised out of it */
-export function ViewSwitch() {
+/** Month or week, as two icons in a pressed track */
+function ViewIcons() {
   const { calendar } = useApp();
   return (
-    <div role="group" aria-label="Widok" className="pressed flex gap-1 rounded-[14px] p-[3px]">
+    <div role="group" aria-label="Widok" className="pressed ml-auto flex shrink-0 gap-[3px] rounded-[13px] p-[3px]">
       {(['month', 'week'] as const).map(view => {
         const selected = calendar.view === view;
+        const Icon = view === 'month' ? CalendarGrid : Rows;
         return (
           <button
             key={view}
             type="button"
             aria-pressed={selected}
+            aria-label={view === 'month' ? 'Miesiąc' : 'Tydzień'}
             onClick={() => calendar.setView(view)}
-            className={`h-[38px] rounded-[11px] px-3.5 text-sm ${selected ? 'raised font-semibold' : 'font-medium text-ink-2'}`}
+            className={`grid h-[34px] w-10 place-items-center rounded-[10px] ${selected ? 'raised' : 'text-ink-2'}`}
           >
-            {view === 'week' ? 'Tydzień' : 'Miesiąc'}
+            <Icon size={18} />
           </button>
         );
       })}
+    </div>
+  );
+}
+
+function ConfirmBar({ selected, results, previousDate, onConfirm, onRemove }: {
+  selected: MakeupOption | null;
+  results: MakeupResults;
+  previousDate: string | null;
+  onConfirm: (option: MakeupOption) => void;
+  onRemove: () => void;
+}) {
+  const chosen = !!selected && selected.id === results.chosenId;
+  return (
+    <div
+      role="region"
+      aria-label="Wybrany termin"
+      className="fixed inset-x-0 bottom-0 z-30 flex flex-col gap-3 rounded-t-[26px] bg-surface px-4 pb-[max(20px,env(safe-area-inset-bottom))] pt-3.5 shadow-[0_-12px_32px_rgba(28,25,23,.12),0_-1px_0_rgba(28,25,23,.06)]"
+    >
+      {selected ? (
+        <div className="grid grid-cols-[26px_minmax(0,1fr)_auto] items-center gap-x-3">
+          <span aria-hidden="true" className="grid h-[26px] w-[26px] place-items-center rounded-full bg-ink text-bg">
+            <Check size={14} strokeWidth={3.2} />
+          </span>
+          <span className="flex min-w-0 flex-col" aria-live="polite">
+            <span className="text-xs leading-4 text-ink-2">{chosen ? 'Już w Twoim planie' : 'Wybrany termin'}</span>
+            <span className="truncate text-base font-bold leading-[22px]">
+              {shortDateLabel(parseDate(selected.block.date))}, {selected.block.start}–{selected.block.end}
+            </span>
+            <span className={`truncate text-[13px] font-semibold leading-[18px] ${selected.clashes.length ? 'text-warn-ink' : 'text-ink-2'}`}>
+              {pickedNote(selected, previousDate)}
+            </span>
+          </span>
+          <span className="flex gap-[3px]"><GroupTags groups={selected.block.groups} /></span>
+        </div>
+      ) : (
+        <div className="grid grid-cols-[26px_minmax(0,1fr)] items-center gap-x-3">
+          <span aria-hidden="true" className="h-[26px] w-[26px] rounded-full border-2 border-dashed border-ink-3" />
+          <span className="flex flex-col">
+            <span className="text-base font-bold leading-[22px]">Wybierz termin</span>
+            <span className="text-[13px] leading-[18px] text-ink-2">Dotknij zajęć innej grupy na liście powyżej.</span>
+          </span>
+        </div>
+      )}
+      {chosen ? (
+        <button type="button" onClick={onRemove} className="raised h-[52px] rounded-full text-[15px] font-semibold">Usuń z mojego planu</button>
+      ) : (
+        <SlideToConfirm
+          key={selected?.id ?? 'none'}
+          label={selected ? 'Przesuń, aby potwierdzić' : 'Najpierw wybierz termin'}
+          doneLabel="Dodano do planu"
+          disabled={!selected}
+          onConfirm={() => { if (selected) onConfirm(selected); }}
+        />
+      )}
     </div>
   );
 }
@@ -125,7 +212,7 @@ type Entry =
   | { type: 'gap'; key: string; days: Date[] }
   | { type: 'day'; key: string; date: Date; own: ClassBlock | null; options: MakeupOption[] };
 
-function WeekOptions({ results, shown, flow }: { results: MakeupResults; shown: MakeupOption[]; flow: ResultsFlow }) {
+function WeekOptions({ results, shown, flow, picking }: { results: MakeupResults; shown: MakeupOption[]; flow: ResultsFlow; picking: Picking }) {
   const { calendar } = useApp();
   const startKey = formatDate(calendar.weekStart);
   const endKey = formatDate(addDays(calendar.weekStart, 6));
@@ -156,12 +243,8 @@ function WeekOptions({ results, shown, flow }: { results: MakeupResults; shown: 
 
   return (
     <div key={`${startKey}|${shown.length}`} className="flex flex-col gap-4">
-      <p className="enter flex items-center gap-2 px-1.5 text-[13px] leading-[18px] text-ink-2">
-        <PlusCircle size={16} strokeWidth={2.2} className="shrink-0 text-ink" />
-        Wybierz termin, a dodamy go do Twojego planu.
-      </p>
       {entries.map((entry, index) => {
-        const enter = { '--i': index + 1 } as React.CSSProperties;
+        const enter = { '--i': index } as React.CSSProperties;
         if (entry.type === 'gap') {
           return (
             <p key={entry.key} style={enter} className="enter flex min-h-11 items-center gap-2.5 rounded-[14px] border border-dashed border-line-strong px-3.5 py-2.5 text-sm text-ink-2">
@@ -171,7 +254,7 @@ function WeekOptions({ results, shown, flow }: { results: MakeupResults; shown: 
           );
         }
         return (
-          <DaySection key={entry.key} style={enter} date={entry.date} own={entry.own} options={entry.options} results={results} flow={flow} />
+          <DaySection key={entry.key} style={enter} date={entry.date} own={entry.own} options={entry.options} results={results} flow={flow} picking={picking} />
         );
       })}
       {earlier.length > 0 && !entries.some(e => e.type === 'day' && e.options.length) && (
@@ -182,29 +265,39 @@ function WeekOptions({ results, shown, flow }: { results: MakeupResults; shown: 
   );
 }
 
-function DaySection({ date, own, options, results, flow, style }: {
+function DaySection({ date, own, options, results, flow, picking, style }: {
   date: Date;
   own: ClassBlock | null;
   options: MakeupOption[];
   results: MakeupResults;
   flow: ResultsFlow;
+  picking: Picking;
   style?: React.CSSProperties;
 }) {
+  const dayName = `${capitalize(DAY_NAMES_FULL[date.getDay()])} ${date.getDate()}`;
   return (
     <section style={style} className="enter flex flex-col gap-2">
       <h2 className="flex items-center gap-2 px-2 text-[15px] font-semibold leading-[22px]">
-        <span>{capitalize(DAY_NAMES_FULL[date.getDay()])}</span>
-        <span className="font-normal text-ink-2">{date.getDate()}</span>
+        <span>{dayName}</span>
         <span className="text-[13px] font-normal text-ink-2">· {options.length ? termsLabel(options.length) : 'brak terminów'}</span>
       </h2>
-      <div className="overflow-hidden rounded-2xl border border-line bg-surface">
+      <div role="radiogroup" aria-label={dayName} className="overflow-hidden rounded-2xl border border-line bg-surface">
         {own && <OwnRow block={own} flow={flow} />}
         {options.map((option, i) => {
-          const status = optionStatus(option, results);
-          const previous = options[i - 1];
-          const plain = status === 'free' || status === 'clash';
-          const divided = i > 0 && plain && !!previous && ['free', 'clash'].includes(optionStatus(previous, results));
-          return <OptionRow key={option.id} option={option} status={status} results={results} flow={flow} divided={divided} />;
+          const on = picking.selected?.id === option.id;
+          const previousOn = i > 0 && picking.selected?.id === options[i - 1].id;
+          return (
+            <OptionRow
+              key={option.id}
+              option={option}
+              status={optionStatus(option, results)}
+              results={results}
+              flow={flow}
+              selected={on}
+              divided={i > 0 && !on && !previousOn}
+              onSelect={() => picking.select(option)}
+            />
+          );
         })}
       </div>
     </section>
@@ -231,30 +324,33 @@ const STATUS_LABEL: Record<OptionStatus, string> = {
   clash: 'kolizja',
 };
 
-export function OptionRow({ option, status, results, flow, divided }: {
+function OptionRow({ option, status, results, flow, selected, divided, onSelect }: {
   option: MakeupOption;
   status: OptionStatus;
   results: MakeupResults;
   flow: ResultsFlow;
-  divided?: boolean;
+  selected: boolean;
+  divided: boolean;
+  onSelect: () => void;
 }) {
-  const { setPendingMakeup, todayKey } = useApp();
+  const { todayKey } = useApp();
   const { block, clashes } = option;
-  const emphasised = status === 'best' || status === 'chosen';
   const clashText = clashes.map(c => `${c.event.title}, ${c.start}–${c.end}`).join('; ');
   const label = status === 'best' ? `${STATUS_LABEL.best} · ${whenLabel(block.date, todayKey)}` : STATUS_LABEL[status];
 
   return (
     <button
       type="button"
-      onClick={() => setPendingMakeup(option)}
-      aria-label={`${block.start}–${block.end}, z grupami ${block.groups.join(', ')}${block.event.location ? `, ${block.event.location}` : ''}. ${clashes.length ? `Koliduje z: ${clashText}` : 'Bez kolizji'}${status === 'chosen' ? ', już w Twoim planie' : ''}. Wybierz ten termin`}
-      className={`relative grid w-full grid-cols-[48px_minmax(0,1fr)] gap-x-3.5 px-4 py-3.5 text-left transition-colors ${
-        emphasised ? 'bg-pressed shadow-press' : 'active:bg-ink/[.04]'
+      role="radio"
+      aria-checked={selected}
+      onClick={onSelect}
+      aria-label={`${block.start}–${block.end}, z grupami ${block.groups.join(', ')}${block.event.location ? `, ${block.event.location}` : ''}. ${clashes.length ? `Koliduje z: ${clashText}` : 'Bez kolizji'}${status === 'chosen' ? ', już w Twoim planie' : ''}`}
+      className={`relative grid w-full grid-cols-[48px_minmax(0,1fr)_24px] items-center gap-x-3 py-3.5 pl-4 pr-3.5 text-left transition-[background-color,box-shadow] duration-200 ${
+        selected ? 'rounded-[14px] bg-pressed shadow-[var(--shadow-press),inset_0_0_0_2px_rgb(var(--ink))]' : 'active:bg-ink/[.04]'
       }`}
     >
       {divided && <span aria-hidden="true" className="absolute inset-x-4 top-0 h-px bg-line" />}
-      <span className="flex flex-col gap-0.5 tabular-nums text-sm font-medium leading-5">
+      <span className="flex flex-col gap-0.5 self-start tabular-nums text-sm font-medium leading-5">
         <span>{block.start}</span>
         <span className="text-[13px] font-normal text-ink-2">{block.end}</span>
       </span>
@@ -262,7 +358,7 @@ export function OptionRow({ option, status, results, flow, divided }: {
         <span className="flex flex-wrap items-center gap-1">
           <GroupTags groups={block.groups} />
           <span className={`ml-auto inline-flex items-center gap-1 whitespace-nowrap pl-2 text-xs font-bold ${status === 'clash' ? 'text-warn-ink' : ''}`}>
-            {status === 'clash' ? <Warning size={13} strokeWidth={2.4} /> : <Check size={13} strokeWidth={2.8} />}
+            {status === 'clash' && <Warning size={13} strokeWidth={2.4} />}
             {label}
           </span>
         </span>
@@ -287,16 +383,23 @@ export function OptionRow({ option, status, results, flow, divided }: {
           </span>
         )}
       </span>
+      <span
+        aria-hidden="true"
+        className={`grid h-6 w-6 place-items-center rounded-full transition-colors ${selected ? 'bg-ink text-bg' : 'border-2 border-line-strong bg-surface'}`}
+      >
+        {selected && <Check size={13} strokeWidth={3.4} />}
+      </span>
     </button>
   );
 }
 
-function MonthOptions({ results, shown, flow }: { results: MakeupResults; shown: MakeupOption[]; flow: ResultsFlow }) {
+function MonthOptions({ results, shown, flow, picking }: { results: MakeupResults; shown: MakeupOption[]; flow: ResultsFlow; picking: Picking }) {
   const { calendar, todayKey } = useApp();
   const { cursor } = calendar;
   const days = getMonthDays(cursor.getFullYear(), cursor.getMonth());
   const cursorKey = formatDate(cursor);
   const ownKey = results.own?.date;
+  const pickedKey = picking.selected?.block.date;
   const dayOptions = shown.filter(o => o.block.date === cursorKey);
   const monthPrefix = cursorKey.slice(0, 8);
   const later = shown.filter(o => o.block.date > cursorKey && !o.block.date.startsWith(monthPrefix));
@@ -304,7 +407,7 @@ function MonthOptions({ results, shown, flow }: { results: MakeupResults; shown:
 
   return (
     <div className="flex flex-col gap-4">
-      <div key={monthPrefix} className="enter rounded-2xl border border-line bg-surface px-2 pb-2.5 pt-2.5">
+      <div key={monthPrefix} className="enter rounded-2xl border border-line bg-surface px-2 pb-2 pt-2.5">
         <div className="grid grid-cols-7 pb-1.5">
           {WEEKDAYS_NARROW.map(day => (
             <span key={day} className="text-center text-xs font-medium text-ink-2">{day}</span>
@@ -316,28 +419,34 @@ function MonthOptions({ results, shown, flow }: { results: MakeupResults; shown:
             const inMonth = isSameMonth(date, cursor);
             const options = inMonth ? shown.filter(o => o.block.date === key) : [];
             const isOwn = inMonth && key === ownKey;
+            const isPicked = inMonth && key === pickedKey;
             const isToday = key === todayKey;
-            const selected = isSameDay(date, cursor);
+            const current = isSameDay(date, cursor);
             return (
               <button
                 key={key}
                 type="button"
                 disabled={!inMonth}
-                aria-pressed={selected}
-                aria-label={`${date.getDate()} ${MONTH_SHORT[date.getMonth()]}${options.length ? `, ${termsLabel(options.length)}` : ''}${isOwn ? ', Twój termin' : ''}`}
+                aria-pressed={current}
+                aria-label={`${date.getDate()} ${MONTH_SHORT[date.getMonth()]}${options.length ? `, ${termsLabel(options.length)}` : ''}${isOwn ? ', Twój termin' : ''}${isPicked ? ', tu jest wybrany termin' : ''}`}
                 onClick={() => calendar.setCursor(date)}
-                className={`flex h-[52px] flex-col items-center justify-center gap-0.5 rounded-xl ${selected ? 'pressed' : ''}`}
+                className={`flex h-[52px] flex-col items-center justify-center gap-0.5 rounded-xl ${current ? 'pressed' : ''}`}
               >
                 <span
                   className={`grid h-[30px] w-[30px] place-items-center rounded-full text-[15px] tabular-nums ${
-                    isOwn ? 'border-[1.5px] border-dashed border-ink-2' : ''
-                  } ${isToday ? 'font-extrabold text-accent' : !inMonth ? 'text-line-strong' : options.length || isOwn ? 'font-bold' : 'text-ink-3'}`}
+                    isPicked ? 'bg-ink font-bold text-bg' : isOwn ? 'border-[1.5px] border-dashed border-ink-2' : ''
+                  } ${isPicked ? '' : isToday ? 'font-extrabold text-accent' : !inMonth ? 'text-line-strong' : options.length || isOwn ? 'font-bold' : 'text-ink-3'}`}
                 >
                   {date.getDate()}
                 </span>
                 <span aria-hidden="true" className="flex h-[7px] items-center gap-[3px]">
                   {options.slice(0, 4).map(o => (
-                    <span key={o.id} className={`h-[7px] w-[7px] rounded-full ${o.clashes.length ? 'border-2 border-warn' : 'bg-ink'}`} />
+                    <span
+                      key={o.id}
+                      className={`h-[7px] rounded-full ${
+                        o.id === picking.selected?.id ? 'w-[13px] bg-ink' : o.clashes.length ? 'w-[7px] border-2 border-warn' : 'w-[7px] bg-ink'
+                      }`}
+                    />
                   ))}
                 </span>
               </button>
@@ -346,14 +455,14 @@ function MonthOptions({ results, shown, flow }: { results: MakeupResults; shown:
         </div>
         <div className="mt-2 flex flex-wrap justify-center gap-x-3.5 gap-y-1 border-t border-line px-1 pt-2.5 text-xs text-ink-2">
           <span className="inline-flex items-center gap-1.5"><span className="h-[7px] w-[7px] rounded-full bg-ink" />bez kolizji</span>
-          <span className="inline-flex items-center gap-1.5"><span className="h-[7px] w-[7px] rounded-full border-2 border-warn" />kolizja z Twoim planem</span>
+          <span className="inline-flex items-center gap-1.5"><span className="h-[7px] w-[7px] rounded-full border-2 border-warn" />kolizja</span>
           <span className="inline-flex items-center gap-1.5"><span className="h-3.5 w-3.5 rounded-full border-[1.5px] border-dashed border-ink-2" />Twój termin</span>
         </div>
       </div>
 
       <div key={cursorKey} className="enter-quick flex flex-col gap-4" style={{ '--i': 2 } as React.CSSProperties}>
         {dayOptions.length || cursorKey === ownKey ? (
-          <DaySection date={cursor} own={cursorKey === ownKey ? results.own : null} options={dayOptions} results={results} flow={flow} />
+          <DaySection date={cursor} own={cursorKey === ownKey ? results.own : null} options={dayOptions} results={results} flow={flow} picking={picking} />
         ) : (
           <p className="rounded-2xl border border-line bg-surface px-4 py-5 text-center text-sm text-ink-2">
             Tego dnia nie ma terminów.

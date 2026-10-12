@@ -51,7 +51,7 @@ export function PhoneApp() {
   if (makeupFlow?.step === 'results') {
     return (
       <>
-        <PhoneMakeup flow={makeupFlow} />
+        <PhoneMakeup key={`${makeupFlow.group}|${makeupFlow.key}|${makeupFlow.n}`} flow={makeupFlow} />
         <FilterSheet open={filtersOpen} onOpenChange={setFiltersOpen} />
       </>
     );
