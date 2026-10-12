@@ -42,6 +42,20 @@ export function isSameDay(a: Date, b: Date): boolean {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 }
 
+/** Calendar days from `from` to `to` (0 = same day), safe across DST changes */
+export function daysBetween(from: Date, to: Date): number {
+  const utc = (d: Date) => Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
+  return Math.round((utc(to) - utc(from)) / 86_400_000);
+}
+
+/** "dziś", "jutro" or "sobota 17 paź" */
+export function relativeDayLabel(date: Date, today: Date): string {
+  const days = daysBetween(today, date);
+  if (days === 0) return 'dziś';
+  if (days === 1) return 'jutro';
+  return `${DAY_NAMES_FULL[date.getDay()]} ${date.getDate()} ${MONTH_SHORT[date.getMonth()]}`;
+}
+
 export function isToday(date: Date): boolean {
   return isSameDay(date, new Date());
 }

@@ -87,9 +87,9 @@ export function PhoneMonth({ onPick }: { onPick: () => void }) {
             {selected.map(block => {
               let state: RowState = 'none';
               if (isTodaySelected && live.current?.id === block.id) state = 'live';
-              else if (isTodaySelected && live.next?.id === block.id) state = 'next';
+              else if (live.next?.id === block.id) state = 'next';
               return (
-                <ClassRow key={block.id} block={block} state={state} progress={live.progress} remainingMin={live.remainingMin} untilMin={live.untilNextMin} />
+                <ClassRow key={block.id} block={block} state={state} progress={live.progress} remainingMin={live.remainingMin} untilLabel={live.untilNextLabel} />
               );
             })}
           </div>

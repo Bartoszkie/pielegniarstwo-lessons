@@ -7,7 +7,8 @@ import { EmptyState } from './EmptyState';
 
 type Entry =
   | { type: 'day'; date: Date; key: string; blocks: ClassBlock[] }
-  | { type: 'gap'; text: string; key: string };
+  | { type: 'gap'; text: string; key: string }
+  | { type: 'free-today'; date: Date; key: string };
 
 function gapText(days: Date[]): string {
   const name = (d: Date) => `${DAY_NAMES_FULL[d.getDay()]} ${d.getDate()}`;
@@ -16,7 +17,11 @@ function gapText(days: Date[]): string {
   return `${capitalize(name(days[0]))} – ${name(days[days.length - 1])} · bez zajęć`;
 }
 
-/** The phone week view: one card per day with classes, empty days folded into one line. */
+function TodayBadge() {
+  return <span className="inline-flex h-[22px] items-center rounded-full bg-ink px-2 text-xs font-semibold text-bg">Dziś</span>;
+}
+
+/** The phone week view: one card per day with classes, empty days folded into one line (except today). */
 export function WeekAgenda({ onPick }: { onPick: () => void }) {
   const { calendar, visibleByDate, live, todayKey, hasSelection } = useApp();
   const cursorKey = formatDate(calendar.cursor);
@@ -41,7 +46,11 @@ export function WeekAgenda({ onPick }: { onPick: () => void }) {
     const date = addDays(calendar.weekStart, i);
     const key = formatDate(date);
     const blocks = visibleByDate[key] ?? [];
-    if (blocks.length === 0) {
+    if (blocks.length === 0 && key === todayKey) {
+      // Today stays visible on its own, so a free day isn't lost inside a range
+      flush();
+      entries.push({ type: 'free-today', date, key });
+    } else if (blocks.length === 0) {
       pending.push(date);
     } else {
       flush();
@@ -58,6 +67,16 @@ export function WeekAgenda({ onPick }: { onPick: () => void }) {
         if (entry.type === 'gap') {
           return <p key={entry.key} className="px-2 text-sm text-ink-2">{entry.text}</p>;
         }
+        if (entry.type === 'free-today') {
+          return (
+            <p key={entry.key} id={`day-${entry.key}`} className="flex scroll-mt-20 items-center gap-2 px-2 text-[15px] leading-[22px]">
+              <span className="font-semibold">{capitalize(DAY_NAMES_FULL[entry.date.getDay()])}</span>
+              <span className="text-ink-2">{entry.date.getDate()}</span>
+              <TodayBadge />
+              <span className="text-sm text-ink-2">· bez zajęć</span>
+            </p>
+          );
+        }
         const isTodayDay = entry.key === todayKey;
         const classes = entry.blocks.filter(isClass);
         const parallel = classes.some((a, i) => classes.some((b, j) => i !== j && a.startMin < b.endMin && b.startMin < a.endMin));
@@ -67,16 +86,14 @@ export function WeekAgenda({ onPick }: { onPick: () => void }) {
             <h2 className="flex items-center gap-2 px-2 text-[15px] font-semibold leading-[22px]">
               <span className={isCursor ? 'underline decoration-2 underline-offset-4' : ''}>{capitalize(DAY_NAMES_FULL[entry.date.getDay()])}</span>
               <span className="font-normal text-ink-2">{entry.date.getDate()}</span>
-              {isTodayDay && (
-                <span className="inline-flex h-[22px] items-center rounded-full bg-ink px-2 text-xs font-semibold text-bg">Dziś</span>
-              )}
+              {isTodayDay && <TodayBadge />}
               {parallel && <span className="text-[13px] font-normal text-ink-2">· zajęcia równoległe</span>}
             </h2>
             <div className="overflow-hidden rounded-2xl border border-line bg-surface">
               {entry.blocks.map(block => {
                 let state: RowState = 'none';
                 if (isTodayDay && live.current?.id === block.id) state = 'live';
-                else if (isTodayDay && live.next?.id === block.id) state = 'next';
+                else if (live.next?.id === block.id) state = 'next';
                 return (
                   <ClassRow
                     key={block.id}
@@ -84,7 +101,7 @@ export function WeekAgenda({ onPick }: { onPick: () => void }) {
                     state={state}
                     progress={live.progress}
                     remainingMin={live.remainingMin}
-                    untilMin={live.untilNextMin}
+                    untilLabel={live.untilNextLabel}
                   />
                 );
               })}

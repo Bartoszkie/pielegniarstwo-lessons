@@ -88,10 +88,10 @@ export function WeekGrid({ selectedId, onToggle }: WeekGridProps) {
                       top={((block.startMin - fromHour * 60) / 60) * HOUR_PX}
                       lane={lane}
                       lanes={lanes}
-                      state={key === todayKey && live.current?.id === block.id ? 'live' : key === todayKey && live.next?.id === block.id ? 'next' : 'none'}
+                      state={key === todayKey && live.current?.id === block.id ? 'live' : live.next?.id === block.id ? 'next' : 'none'}
                       progress={live.progress}
                       remainingMin={live.remainingMin}
-                      untilMin={live.untilNextMin}
+                      untilLabel={live.untilNextLabel}
                       selected={selectedId === block.id}
                       onOpenChange={open => onToggle(block.id, open)}
                       flip={i >= 4}
@@ -129,13 +129,13 @@ interface GridBlockProps {
   state: 'live' | 'next' | 'none';
   progress: number;
   remainingMin: number;
-  untilMin: number;
+  untilLabel: string;
   selected: boolean;
   onOpenChange: (open: boolean) => void;
   flip: boolean;
 }
 
-function GridBlock({ block, top, lane, lanes, state, progress, remainingMin, untilMin, selected, onOpenChange, flip }: GridBlockProps) {
+function GridBlock({ block, top, lane, lanes, state, progress, remainingMin, untilLabel, selected, onOpenChange, flip }: GridBlockProps) {
   const height = ((block.endMin - block.startMin) / 60) * HOUR_PX;
   const single = block.groups.length === 1;
   const accent = getGroupColor(block.groups[0]);
@@ -209,7 +209,7 @@ function GridBlock({ block, top, lane, lanes, state, progress, remainingMin, unt
               <span className="live-dot text-white" />Trwa
             </span>
           )}
-          {next && untilMin > 0 && <span className="text-[11px] font-semibold text-ink-2">za {durationLabel(untilMin)}</span>}
+          {next && <span className="text-[11px] font-semibold text-ink-2">{untilLabel}</span>}
         </span>
         {live && (
           <span className="flex w-full flex-col gap-[3px] py-0.5">

@@ -11,7 +11,8 @@ interface ClassRowProps {
   state?: RowState;
   progress?: number;
   remainingMin?: number;
-  untilMin?: number;
+  /** For the next class: "za 2 godz. 14 min", "jutro", "za 5 dni" */
+  untilLabel?: string;
   /** Shows the date above the time, used in search results */
   dateLabel?: string;
 }
@@ -25,7 +26,7 @@ const KIND_TEXT: Record<string, string> = {
 };
 
 /** One class in a day list. The live class is a raised glass panel, the next one is pressed in. */
-export function ClassRow({ block, state = 'none', progress = 0, remainingMin = 0, untilMin = 0, dateLabel }: ClassRowProps) {
+export function ClassRow({ block, state = 'none', progress = 0, remainingMin = 0, untilLabel, dateLabel }: ClassRowProps) {
   const { event } = block;
 
   if (block.kind === 'info') {
@@ -99,8 +100,8 @@ export function ClassRow({ block, state = 'none', progress = 0, remainingMin = 0
               Trwa teraz
             </span>
           )}
-          {next && untilMin > 0 && (
-            <span className="ml-1 text-xs font-semibold text-ink-2">za {durationLabel(untilMin)}</span>
+          {next && untilLabel && (
+            <span className="ml-1 text-xs font-semibold text-ink-2">{untilLabel}</span>
           )}
           {!live && !next && KIND_TEXT[block.kind] && (
             <span className="ml-1 text-xs text-ink-2">{KIND_TEXT[block.kind]}</span>

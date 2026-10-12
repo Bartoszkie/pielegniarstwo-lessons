@@ -3,19 +3,28 @@ import { KindFilter } from '../types';
 import { useSchedule } from '../hooks/useSchedule';
 import { UseCalendarReturn } from '../hooks/useCalendar';
 import { buildDayBlocks, ClassBlock, isClass, matchesKind } from '../utils/blocks';
-import { addDays, formatDate, getStartOfWeek, parseDate, isSameMonth, DAY_NAMES_FULL, toMinutes } from '../utils/dateUtils';
+import { addDays, formatDate, getStartOfWeek, parseDate, isSameMonth, toMinutes, daysBetween, durationLabel, relativeDayLabel } from '../utils/dateUtils';
 import { normalizeForSearch } from '../utils/eventUtils';
 import { ThemePreference } from '../hooks/useTheme';
 
 type Schedule = ReturnType<typeof useSchedule>;
 
 export interface LiveState {
+  /** The class happening now */
   current: ClassBlock | null;
+  /** The next class that hasn't started yet: later today or on any later day */
   next: ClassBlock | null;
   /** 0–100 */
   progress: number;
   remainingMin: number;
+  /** Days from today to the next class (0 = today) */
+  nextInDays: number;
+  /** Minutes until the next class starts, across days */
   untilNextMin: number;
+  /** "za 2 godz. 14 min" within a day, then "jutro" or "za 5 dni" */
+  untilNextLabel: string;
+  /** Today has classes still to come (or one running), had classes that are all over, or has none */
+  today: 'classes' | 'done' | 'free';
 }
 
 export interface Stats {
@@ -117,15 +126,33 @@ export function AppProvider({
   }, [blocksByDate, calendar]);
 
   const live = useMemo<LiveState>(() => {
-    const today = (blocksByDate[todayKey] ?? []).filter(isClass);
-    const current = today.find(b => b.startMin <= nowMin && nowMin < b.endMin) ?? null;
-    const next = today.find(b => b.startMin > nowMin) ?? null;
+    const todayClasses = (blocksByDate[todayKey] ?? []).filter(isClass);
+    const current = todayClasses.find(b => b.startMin <= nowMin && nowMin < b.endMin) ?? null;
+
+    // First class that hasn't started, looking past today when needed
+    let next: ClassBlock | null = null;
+    for (const date of Object.keys(blocksByDate).filter(d => d >= todayKey).sort()) {
+      next = blocksByDate[date].find(b => isClass(b) && (date > todayKey || b.startMin > nowMin)) ?? null;
+      if (next) break;
+    }
+
+    const nextInDays = next ? daysBetween(parseDate(todayKey), parseDate(next.date)) : 0;
+    const untilNextMin = next ? nextInDays * 1440 + next.startMin - nowMin : 0;
+    let untilNextLabel = '';
+    if (next) {
+      untilNextLabel = untilNextMin < 1440 ? `za ${durationLabel(untilNextMin)}` : nextInDays === 1 ? 'jutro' : `za ${nextInDays} dni`;
+    }
+    const today = todayClasses.length === 0 ? 'free' : current || next?.date === todayKey ? 'classes' : 'done';
+
     return {
       current,
       next,
       progress: current ? Math.round(((nowMin - current.startMin) / Math.max(1, current.endMin - current.startMin)) * 100) : 0,
       remainingMin: current ? current.endMin - nowMin : 0,
-      untilNextMin: next ? next.startMin - nowMin : 0,
+      nextInDays,
+      untilNextMin,
+      untilNextLabel,
+      today,
     };
   }, [blocksByDate, todayKey, nowMin]);
 
@@ -135,26 +162,17 @@ export function AppProvider({
     const weekStartKey = formatDate(weekStart);
     let thisWeek = 0;
     let remaining = 0;
-    let next: ClassBlock | null = null;
-    const dates = Object.keys(blocksByDate).sort();
-    for (const date of dates) {
-      for (const block of blocksByDate[date]) {
+    for (const [date, blocks] of Object.entries(blocksByDate)) {
+      for (const block of blocks) {
         if (!isClass(block)) continue;
         if (date >= weekStartKey && date <= weekEnd) thisWeek += 1;
-        const upcoming = date > todayKey || (date === todayKey && block.endMin > nowMin);
-        if (upcoming) remaining += 1;
-        const notStarted = date > todayKey || (date === todayKey && block.startMin > nowMin);
-        if (notStarted && !next) next = block;
+        if (date > todayKey || (date === todayKey && block.endMin > nowMin)) remaining += 1;
       }
     }
-    let nextLabel = '—';
-    if (next) {
-      const days = Math.round((parseDate(next.date).getTime() - parseDate(todayKey).getTime()) / 86_400_000);
-      const day = days === 0 ? 'dziś' : days === 1 ? 'jutro' : DAY_NAMES_FULL[parseDate(next.date).getDay()];
-      nextLabel = `${day}, ${next.start}`;
-    }
+    const next = live.next;
+    const nextLabel = next ? `${relativeDayLabel(parseDate(next.date), parseDate(todayKey))}, ${next.start}` : '—';
     return { thisWeek, remaining, next, nextLabel };
-  }, [blocksByDate, now, todayKey, nowMin]);
+  }, [blocksByDate, now, todayKey, nowMin, live.next]);
 
   const hasSelection = schedule.mode === 'student'
     ? schedule.selectedGroups.size > 0
