@@ -11,7 +11,7 @@ export function FilePanel() {
   const hasWarnings = schedule.warnings.length > 0;
 
   return (
-    <div className="relative flex flex-col rounded-xl border border-raise bg-surface shadow-raise">
+    <div className="relative flex flex-col rounded-xl border border-raise bg-raised shadow-raise">
       {hasWarnings && (
         <span role="img" aria-label="Plik ma uwagi" className="absolute -right-1.5 -top-1.5 h-3 w-3 rounded-full bg-warn shadow-[0_0_0_2px_rgb(var(--surface)),0_1px_3px_rgba(28,25,23,.3)]" />
       )}

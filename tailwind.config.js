@@ -13,6 +13,7 @@ export default {
         surface: token('surface'),
         'surface-2': token('surface-2'),
         pressed: token('pressed'),
+        raised: token('raised'),
         line: token('line'),
         'line-strong': token('line-strong'),
         ink: token('ink'),

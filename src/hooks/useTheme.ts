@@ -8,14 +8,14 @@ const THEME_COLORS = { light: '#F5F5F4', dark: '#0C0A09' };
 function loadPreference(): ThemePreference {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved === 'light' || saved === 'dark') return saved;
+    if (saved === 'light' || saved === 'dark' || saved === 'system') return saved;
   } catch {
     // Ignore localStorage errors
   }
-  return 'system';
+  return 'light';
 }
 
-/** Light / dark / follow the system. The resolved theme is set as data-theme on <html>. */
+/** Light (default) / dark / follow the system. The resolved theme is set as data-theme on <html>. */
 export function useTheme(): { theme: ThemePreference; setTheme: (theme: ThemePreference) => void } {
   const [theme, setThemeState] = useState<ThemePreference>(loadPreference);
 
@@ -42,8 +42,7 @@ export function useTheme(): { theme: ThemePreference; setTheme: (theme: ThemePre
   const setTheme = useCallback((next: ThemePreference) => {
     setThemeState(next);
     try {
-      if (next === 'system') localStorage.removeItem(STORAGE_KEY);
-      else localStorage.setItem(STORAGE_KEY, next);
+      localStorage.setItem(STORAGE_KEY, next);
     } catch {
       // Ignore localStorage errors
     }

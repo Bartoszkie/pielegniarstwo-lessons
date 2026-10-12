@@ -11,10 +11,11 @@
       // Apply the saved theme before the first paint to avoid a flash of the wrong colours
       (function () {
         try {
-          var pref = localStorage.getItem('theme');
-          var dark = pref === 'dark' || (pref !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          // Light unless the user picked dark, or picked "Auto" and the system is dark
+          var pref = localStorage.getItem('theme') || 'light';
+          var dark = pref === 'dark' || (pref === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
           document.documentElement.dataset.theme = dark ? 'dark' : 'light';
-          if (pref === 'light' || pref === 'dark') {
+          if (pref !== 'system') {
             document.querySelectorAll('meta[name="theme-color"]').forEach(function (m) {
               m.setAttribute('content', dark ? '#0C0A09' : '#F5F5F4');
             });

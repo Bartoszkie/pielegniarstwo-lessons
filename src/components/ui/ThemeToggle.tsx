@@ -3,12 +3,12 @@ import { ThemePreference } from '../../hooks/useTheme';
 import { Moon, Sun, ThemeAuto } from './icons';
 
 const OPTIONS: { value: ThemePreference; label: string; Icon: typeof Sun }[] = [
-  { value: 'system', label: 'Automatyczny', Icon: ThemeAuto },
   { value: 'light', label: 'Jasny', Icon: Sun },
   { value: 'dark', label: 'Ciemny', Icon: Moon },
+  { value: 'system', label: 'Automatyczny', Icon: ThemeAuto },
 ];
 
-/** Auto / light / dark. `icons` shows icon-only buttons (sidebar), otherwise icon + label (phone menu). */
+/** Light / dark / auto. `icons` shows icon-only buttons (sidebar), otherwise icon + label (phone menu). */
 export function ThemeToggle({ variant = 'labels' }: { variant?: 'labels' | 'icons' }) {
   const { theme, setTheme } = useApp();
 
