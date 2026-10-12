@@ -1,71 +1,149 @@
-# Plan Zajęć Pielęgniarstwo
+# Plan Zajęć · Pielęgniarstwo
 
-Aplikacja do przeglądania harmonogramu zajęć dla studentów pielęgniarstwa.
+Aplikacja do przeglądania planu zajęć dla studentów pielęgniarstwa. Wczytujesz arkusz Excel z planem z uczelni, wybierasz swoją grupę i widzisz tylko swoje zajęcia, dzień po dniu.
+
+**👉 Otwórz aplikację: [bartoszkie.github.io/pielegniarstwo-lessons](https://bartoszkie.github.io/pielegniarstwo-lessons/)**
+
+- Plik zostaje na Twoim telefonie: nic nie jest wysyłane i nie trzeba się logować.
+- Po wczytaniu planu aplikacja działa też bez internetu.
+- Najwygodniej korzystać z niej jak ze zwykłej aplikacji, z ikoną na ekranie głównym. Instrukcja jest poniżej.
+
+<p>
+  <img src="screenshots/03-tydzien.png" width="240" alt="Plan tygodnia z zajęciami wybranej grupy">
+  <img src="screenshots/04-szczegoly.png" width="240" alt="Szczegóły zajęć: godziny, sala, prowadzący i kolejne terminy">
+</p>
+
+---
+
+## Instalacja na telefonie
+
+Aplikację instaluje się prosto z przeglądarki, bez App Store i Google Play. Zajmuje to mniej niż minutę.
+
+### iPhone (Safari lub Chrome)
+
+1. Otwórz **[bartoszkie.github.io/pielegniarstwo-lessons](https://bartoszkie.github.io/pielegniarstwo-lessons/)** w Safari albo w Chrome.
+2. Stuknij przycisk **Udostępnij** (kwadrat ze strzałką do góry):
+   - w **Chrome** jest w pasku adresu, na górze ekranu;
+   - w **Safari** jest na dolnym pasku. W nowszych wersjach iOS najpierw stuknij **⋯** obok paska adresu, a potem **Udostępnij**.
+
+   <img src="screenshots/iphone-1-udostepnij.png" width="420" alt="Przycisk Udostępnij w pasku adresu Chrome na iPhonie">
+
+3. Jeśli na liście nie widać opcji z kolejnego kroku, stuknij **Więcej**.
+
+   <img src="screenshots/iphone-2-wiecej.png" width="240" alt="Menu udostępniania z przyciskiem Więcej">
+
+4. Wybierz **Dodaj do ekranu początkowego**.
+
+   <img src="screenshots/iphone-3-dodaj-do-ekranu.png" width="240" alt="Opcja Dodaj do ekranu początkowego">
+
+5. Zostaw nazwę **Plan Zajęć**. Sprawdź, że przełącznik **Otwórz jako aplikację internetową** jest włączony, i stuknij **Dodaj**.
+
+   <img src="screenshots/iphone-4-dodaj.png" width="240" alt="Okno Dodaj do ekranu początkowego z przyciskiem Dodaj">
+
+6. Na ekranie głównym pojawi się ikona **Plan Zajęć**. Od teraz otwieraj aplikację z niej, a nie z przeglądarki.
+
+> Zrzuty pochodzą z iPhone'a z angielskim językiem systemu. Po polsku przyciski nazywają się tak jak w opisie kroków.
+
+### Android (Chrome)
+
+1. Otwórz **[bartoszkie.github.io/pielegniarstwo-lessons](https://bartoszkie.github.io/pielegniarstwo-lessons/)** w Chrome.
+2. Jeśli na dole ekranu pojawi się propozycja **Zainstaluj aplikację**, stuknij ją i przejdź do kroku 5.
+3. W przeciwnym razie stuknij menu **⋮** w prawym górnym rogu.
+4. Wybierz **Dodaj do ekranu głównego** lub **Zainstaluj aplikację**.
+5. Potwierdź przyciskiem **Zainstaluj** (lub **Dodaj**).
+6. Ikona **Plan Zajęć** pojawi się na ekranie głównym i na liście aplikacji.
+
+---
 
 ## Jak korzystać z aplikacji
 
-### 3 proste kroki:
+### 1. Pobierz plik z planem
 
-1. **Wczytaj plik Excel**
-   - Kliknij przycisk "Wczytaj harmonogram" na górze strony
-   - Wybierz plik Excel z harmonogramem zajęć
-   - Poczekaj, aż plik zostanie przetworzony
+Pobierz arkusz Excel (`.xls` lub `.xlsx`) z planem ze strony wydziału, z zakładki „Plan zajęć”. Zapisz go w telefonie, np. w aplikacji Pliki albo w Pobranych.
 
-2. **Wybierz grupy**
-   - Po wczytaniu pliku wybierz interesujące Cię grupy z listy
-   - Możesz wybrać jedną lub więcej grup
-   - Zajęcia wybranych grup będą wyświetlane w kalendarzu
+### 2. Wczytaj plik
 
-3. **Kliknij na dzień zajęć, aby zobaczyć szczegóły**
-   - Kliknij na dowolny dzień w kalendarzu, aby zobaczyć szczegóły zajęć
-   - W oknie modalnym zobaczysz godziny, przedmiot, prowadzącego i salę
+Stuknij **Wybierz plik Excel** i wskaż pobrany arkusz. Na komputerze możesz też po prostu przeciągnąć plik do okna.
 
-## Instalacja aplikacji na ekranie głównym
+<img src="screenshots/01-start.png" width="240" alt="Ekran startowy z przyciskiem Wybierz plik Excel">
 
-### 🤖 iPhone (Safari)
+### 3. Zaznacz swoją grupę
 
-1. Otwórz aplikację w przeglądarce Safari
-2. Kliknij ikonę "Udostępnij" (kwadrat ze strzałką do góry) na dolnym pasku
-3. Przewiń w dół i wybierz "Dodaj do ekranu początkowego"
-4. Nadaj nazwę (np. "Plan Zajęć") i kliknij "Dodaj"
-5. Aplikacja pojawi się na ekranie głównym jako ikona
+Po wczytaniu pliku zaznacz swoją grupę. Możesz wybrać kilka, np. swoją i podgrupę. Na karcie **Wykładowcy** możesz zamiast tego wybrać prowadzących. Stuknij **Pokaż plan**. Wybór zostanie zapamiętany.
 
-### 🤖 iPhone (Chrome)
+Grupę zmienisz później przyciskiem z jej nazwą w prawym górnym rogu (np. **1A**).
 
-1. Otwórz aplikację w przeglądarce Chrome
-2. Kliknij ikonę "Udostępnij" (kwadrat ze strzałką do góry) w pasku adresu strony
-3. Przewiń w dół i wybierz "Dodaj do ekranu początkowego"
-4. Nadaj nazwę (np. "Plan Zajęć") i kliknij "Dodaj"
-5. Aplikacja pojawi się na ekranie głównym jako ikona
+<img src="screenshots/02-wybor-grupy.png" width="240" alt="Wybór grupy po wczytaniu planu">
 
-### 🤖 Android (Chrome)
+### 4. Przeglądaj plan
 
-1. Otwórz aplikację w przeglądarce Chrome
-2. Kliknij ikonę menu (trzy kropki) w prawym górnym rogu
-3. Wybierz "Dodaj do ekranu głównego" lub "Zainstaluj aplikację"
-4. Nadaj nazwę (np. "Plan Zajęć") i kliknij "Dodaj"
-5. Aplikacja pojawi się na ekranie głównym jako ikona
+- **Tydzień:** zajęcia dzień po dniu. U góry widać, co trwa teraz i ile zostało do końca. Dni wolne są zebrane w jedną linijkę.
+- **Filtry** pod nagłówkiem (**Wszystkie**, **Wykłady**, **Ćwiczenia**…) pokazują tylko wybrany rodzaj zajęć.
+- **Strzałki** na dole przełączają tygodnie. Data pośrodku wraca do dzisiaj.
+- **Lupa** szuka zajęć po nazwie przedmiotu, prowadzącym lub sali.
+- Oznaczenia **Online** i **Na uczelni** od razu mówią, czy trzeba jechać na zajęcia.
 
+<p>
+  <img src="screenshots/03-tydzien.png" width="240" alt="Widok tygodnia">
+  <img src="screenshots/06-miesiac.png" width="240" alt="Widok miesiąca z kropkami w dniach z zajęciami">
+</p>
 
-### Przykład Chrome na iPhone: 
-1. Otwórz stronę w przeglądarce (najlepiej Chrome)
-![alt text](image.png)
+Stuknij zajęcia, żeby zobaczyć **szczegóły**: godziny, salę, prowadzącego i kolejne terminy tego przedmiotu.
 
+<img src="screenshots/04-szczegoly.png" width="240" alt="Szczegóły zajęć">
 
-2. Kliknij ikonę "Udostępnij" (kwadrat ze strzałką do góry) w pasku adresu strony
-![alt text](image-1.png)
+### 5. Menu ⋮
 
-3. Kliknij "Dodaj do ekranu początkowego"
-![alt text](image-2.png)
+Przycisk **⋮** w prawym dolnym rogu otwiera menu:
 
-4. Nadaj nazwę (np. "Plan Zajęć") i kliknij "Dodaj"
-![alt text](image-3.png)
+- **Tydzień / Miesiąc** zmienia widok.
+- **Wczytaj nowy plan…** służy do wczytania nowszej wersji pliku, gdy uczelnia zmieni plan. Wybór grup zostaje zachowany.
+- **Jak to działa?** to krótka instrukcja i numer wersji aplikacji.
+- **Motyw** przełącza tryb jasny, ciemny lub automatyczny (jak w telefonie).
 
+<p>
+  <img src="screenshots/05-menu.png" width="240" alt="Menu z widokiem, wczytaniem nowego planu, pomocą i motywem">
+  <img src="screenshots/07-jak-to-dziala.png" width="240" alt="Okno Jak to działa? z numerem wersji na dole">
+</p>
 
-⚠️ **Uwagi:** 
-- Jeśli nie wiesz jak to działa, kliknij w przycisk "Jak to działa?" na górze strony, aby zobaczyć instrukcje.
-- Po dodaniu do ekranu głównego aplikacja będzie działać jak natywna aplikacja mobilna, bez paska adresu przeglądarki.
-- Aplikacja aktualizuje się sama po otwarciu - nie trzeba jej usuwać i instalować ponownie (usunięcie aplikacji kasuje też wczytany plan). Numer wersji widać na dole okna "Jak to działa?".
-- Jeśli aplikacja była zainstalowana przed wprowadzeniem automatycznych aktualizacji, zamknij ją raz całkowicie (przesuń w górę w przełączniku aplikacji) i otwórz ponownie - od tej pory nowe wersje będą pobierać się same.
-- Parsowanie pliku Excel odbywa się lokalnie na urządzeniu użytkownika, co zapewnia prywatność danych - nie trzeba się logować
-- Jeśli masz przeczucie, że aplikacja, nie zczytała czegoś poprawnie, sprawdź w samym pliku Excel! Jest on defaultowo pełen błędów i któraś z jego wersji moze popsuć algorytm parsujący.
+---
+
+## Aktualizacje
+
+Aplikacja **aktualizuje się sama**. Nie trzeba jej usuwać i instalować ponownie.
+
+- Nowa wersja pobiera się w tle, gdy otwierasz aplikację. Zaraz po otwarciu aplikacja przeładuje się sama na nową wersję.
+- Jeśli nowa wersja pojawi się w trakcie korzystania, zobaczysz komunikat **„Dostępna jest nowa wersja aplikacji.”** z przyciskiem **Odśwież**. Jeśli go nie stukniesz, aktualizacja włączy się sama, gdy wyjdziesz z aplikacji.
+- Aktualizacja nigdy nie przerwie wczytywania pliku.
+- Numer wersji (data i kod) widać na dole okna **Jak to działa?** w menu **⋮**.
+
+⚠️ **Nie usuwaj aplikacji, żeby ją zaktualizować.** Usunięcie skasuje też wczytany plan i wybór grup, więc trzeba będzie wczytać plik od nowa.
+
+**Masz aplikację zainstalowaną od dawna?** Starsze wersje nie umiały się same aktualizować. Zamknij aplikację raz całkowicie: na iPhonie przesuń palcem w górę od dołu ekranu i odrzuć ją w przełączniku aplikacji, na Androidzie zamknij ją z listy ostatnich aplikacji. Potem otwórz ją ponownie. Od tej pory nowe wersje będą pobierać się same.
+
+---
+
+## Uwagi
+
+- Plik Excel jest czytany wyłącznie na Twoim urządzeniu. Nic nie jest wysyłane na serwer.
+- Jeśli coś w planie wygląda podejrzanie, porównaj to z plikiem Excel. Arkusz z uczelni często zawiera błędy, a niektóre jego wersje mogą zmylić aplikację. Wiersze, których nie udało się odczytać, aplikacja pokazuje jako **Uwagi do pliku**.
+- Po wczytaniu nowszego pliku warto sprawdzić, czy wybrane grupy nadal się zgadzają.
+
+> Nazwiska prowadzących na zrzutach ekranu są przykładowe.
+
+---
+
+## Dla twórców
+
+```bash
+npm install
+npm run dev       # serwer deweloperski
+npm run build     # sprawdzenie typów i build produkcyjny do dist/
+npm run preview   # podgląd buildu produkcyjnego (z service workerem)
+npm run deploy    # build i publikacja na GitHub Pages (gałąź gh-pages)
+```
+
+- Stos: React + Vite + Tailwind, PWA przez `vite-plugin-pwa` (Workbox).
+- Aktualizacje PWA obsługuje [`src/hooks/useAppUpdate.ts`](src/hooks/useAppUpdate.ts). Service worker działa w trybie `prompt`: nowa wersja czeka, aż aplikacja ją włączy (zaraz po otwarciu, po stuknięciu **Odśwież** albo przy wyjściu z aplikacji).
+- W trybie deweloperskim `?now=2026-10-17T10:00` w adresie udaje inną datę i godzinę.
+- Zrzuty ekranu do tego pliku leżą w [`screenshots/`](screenshots/). Robione są w widoku telefonu (390×844), na buildzie produkcyjnym, z zatrzymanym zegarem i przykładowymi nazwiskami prowadzących.
