@@ -27,12 +27,28 @@ export interface ScheduleDay {
   classes: ClassEvent[];
 }
 
+/** What kind of class a cell describes; `info` is a notice such as a day off or a break. */
+export type ClassKind = 'lecture' | 'exercise' | 'simulation' | 'other' | 'info';
+
+/** Filter values for the category chips. */
+export type KindFilter = 'all' | Exclude<ClassKind, 'info'>;
+
 export interface ParsedEvent {
   title: string;
+  /** Full instructor credits as written in the file, e.g. "dr n. med. Marcin Hutnik" */
   instructor: string;
+  kind: ClassKind;
+  online: boolean;
+  /** Room or place, e.g. "sala C200"; empty when unknown */
   location: string;
+  /** Real time range for online classes, given on a second line in the file */
+  actualTime: string;
   notes: string;
 }
 
+export interface ParseWarning {
+  row: number;
+  message: string;
+}
+
 export type ViewType = 'month' | 'week';
-export type EventType = 'podstawy' | 'badanie';

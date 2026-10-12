@@ -1,12 +1,12 @@
 import { useState, useCallback, useMemo } from 'react';
 import { ViewType } from '../types';
-import { getMonthLabel, getWeekLabel, getStartOfWeek } from '../utils/dateUtils';
+import { addDays, getStartOfWeek } from '../utils/dateUtils';
+import { getNow } from '../utils/clock';
 
 const VIEW_STORAGE_KEY = 'calendar-view';
 
 function getDefaultView(): ViewType {
   try {
-    // Check localStorage first
     const saved = localStorage.getItem(VIEW_STORAGE_KEY);
     if (saved === 'month' || saved === 'week') {
       return saved;
@@ -15,25 +15,32 @@ function getDefaultView(): ViewType {
     // Ignore localStorage errors
   }
 
-  // Default: week on mobile (< 640px), month on desktop
-  if (typeof window !== 'undefined' && window.innerWidth < 640) {
+  // Default: week on phones and tablets, month on desktop
+  if (typeof window !== 'undefined' && window.innerWidth < 1024) {
     return 'week';
   }
   return 'month';
 }
 
-interface UseCalendarReturn {
-  currentDate: Date;
+export interface UseCalendarReturn {
+  /** The day the user is looking at; the week and month views follow it */
+  cursor: Date;
+  weekStart: Date;
   view: ViewType;
   setView: (view: ViewType) => void;
-  goToPrev: () => void;
-  goToNext: () => void;
+  setCursor: (date: Date) => void;
+  shiftDay: (days: number) => void;
+  /** Moves by a week or a month, depending on the view */
+  shiftPeriod: (step: number) => void;
   goToToday: () => void;
-  label: string;
+}
+
+function startOfDay(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
 export function useCalendar(): UseCalendarReturn {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [cursor, setCursorState] = useState(() => startOfDay(getNow()));
   const [view, setViewState] = useState<ViewType>(getDefaultView);
 
   const setView = useCallback((newView: ViewType) => {
@@ -45,48 +52,35 @@ export function useCalendar(): UseCalendarReturn {
     }
   }, []);
 
-  const goToPrev = useCallback(() => {
-    setCurrentDate(prev => {
-      const newDate = new Date(prev);
-      if (view === 'month') {
-        newDate.setMonth(newDate.getMonth() - 1);
-      } else {
-        newDate.setDate(newDate.getDate() - 7);
-      }
-      return newDate;
-    });
-  }, [view]);
+  const setCursor = useCallback((date: Date) => setCursorState(startOfDay(date)), []);
 
-  const goToNext = useCallback(() => {
-    setCurrentDate(prev => {
-      const newDate = new Date(prev);
+  const shiftDay = useCallback((days: number) => {
+    setCursorState(prev => addDays(prev, days));
+  }, []);
+
+  const shiftPeriod = useCallback((step: number) => {
+    setCursorState(prev => {
       if (view === 'month') {
-        newDate.setMonth(newDate.getMonth() + 1);
-      } else {
-        newDate.setDate(newDate.getDate() + 7);
+        return new Date(prev.getFullYear(), prev.getMonth() + step, 1);
       }
-      return newDate;
+      return addDays(prev, 7 * step);
     });
   }, [view]);
 
   const goToToday = useCallback(() => {
-    setCurrentDate(new Date());
+    setCursorState(startOfDay(getNow()));
   }, []);
 
-  const label = useMemo(() => {
-    if (view === 'month') {
-      return getMonthLabel(currentDate);
-    }
-    return getWeekLabel(getStartOfWeek(currentDate));
-  }, [currentDate, view]);
+  const weekStart = useMemo(() => getStartOfWeek(cursor), [cursor]);
 
   return {
-    currentDate,
+    cursor,
+    weekStart,
     view,
     setView,
-    goToPrev,
-    goToNext,
+    setCursor,
+    shiftDay,
+    shiftPeriod,
     goToToday,
-    label,
   };
 }

@@ -1,4 +1,6 @@
 /** @type {import('tailwindcss').Config} */
+const token = (name) => `rgb(var(--${name}) / <alpha-value>)`;
+
 export default {
   content: [
     "./index.html",
@@ -7,36 +9,57 @@ export default {
   theme: {
     extend: {
       colors: {
-        bg: {
-          primary: '#0a0a0f',
-          secondary: '#12121a',
-          card: '#1a1a25',
-          hover: '#22222f',
-        },
-        accent: {
-          primary: '#6366f1',
-          secondary: '#818cf8',
-          glow: 'rgba(99, 102, 241, 0.15)',
-        },
-        text: {
-          primary: '#f8fafc',
-          secondary: '#94a3b8',
-          muted: '#64748b',
-        },
-        event: {
-          primary: '#10b981',
-          secondary: '#f59e0b',
-        },
-        border: 'rgba(255, 255, 255, 0.06)',
-        today: 'rgba(99, 102, 241, 0.12)',
+        bg: token('bg'),
+        surface: token('surface'),
+        'surface-2': token('surface-2'),
+        pressed: token('pressed'),
+        line: token('line'),
+        'line-strong': token('line-strong'),
+        ink: token('ink'),
+        'ink-2': token('ink-2'),
+        'ink-3': token('ink-3'),
+        hero: token('hero'),
+        'hero-ink': token('hero-ink'),
+        note: token('note'),
+        'note-ink': token('note-ink'),
+        warn: token('warn'),
+        'warn-bg': token('warn-bg'),
+        'warn-ink': token('warn-ink'),
+        'danger-bg': token('danger-bg'),
+        'danger-ink': token('danger-ink'),
+        accent: token('accent'),
       },
       fontFamily: {
-        sans: ['DM Sans', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
+        sans: ['"IBM Plex Sans"', 'system-ui', 'sans-serif'],
+        mono: ['"IBM Plex Mono"', 'ui-monospace', 'monospace'],
       },
-      borderRadius: {
-        DEFAULT: '12px',
-        sm: '8px',
+      boxShadow: {
+        raise: 'var(--shadow-raise)',
+        'raise-lg': 'var(--shadow-raise-lg)',
+        press: 'var(--shadow-press)',
+        pop: 'var(--shadow-pop)',
+      },
+      borderColor: {
+        raise: 'var(--raise-line)',
+        press: 'var(--press-line)',
+      },
+      transitionTimingFunction: {
+        spring: 'cubic-bezier(.34, 1.56, .64, 1)',
+        out: 'cubic-bezier(.2, .8, .2, 1)',
+      },
+      keyframes: {
+        'pop-in': {
+          from: { opacity: '0', transform: 'translateY(6px) scale(.98)' },
+          to: { opacity: '1', transform: 'translateY(0) scale(1)' },
+        },
+        'fade-in': {
+          from: { opacity: '0' },
+          to: { opacity: '1' },
+        },
+      },
+      animation: {
+        'pop-in': 'pop-in .18s cubic-bezier(.2, .8, .2, 1)',
+        'fade-in': 'fade-in .15s ease-out',
       },
     },
   },

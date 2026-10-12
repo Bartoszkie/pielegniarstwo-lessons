@@ -1,140 +1,24 @@
 import { GroupId } from '../types';
 
-export interface GroupColor {
-  background: string;
-  backgroundGradient: string;
-  text: string;
-  border: string;
-}
-
-export const GROUP_COLORS: Record<GroupId, GroupColor> = {
-  // Year 1 - Blues
-  '1A': {
-    background: '#3B82F6',
-    backgroundGradient: 'linear-gradient(135deg, #3B82F6, #2563EB)',
-    text: '#ffffff',
-    border: '#60A5FA'
-  },
-  '1B': {
-    background: '#1D4ED8',
-    backgroundGradient: 'linear-gradient(135deg, #1D4ED8, #1E40AF)',
-    text: '#ffffff',
-    border: '#3B82F6'
-  },
-  // Year 2 - Cyans
-  '2A': {
-    background: '#06B6D4',
-    backgroundGradient: 'linear-gradient(135deg, #06B6D4, #0891B2)',
-    text: '#ffffff',
-    border: '#22D3EE'
-  },
-  '2B': {
-    background: '#0891B2',
-    backgroundGradient: 'linear-gradient(135deg, #0891B2, #0E7490)',
-    text: '#ffffff',
-    border: '#06B6D4'
-  },
-  // Year 3 - Teals
-  '3A': {
-    background: '#14B8A6',
-    backgroundGradient: 'linear-gradient(135deg, #14B8A6, #0D9488)',
-    text: '#ffffff',
-    border: '#2DD4BF'
-  },
-  '3B': {
-    background: '#0D9488',
-    backgroundGradient: 'linear-gradient(135deg, #0D9488, #0F766E)',
-    text: '#ffffff',
-    border: '#14B8A6'
-  },
-  // Year 4 - Greens
-  '4A': {
-    background: '#22C55E',
-    backgroundGradient: 'linear-gradient(135deg, #22C55E, #16A34A)',
-    text: '#ffffff',
-    border: '#4ADE80'
-  },
-  '4B': {
-    background: '#16A34A',
-    backgroundGradient: 'linear-gradient(135deg, #16A34A, #15803D)',
-    text: '#ffffff',
-    border: '#22C55E'
-  },
-  // Year 5 - Limes/Yellows
-  '5A': {
-    background: '#84CC16',
-    backgroundGradient: 'linear-gradient(135deg, #84CC16, #65A30D)',
-    text: '#ffffff',
-    border: '#A3E635'
-  },
-  '5B': {
-    background: '#CA8A04',
-    backgroundGradient: 'linear-gradient(135deg, #CA8A04, #A16207)',
-    text: '#ffffff',
-    border: '#EAB308'
-  },
-  // Year 6 - Oranges
-  '6A': {
-    background: '#F97316',
-    backgroundGradient: 'linear-gradient(135deg, #F97316, #EA580C)',
-    text: '#ffffff',
-    border: '#FB923C'
-  },
-  '6B': {
-    background: '#EA580C',
-    backgroundGradient: 'linear-gradient(135deg, #EA580C, #C2410C)',
-    text: '#ffffff',
-    border: '#F97316'
-  },
-  // Year 7 - Reds/Roses
-  '7A': {
-    background: '#EF4444',
-    backgroundGradient: 'linear-gradient(135deg, #EF4444, #DC2626)',
-    text: '#ffffff',
-    border: '#F87171'
-  },
-  '7B': {
-    background: '#F43F5E',
-    backgroundGradient: 'linear-gradient(135deg, #F43F5E, #E11D48)',
-    text: '#ffffff',
-    border: '#FB7185'
-  },
-  // Year 8 - Pinks/Purples
-  '8A': {
-    background: '#EC4899',
-    backgroundGradient: 'linear-gradient(135deg, #EC4899, #DB2777)',
-    text: '#ffffff',
-    border: '#F472B6'
-  },
-  '8B': {
-    background: '#A855F7',
-    backgroundGradient: 'linear-gradient(135deg, #A855F7, #9333EA)',
-    text: '#ffffff',
-    border: '#C084FC'
-  },
-  // Year 9 - Violets/Indigos
-  '9A': {
-    background: '#8B5CF6',
-    backgroundGradient: 'linear-gradient(135deg, #8B5CF6, #7C3AED)',
-    text: '#ffffff',
-    border: '#A78BFA'
-  },
-  '9B': {
-    background: '#6366F1',
-    backgroundGradient: 'linear-gradient(135deg, #6366F1, #4F46E5)',
-    text: '#ffffff',
-    border: '#818CF8'
-  }
+// One colour per group: the number sets the hue, A is lighter, B deeper.
+// Every value passes 4.5:1 contrast with white text.
+export const GROUP_COLORS: Record<GroupId, string> = {
+  '1A': '#2F5FD0', '1B': '#1F3C88',
+  '2A': '#0B7A99', '2B': '#0B4F66',
+  '3A': '#D0336E', '3B': '#9C1F78',
+  '4A': '#2E7D32', '4B': '#1B5420',
+  '5A': '#5E7B12', '5B': '#8A6100',
+  '6A': '#C2410C', '6B': '#8F3409',
+  '7A': '#C62828', '7B': '#8E1B3A',
+  '8A': '#0D7F72', '8B': '#0B5249',
+  '9A': '#6D3FD9', '9B': '#4338CA',
 };
 
-export function getGroupColor(group: GroupId): GroupColor {
+export function getGroupColor(group: GroupId): string {
   return GROUP_COLORS[group];
 }
 
-export function getGroupStyle(group: GroupId): React.CSSProperties {
-  const color = GROUP_COLORS[group];
-  return {
-    background: color.backgroundGradient,
-    color: color.text
-  };
+/** Soft background tint of a group colour, used for single-group blocks. */
+export function groupTint(group: GroupId, amount = 11): string {
+  return `color-mix(in oklab, ${GROUP_COLORS[group]} ${amount}%, rgb(var(--surface)))`;
 }

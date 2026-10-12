@@ -1,17 +1,24 @@
 import { useState, useCallback, useMemo } from 'react';
-import { ScheduleDay, GroupId, ScheduleMode } from '../types';
+import { ScheduleDay, GroupId, ScheduleMode, ParseWarning } from '../types';
 import { parseExcelFile } from '../utils/excelParser';
+import { isInfoDescription } from '../utils/eventUtils';
+
+export interface LoadResult {
+  ok: boolean;
+  days: number;
+  warnings: number;
+}
 
 interface UseScheduleReturn {
   scheduleData: ScheduleDay[];
-  eventsByDate: Record<string, ScheduleDay>;
   availableGroups: GroupId[];
   selectedGroups: Set<GroupId>;
   isLoaded: boolean;
   isLoading: boolean;
   error: string | null;
+  warnings: ParseWarning[];
   lastUpdated: string | null;
-  loadFile: (file: File) => Promise<void>;
+  loadFile: (file: File) => Promise<LoadResult>;
   toggleGroup: (group: GroupId) => void;
   selectAllGroups: () => void;
   deselectAllGroups: () => void;
@@ -33,7 +40,8 @@ const STORAGE_KEYS = {
   MODE: 'schedule-mode',
   TEACHERS: 'schedule-teachers',
   SELECTED_TEACHERS: 'schedule-selected-teachers',
-  LAST_UPDATED: 'schedule-last-updated'
+  LAST_UPDATED: 'schedule-last-updated',
+  WARNINGS: 'schedule-warnings'
 };
 
 function loadFromStorage<T>(key: string, defaultValue: T): T {
@@ -77,6 +85,9 @@ export function useSchedule(): UseScheduleReturn {
   );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [warnings, setWarnings] = useState<ParseWarning[]>(() =>
+    loadFromStorage<ParseWarning[]>(STORAGE_KEYS.WARNINGS, [])
+  );
 
   // Teacher mode state
   const [mode, setModeState] = useState<ScheduleMode>(() =>
@@ -94,35 +105,21 @@ export function useSchedule(): UseScheduleReturn {
 
   const isLoaded = rawScheduleData.length > 0;
 
-  // Filter schedule data based on mode and selected filters
+  // Filter by mode and selection. Notices (days off, breaks) apply to everyone.
   const filteredScheduleData = useMemo(() => {
-    if (mode === 'student') {
-      if (selectedGroups.size === 0) return [];
-      return rawScheduleData.map(day => ({
-        ...day,
-        classes: day.classes.filter(cls => selectedGroups.has(cls.group))
-      })).filter(day => day.classes.length > 0);
-    } else {
-      // Teacher mode - check if ANY of the class instructors are selected
-      if (selectedTeachers.size === 0) return [];
-      return rawScheduleData.map(day => ({
-        ...day,
-        classes: day.classes.filter(cls =>
-          cls.instructor && cls.instructor.some(instr => selectedTeachers.has(instr))
-        )
-      })).filter(day => day.classes.length > 0);
-    }
+    const hasSelection = mode === 'student' ? selectedGroups.size > 0 : selectedTeachers.size > 0;
+    if (!hasSelection) return [];
+    return rawScheduleData.map(day => ({
+      ...day,
+      classes: day.classes.filter(cls => {
+        if (isInfoDescription(cls.description)) return true;
+        if (mode === 'student') return selectedGroups.has(cls.group);
+        return !!cls.instructor && cls.instructor.some(instr => selectedTeachers.has(instr));
+      })
+    })).filter(day => day.classes.length > 0);
   }, [rawScheduleData, selectedGroups, selectedTeachers, mode]);
 
-  // Build eventsByDate lookup
-  const eventsByDate = useMemo(() => {
-    return filteredScheduleData.reduce((acc, day) => {
-      acc[day.date] = day;
-      return acc;
-    }, {} as Record<string, ScheduleDay>);
-  }, [filteredScheduleData]);
-
-  const loadFile = useCallback(async (file: File) => {
+  const loadFile = useCallback(async (file: File): Promise<LoadResult> => {
     setIsLoading(true);
     setError(null);
 
@@ -130,25 +127,26 @@ export function useSchedule(): UseScheduleReturn {
       const result = await parseExcelFile(file);
 
       if (!result.success || result.data.length === 0) {
-        const errorCount = result.errors.length;
-        if (errorCount > 3) {
-          const uniqueErrors = [...new Set(result.errors.map(e => e.split(':')[1]?.trim() || e))].slice(0, 3);
-          setError(`Znaleziono ${errorCount} problemow. Przyklady: ${uniqueErrors.join(', ')}`);
-        } else if (errorCount > 0) {
-          setError(result.errors.join('; '));
-        } else {
-          setError('Nie udalo sie wczytac danych z pliku');
-        }
-        return;
+        setError(result.error ?? 'W pliku nie znaleziono żadnych zajęć. Upewnij się, że to oryginalny plik planu z uczelni.');
+        return { ok: false, days: 0, warnings: result.warnings.length };
       }
 
       setRawScheduleData(result.data);
       setAvailableGroups(result.groups);
       setAvailableTeachers(result.teachers);
+      setWarnings(result.warnings);
 
-      // No groups/teachers selected by default - user must choose
-      setSelectedGroups(new Set());
-      setSelectedTeachers(new Set());
+      // Keep the current selection when replacing the plan, dropping anything the new file no longer has
+      setSelectedGroups(prev => {
+        const next = new Set([...prev].filter(group => result.groups.includes(group)));
+        saveToStorage(STORAGE_KEYS.SELECTED, Array.from(next));
+        return next;
+      });
+      setSelectedTeachers(prev => {
+        const next = new Set([...prev].filter(teacher => result.teachers.includes(teacher)));
+        saveToStorage(STORAGE_KEYS.SELECTED_TEACHERS, Array.from(next));
+        return next;
+      });
 
       // Persist to localStorage
       const timestamp = new Date().toISOString();
@@ -156,15 +154,13 @@ export function useSchedule(): UseScheduleReturn {
       saveToStorage(STORAGE_KEYS.DATA, result.data);
       saveToStorage(STORAGE_KEYS.GROUPS, result.groups);
       saveToStorage(STORAGE_KEYS.TEACHERS, result.teachers);
-      saveToStorage(STORAGE_KEYS.SELECTED, []);
-      saveToStorage(STORAGE_KEYS.SELECTED_TEACHERS, []);
+      saveToStorage(STORAGE_KEYS.WARNINGS, result.warnings);
       saveToStorage(STORAGE_KEYS.LAST_UPDATED, timestamp);
 
-      if (result.errors.length > 0) {
-        console.warn('Parser warnings:', result.errors);
-      }
+      return { ok: true, days: result.data.length, warnings: result.warnings.length };
     } catch (err) {
-      setError(`Blad wczytywania pliku: ${err}`);
+      setError(`Nie udało się wczytać pliku (${err instanceof Error ? err.message : String(err)}).`);
+      return { ok: false, days: 0, warnings: 0 };
     } finally {
       setIsLoading(false);
     }
@@ -184,8 +180,7 @@ export function useSchedule(): UseScheduleReturn {
   }, []);
 
   const selectAllGroups = useCallback(() => {
-    const allGroups = new Set(availableGroups);
-    setSelectedGroups(allGroups);
+    setSelectedGroups(new Set(availableGroups));
     saveToStorage(STORAGE_KEYS.SELECTED, availableGroups);
   }, [availableGroups]);
 
@@ -215,8 +210,7 @@ export function useSchedule(): UseScheduleReturn {
   }, []);
 
   const selectAllTeachers = useCallback(() => {
-    const allTeachers = new Set(availableTeachers);
-    setSelectedTeachers(allTeachers);
+    setSelectedTeachers(new Set(availableTeachers));
     saveToStorage(STORAGE_KEYS.SELECTED_TEACHERS, availableTeachers);
   }, [availableTeachers]);
 
@@ -233,18 +227,19 @@ export function useSchedule(): UseScheduleReturn {
     setSelectedTeachers(new Set());
     setModeState('student');
     setError(null);
+    setWarnings([]);
     setLastUpdated(null);
     clearStorage();
   }, []);
 
   return {
     scheduleData: filteredScheduleData,
-    eventsByDate,
     availableGroups,
     selectedGroups,
     isLoaded,
     isLoading,
     error,
+    warnings,
     lastUpdated,
     loadFile,
     toggleGroup,

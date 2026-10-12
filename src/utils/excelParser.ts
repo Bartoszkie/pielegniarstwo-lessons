@@ -1,5 +1,5 @@
-import * as XLSX from 'xlsx';
-import { ScheduleDay, ClassEvent, GroupId, ALL_GROUPS } from '../types';
+import { ScheduleDay, ClassEvent, GroupId, ALL_GROUPS, ParseWarning } from '../types';
+import { instructorKeys, parseDescription, surname } from './eventUtils';
 
 // Time slot column mapping (columns C-T in Excel = indices 2-19)
 const TIME_SLOTS: { col: number; start: string; end: string }[] = [
@@ -27,39 +27,24 @@ export interface ParseResult {
   data: ScheduleDay[];
   groups: GroupId[];
   teachers: string[];
-  errors: string[];
+  warnings: ParseWarning[];
+  /** Set when the file could not be read at all */
+  error?: string;
 }
 
 function extractInstructors(description: string): string[] {
-  const instructors: string[] = [];
-
-  // Pattern: academic title (mgr/dr/lek/prof) followed by FirstName LastName
-  // Uses matchAll to find ALL instructors, not just the first one
-  // Handles: "mgr Monika Mikke/mgr Małgorzata Zaborowska" -> extracts both
-  const pattern = /\b(mgr|dr|lek\.?|prof\.?)\s+([A-ZĄĆĘŁŃÓŚŹŻa-ząćęłńóśźż]+)\s+([A-ZĄĆĘŁŃÓŚŹŻa-ząćęłńóśźż-]+)/gi;
-
-  const matches = description.matchAll(pattern);
-  for (const match of matches) {
-    const fullMatch = match[0].trim();
-    // Exclude if match contains location keywords (shouldn't happen with this pattern, but safety check)
-    const lowerMatch = fullMatch.toLowerCase();
-    if (!lowerMatch.includes('laboratorium') &&
-        !lowerMatch.includes('sala') &&
-        !lowerMatch.includes('katowice')) {
-      instructors.push(fullMatch);
-    }
-  }
-
-  return instructors;
+  return instructorKeys(parseDescription(description).instructor);
 }
 
 export async function parseExcelFile(file: File): Promise<ParseResult> {
-  const errors: string[] = [];
+  const warnings: ParseWarning[] = [];
   const scheduleMap = new Map<string, Map<GroupId, ClassEvent[]>>();
   const groupsFound = new Set<GroupId>();
   const teachersFound = new Set<string>();
 
   try {
+    // Loaded on demand: the library is large and only needed when a file is read
+    const XLSX = await import('xlsx');
     const arrayBuffer = await file.arrayBuffer();
     const workbook = XLSX.read(arrayBuffer, { type: 'array' });
 
@@ -145,7 +130,8 @@ export async function parseExcelFile(file: File): Promise<ParseResult> {
         data: [],
         groups: [],
         teachers: [],
-        errors: ['Nie znaleziono kolumny GRUPA w pliku Excel']
+        warnings,
+        error: 'Nie znaleziono kolumny GRUPA. Upewnij się, że to oryginalny plik planu z uczelni.'
       };
     }
 
@@ -159,7 +145,7 @@ export async function parseExcelFile(file: File): Promise<ParseResult> {
       const parsedDate = parseExcelDate(dateValue);
       if (!parsedDate) {
         if (dateValue) {
-          errors.push(`Row ${rowIndex + 1}: Invalid date format "${dateValue}"`);
+          warnings.push({ row: rowIndex + 1, message: `nieprawidłowa data „${String(dateValue).trim()}”` });
         }
         continue;
       }
@@ -168,7 +154,7 @@ export async function parseExcelFile(file: File): Promise<ParseResult> {
       const groupValue = String(row[grupaColIndex] || '').trim().toUpperCase();
       if (!isValidGroup(groupValue)) {
         if (groupValue) {
-          errors.push(`Row ${rowIndex + 1}: Invalid group "${groupValue}"`);
+          warnings.push({ row: rowIndex + 1, message: `nieznana grupa „${groupValue}”` });
         }
         continue;
       }
@@ -220,8 +206,9 @@ export async function parseExcelFile(file: File): Promise<ParseResult> {
       });
 
       if (allClasses.length > 0) {
-        const dateObj = new Date(date);
-        const dayNames = ['niedziela', 'poniedzialek', 'wtorek', 'sroda', 'czwartek', 'piatek', 'sobota'];
+        const [y, m, d] = date.split('-').map(Number);
+        const dateObj = new Date(y, m - 1, d);
+        const dayNames = ['niedziela', 'poniedziałek', 'wtorek', 'środa', 'czwartek', 'piątek', 'sobota'];
 
         scheduleData.push({
           date,
@@ -238,8 +225,8 @@ export async function parseExcelFile(file: File): Promise<ParseResult> {
       success: true,
       data: scheduleData,
       groups: Array.from(groupsFound).sort(),
-      teachers: Array.from(teachersFound).sort(),
-      errors
+      teachers: Array.from(teachersFound).sort((a, b) => surname(a).localeCompare(surname(b), 'pl') || a.localeCompare(b, 'pl')),
+      warnings
     };
 
   } catch (error) {
@@ -248,7 +235,8 @@ export async function parseExcelFile(file: File): Promise<ParseResult> {
       data: [],
       groups: [],
       teachers: [],
-      errors: [`Failed to parse Excel file: ${error}`]
+      warnings,
+      error: `Nie udało się odczytać pliku (${error instanceof Error ? error.message : String(error)}).`
     };
   }
 }

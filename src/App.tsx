@@ -1,177 +1,84 @@
-import { useState, useCallback } from 'react';
-import { BackgroundEffects } from './components/BackgroundEffects';
-import { Header } from './components/Header';
-import { StatsRow } from './components/StatsRow';
-import { Calendar } from './components/Calendar';
-import { Legend } from './components/Legend';
-import { TeacherFilter } from './components/TeacherFilter';
-import { EventModal } from './components/EventModal';
-import { HowItWorksModal } from './components/HowItWorksModal';
-import { FileUpload } from './components/FileUpload';
-import { useCalendar } from './hooks/useCalendar';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { Toaster, toast } from 'sonner';
+import { AppProvider } from './app/AppContext';
 import { useSchedule } from './hooks/useSchedule';
+import { useCalendar } from './hooks/useCalendar';
+import { useNow } from './hooks/useNow';
+import { useMediaQuery } from './hooks/useMediaQuery';
+import { pluralPl } from './utils/dateUtils';
+import { Onboarding } from './components/Onboarding';
+import { PhoneApp } from './components/phone/PhoneApp';
+import { DesktopApp } from './components/desktop/DesktopApp';
+import { HowItWorksDialog, WarningsDialog } from './components/Dialogs';
+
+function isExcelFile(file: File): boolean {
+  return /\.(xls|xlsx)$/i.test(file.name) || [
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  ].includes(file.type);
+}
 
 export default function App() {
-  const { currentDate, view, setView, goToPrev, goToNext, goToToday, label } = useCalendar();
-  const {
-    scheduleData,
-    eventsByDate,
-    availableGroups,
-    selectedGroups,
-    isLoaded,
-    isLoading,
-    error,
-    lastUpdated,
-    loadFile,
-    toggleGroup,
-    selectAllGroups,
-    deselectAllGroups,
-    clearData,
-    mode,
-    setMode,
-    availableTeachers,
-    selectedTeachers,
-    toggleTeacher,
-    selectAllTeachers,
-    deselectAllTeachers
-  } = useSchedule();
+  const schedule = useSchedule();
+  const calendar = useCalendar();
+  const now = useNow();
+  const isDesktop = useMediaQuery('(min-width: 1024px)');
+  const fileInput = useRef<HTMLInputElement>(null);
+  const [howOpen, setHowOpen] = useState(false);
+  const [warningsOpen, setWarningsOpen] = useState(false);
+  const { loadFile, isLoaded } = schedule;
 
-  const [modalData, setModalData] = useState<string | null>(null);
-  const [showHowItWorks, setShowHowItWorks] = useState(false);
-
-  const handleDayClick = useCallback((dateStr: string) => {
-    if (eventsByDate[dateStr]) {
-      setModalData(dateStr);
+  const handleFile = useCallback(async (file: File) => {
+    if (!isExcelFile(file)) {
+      toast.error('To nie jest plik Excel (.xls lub .xlsx).');
+      return;
     }
-  }, [eventsByDate]);
+    const wasLoaded = isLoaded;
+    const result = await loadFile(file);
+    if (!result.ok) {
+      if (wasLoaded) toast.error('Nie udało się wczytać nowego planu. Obecny plan został bez zmian.');
+      return;
+    }
+    if (result.warnings > 0) {
+      toast.warning(`Plan wczytany. ${pluralPl(result.warnings, 'wiersz pominięto', 'wiersze pominięto', 'wierszy pominięto')}.`, {
+        action: { label: 'Pokaż', onClick: () => setWarningsOpen(true) },
+      });
+    } else {
+      toast.success(wasLoaded ? 'Wczytano nowy plan. Wybór grup został zachowany.' : 'Plan wczytany.');
+    }
+  }, [loadFile, isLoaded]);
 
-  const handleCloseModal = useCallback(() => {
-    setModalData(null);
-  }, []);
-
-  const handleOpenHowItWorks = useCallback(() => {
-    setShowHowItWorks(true);
-  }, []);
-
-  const handleCloseHowItWorks = useCallback(() => {
-    setShowHowItWorks(false);
-  }, []);
+  const actions = useMemo(() => ({
+    openFilePicker: () => fileInput.current?.click(),
+    handleFile: (file: File) => { void handleFile(file); },
+    openHowItWorks: () => setHowOpen(true),
+    openWarnings: () => setWarningsOpen(true),
+  }), [handleFile]);
 
   return (
-    <>
-      <BackgroundEffects />
+    <AppProvider schedule={schedule} calendar={calendar} now={now} actions={actions}>
+      {!schedule.isLoaded ? <Onboarding /> : isDesktop ? <DesktopApp /> : <PhoneApp />}
 
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-6 sm:py-10">
-        <Header
-          currentView={view}
-          onViewChange={setView}
-          onPrev={goToPrev}
-          onNext={goToNext}
-          onToday={goToToday}
-          label={label}
-          isDataLoaded={isLoaded}
-          onClearData={clearData}
-          onHowItWorks={handleOpenHowItWorks}
-          mode={mode}
-          onModeChange={setMode}
-          lastUpdated={lastUpdated}
-        />
-
-        {!isLoaded ? (
-          <FileUpload
-            onFileSelect={loadFile}
-            isLoading={isLoading}
-            error={error}
-          />
-        ) : (
-          <>
-            <StatsRow scheduleData={scheduleData} />
-
-            {/* Info banner when no filters selected */}
-            {((mode === 'student' && selectedGroups.size === 0) ||
-              (mode === 'teacher' && selectedTeachers.size === 0)) && (
-              <div className={`mb-4 lg:mb-6 p-4 rounded-xl flex items-center gap-3 ${
-                mode === 'student'
-                  ? 'bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 border border-emerald-500/20'
-                  : 'bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20'
-              }`}>
-                <div className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center text-white ${
-                  mode === 'student'
-                    ? 'bg-gradient-to-br from-emerald-500 to-cyan-500'
-                    : 'bg-gradient-to-br from-amber-500 to-orange-500'
-                }`}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                    <polyline points="22 4 12 14.01 9 11.01" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-text-primary">
-                    Plan zajęć poprawnie załadowany!
-                  </p>
-                  <p className="text-sm text-text-secondary">
-                    {mode === 'student' ? (
-                      <>
-                        Wybierz grupę w panelu{' '}
-                        <span className="hidden lg:inline">po prawej stronie</span>
-                        <span className="lg:hidden">poniżej</span>
-                        , aby zobaczyć plan zajęć
-                      </>
-                    ) : (
-                      <>
-                        Wybierz wykładowcę w panelu{' '}
-                        <span className="hidden lg:inline">po prawej stronie</span>
-                        <span className="lg:hidden">poniżej</span>
-                        , aby zobaczyć harmonogram
-                      </>
-                    )}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            <div className="flex flex-col-reverse lg:flex-row gap-4 lg:gap-6">
-              <div className="flex-1 min-w-0">
-                <Calendar
-                  view={view}
-                  currentDate={currentDate}
-                  eventsByDate={eventsByDate}
-                  onDayClick={handleDayClick}
-                />
-              </div>
-
-              {mode === 'student' ? (
-                <Legend
-                  availableGroups={availableGroups}
-                  selectedGroups={selectedGroups}
-                  onToggleGroup={toggleGroup}
-                  onSelectAll={selectAllGroups}
-                  onDeselectAll={deselectAllGroups}
-                />
-              ) : (
-                <TeacherFilter
-                  availableTeachers={availableTeachers}
-                  selectedTeachers={selectedTeachers}
-                  onToggleTeacher={toggleTeacher}
-                  onSelectAll={selectAllTeachers}
-                  onDeselectAll={deselectAllTeachers}
-                />
-              )}
-            </div>
-          </>
-        )}
-      </div>
-
-      <EventModal
-        isOpen={modalData !== null}
-        onClose={handleCloseModal}
-        data={modalData ? eventsByDate[modalData] : null}
+      <input
+        ref={fileInput}
+        type="file"
+        accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        className="hidden"
+        onChange={e => {
+          const file = e.target.files?.[0];
+          if (file) void handleFile(file);
+          e.target.value = '';
+        }}
       />
 
-      <HowItWorksModal
-        isOpen={showHowItWorks}
-        onClose={handleCloseHowItWorks}
+      <HowItWorksDialog open={howOpen} onOpenChange={setHowOpen} />
+      <WarningsDialog open={warningsOpen} onOpenChange={setWarningsOpen} warnings={schedule.warnings} />
+      <Toaster
+        position={isDesktop ? 'bottom-right' : 'top-center'}
+        toastOptions={{
+          className: '!rounded-xl !border-raise !bg-hero !text-hero-ink !font-sans !text-sm !shadow-pop',
+        }}
       />
-    </>
+    </AppProvider>
   );
 }
