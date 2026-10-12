@@ -130,20 +130,3 @@ Aplikacja **aktualizuje się sama**. Nie trzeba jej usuwać i instalować ponown
 - Po wczytaniu nowszego pliku warto sprawdzić, czy wybrane grupy nadal się zgadzają.
 
 > Nazwiska prowadzących na zrzutach ekranu są przykładowe.
-
----
-
-## Dla twórców
-
-```bash
-npm install
-npm run dev       # serwer deweloperski
-npm run build     # sprawdzenie typów i build produkcyjny do dist/
-npm run preview   # podgląd buildu produkcyjnego (z service workerem)
-npm run deploy    # build i publikacja na GitHub Pages (gałąź gh-pages)
-```
-
-- Stos: React + Vite + Tailwind, PWA przez `vite-plugin-pwa` (Workbox).
-- Aktualizacje PWA obsługuje [`src/hooks/useAppUpdate.ts`](src/hooks/useAppUpdate.ts). Service worker działa w trybie `prompt`: nowa wersja czeka, aż aplikacja ją włączy (zaraz po otwarciu, po stuknięciu **Odśwież** albo przy wyjściu z aplikacji).
-- W trybie deweloperskim `?now=2026-10-17T10:00` w adresie udaje inną datę i godzinę.
-- Zrzuty ekranu do tego pliku leżą w [`screenshots/`](screenshots/). Robione są w widoku telefonu (390×844), na buildzie produkcyjnym, z zatrzymanym zegarem i przykładowymi nazwiskami prowadzących.
