@@ -3,7 +3,7 @@ import { classesLabel } from '../../utils/dateUtils';
 import { ModeToggle } from '../ui/ModeToggle';
 import { GroupPicker } from '../ui/GroupPicker';
 import { TeacherPicker } from '../ui/TeacherPicker';
-import { AppMark } from '../ui/icons';
+import { AppLogo } from '../ui/AppLogo';
 import { FilePanel } from './FilePanel';
 import { ThemeToggle } from '../ui/ThemeToggle';
 
@@ -13,9 +13,7 @@ export function Sidebar() {
   return (
     <aside className="flex flex-[1_1_288px] flex-col gap-6 border-r border-line bg-surface px-5 py-6 lg:sticky lg:top-0 lg:h-dvh lg:max-w-[320px] lg:overflow-y-auto">
       <div className="flex items-center gap-3">
-        <div aria-hidden="true" className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-ink text-bg">
-          <AppMark size={20} />
-        </div>
+        <AppLogo size={36} />
         <div className="flex min-w-0 flex-col">
           <span className="text-base font-semibold leading-[22px]">Plan zajęć</span>
           <span className="text-[13px] leading-[18px] text-ink-2">Pielęgniarstwo</span>

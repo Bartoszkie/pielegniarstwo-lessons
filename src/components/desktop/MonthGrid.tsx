@@ -1,11 +1,17 @@
 import { useApp } from '../../app/AppContext';
-import { ClassBlock, isClass } from '../../utils/blocks';
+import { isClass } from '../../utils/blocks';
 import { classesLabel, formatDate, getDayLabel, getMonthDays, isSameMonth, WEEKDAYS_SHORT } from '../../utils/dateUtils';
 import { getGroupColor, groupTint } from '../../constants/groupColors';
 import { Info } from '../ui/icons';
+import { ClassPopover } from './ClassPopover';
 
-/** Desktop month view. Clicking a day or a class opens that week. */
-export function MonthGrid({ onOpenBlock }: { onOpenBlock: (block: ClassBlock) => void }) {
+interface MonthGridProps {
+  selectedId: string | null;
+  onToggle: (id: string, open: boolean) => void;
+}
+
+/** Desktop month view. A class opens its details in place; the day number opens that week. */
+export function MonthGrid({ selectedId, onToggle }: MonthGridProps) {
   const { calendar, visibleByDate, todayKey } = useApp();
   const { cursor } = calendar;
   const days = getMonthDays(cursor.getFullYear(), cursor.getMonth());
@@ -54,26 +60,32 @@ export function MonthGrid({ onOpenBlock }: { onOpenBlock: (block: ClassBlock) =>
                     <span className="truncate">{n.event.title}</span>
                   </span>
                 ))}
-                {classes.slice(0, 3).map(block => (
-                  <button
-                    key={block.id}
-                    type="button"
-                    onClick={() => onOpenBlock(block)}
-                    aria-label={`${block.event.title}, ${block.start}, grupy ${block.groups.join(', ')}`}
-                    className="flex h-6 w-full min-w-0 items-center gap-1.5 rounded-md px-1.5 text-left"
-                    style={block.groups.length === 1
-                      ? { background: groupTint(block.groups[0]) }
-                      : { background: 'rgb(var(--bg))', border: '1px solid rgb(var(--line))' }}
-                  >
-                    <span aria-hidden="true" className="flex shrink-0 gap-0.5">
-                      {block.groups.slice(0, 3).map(g => (
-                        <span key={g} className="h-3 w-1.5 rounded-sm" style={{ background: getGroupColor(g) }} />
-                      ))}
-                    </span>
-                    <span className="shrink-0 font-mono text-xs text-ink-2">{block.start}</span>
-                    <span className="min-w-0 truncate text-xs font-medium">{block.event.title}</span>
-                  </button>
-                ))}
+                {classes.slice(0, 3).map(block => {
+                  const selected = selectedId === block.id;
+                  return (
+                    <ClassPopover key={block.id} block={block} open={selected} onOpenChange={open => onToggle(block.id, open)} flip={index % 7 >= 4}>
+                      <button
+                        type="button"
+                        aria-label={`${block.event.title}, ${block.start}–${block.end}, grupy ${block.groups.join(', ')}`}
+                        className="flex h-6 w-full min-w-0 items-center gap-1.5 rounded-md px-1.5 text-left"
+                        style={{
+                          ...(block.groups.length === 1
+                            ? { background: groupTint(block.groups[0]) }
+                            : { background: 'rgb(var(--bg))', border: '1px solid rgb(var(--line))' }),
+                          ...(selected && { boxShadow: '0 0 0 2px rgb(var(--ink))' }),
+                        }}
+                      >
+                        <span aria-hidden="true" className="flex shrink-0 gap-0.5">
+                          {block.groups.slice(0, 3).map(g => (
+                            <span key={g} className="h-3 w-1.5 rounded-sm" style={{ background: getGroupColor(g) }} />
+                          ))}
+                        </span>
+                        <span className="shrink-0 font-mono text-xs text-ink-2">{block.start}</span>
+                        <span className="min-w-0 truncate text-xs font-medium">{block.event.title}</span>
+                      </button>
+                    </ClassPopover>
+                  );
+                })}
                 {classes.length > 3 && (
                   <button type="button" onClick={() => openDay(date)} className="self-start rounded-md px-1.5 py-0.5 text-xs font-semibold text-ink-2 hover:bg-surface-2">
                     +{classes.length - 3} więcej

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useApp } from '../app/AppContext';
-import { AppMark, FileCheck, Info } from './ui/icons';
+import { FileCheck, Info } from './ui/icons';
+import { AppLogo } from './ui/AppLogo';
 
 const GUIDE_URL = 'https://github.com/Bartoszkie/pielegniarstwo-lessons/blob/main/README.md';
 
@@ -22,9 +23,7 @@ export function Onboarding() {
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[440px] flex-col gap-7 px-5 pb-8 pt-[max(40px,env(safe-area-inset-top))]">
       <header className="flex flex-col gap-3.5">
-        <div aria-hidden="true" className="grid h-11 w-11 place-items-center rounded-xl bg-ink text-bg">
-          <AppMark size={24} />
-        </div>
+        <AppLogo size={44} />
         <div className="flex flex-col gap-1">
           <h1 className="text-[32px] font-semibold leading-[38px] tracking-[-0.025em]">Plan zajęć</h1>
           <p className="text-sm text-ink-2">Pielęgniarstwo</p>

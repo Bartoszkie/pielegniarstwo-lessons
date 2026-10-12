@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useApp } from '../../app/AppContext';
 import { ClassBlock } from '../../utils/blocks';
 import { classesLabel, getMonthLabel, getWeekLabel, parseDate } from '../../utils/dateUtils';
@@ -27,6 +27,13 @@ export function DesktopApp() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  // A popover closing must not clear a block opened since: Radix closes the old one only after
+  // the click that opened the new one, so a plain setSelectedId(null) would close both
+  const toggleBlock = useCallback((id: string, open: boolean) => {
+    setSelectedId(current => (open ? id : current === id ? null : current));
+  }, []);
+
+  // Search can pick a class from any week, so it jumps to that week
   const openBlock = (block: ClassBlock) => {
     calendar.setCursor(parseDate(block.date));
     calendar.setView('week');
@@ -89,8 +96,8 @@ export function DesktopApp() {
         {hasSelection && <KindChips size="lg" className="flex-wrap" />}
 
         {calendar.view === 'week'
-          ? <WeekGrid selectedId={selectedId} onSelect={setSelectedId} />
-          : <MonthGrid onOpenBlock={openBlock} />}
+          ? <WeekGrid selectedId={selectedId} onToggle={toggleBlock} />
+          : <MonthGrid selectedId={selectedId} onToggle={toggleBlock} />}
       </main>
 
       <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} onPick={openBlock} />

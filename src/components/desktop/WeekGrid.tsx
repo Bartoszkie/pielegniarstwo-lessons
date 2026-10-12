@@ -1,20 +1,19 @@
-import * as Popover from '@radix-ui/react-popover';
 import { useApp } from '../../app/AppContext';
 import { ClassBlock, isClass, layoutLanes } from '../../utils/blocks';
 import { addDays, durationLabel, formatDate, WEEKDAYS_SHORT } from '../../utils/dateUtils';
 import { getGroupColor, groupTint } from '../../constants/groupColors';
 import { GroupTags } from '../ui/GroupTag';
 import { Info } from '../ui/icons';
-import { BlockDetails } from './BlockDetails';
+import { ClassPopover } from './ClassPopover';
 
 const HOUR_PX = 64;
 
 interface WeekGridProps {
   selectedId: string | null;
-  onSelect: (id: string | null) => void;
+  onToggle: (id: string, open: boolean) => void;
 }
 
-export function WeekGrid({ selectedId, onSelect }: WeekGridProps) {
+export function WeekGrid({ selectedId, onToggle }: WeekGridProps) {
   const { calendar, visibleByDate, todayKey, now, live, hasSelection, schedule } = useApp();
   const days = Array.from({ length: 7 }, (_, i) => addDays(calendar.weekStart, i));
   const keys = days.map(formatDate);
@@ -94,7 +93,7 @@ export function WeekGrid({ selectedId, onSelect }: WeekGridProps) {
                       remainingMin={live.remainingMin}
                       untilMin={live.untilNextMin}
                       selected={selectedId === block.id}
-                      onOpenChange={open => onSelect(open ? block.id : null)}
+                      onOpenChange={open => onToggle(block.id, open)}
                       flip={i >= 4}
                     />
                   ))}
@@ -169,74 +168,61 @@ function GridBlock({ block, top, lane, lanes, state, progress, remainingMin, unt
   const place = block.event.online ? 'Online' : block.event.location;
 
   return (
-    <Popover.Root open={selected} onOpenChange={onOpenChange}>
-      <Popover.Trigger asChild>
-        <button
-          type="button"
-          aria-label={`${block.event.title}, ${block.start}–${block.end}, grupy ${block.groups.join(', ')}`}
-          className={`absolute isolate flex flex-col items-start gap-[3px] overflow-hidden rounded-[10px] px-2 pb-1.5 pt-2.5 text-left text-ink ${next ? 'pressed' : ''}`}
-          style={style}
-        >
-          {live ? (
-            <>
-              <span aria-hidden="true" className="pointer-events-none absolute inset-0 -z-20 overflow-hidden rounded-[inherit]">
-                <span className="absolute -left-9 -top-11 h-[130px] w-[130px] rounded-full opacity-60 blur-[28px]" style={{ background: accent }} />
-                <span className="absolute -bottom-14 -right-9 h-[130px] w-[130px] rounded-full opacity-50 blur-[30px]" style={{ background: accent2 }} />
-              </span>
-              <span
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-0 -z-10 rounded-[inherit]"
-                style={{
-                  background: 'var(--glass-fill)',
-                  WebkitBackdropFilter: 'blur(18px) saturate(180%)',
-                  backdropFilter: 'blur(18px) saturate(180%)',
-                  boxShadow: 'inset 0 0 0 1px var(--glass-rim), inset 0 1.5px 0 var(--glass-hi), inset 0 -1px 0 rgba(255,255,255,.3)',
-                }}
-              />
-              <span
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-x-px top-px -z-10 h-[42%]"
-                style={{ borderRadius: '9px 9px 40% 40% / 9px 9px 14px 14px', background: 'linear-gradient(180deg, var(--glass-sheen), rgba(255,255,255,0))' }}
-              />
-            </>
-          ) : (
-            <span aria-hidden="true" className="absolute inset-x-0 top-0 flex h-1">
-              {block.groups.map(g => <span key={g} className="flex-1" style={{ background: getGroupColor(g) }} />)}
+    <ClassPopover block={block} open={selected} onOpenChange={onOpenChange} flip={flip}>
+      <button
+        type="button"
+        aria-label={`${block.event.title}, ${block.start}–${block.end}, grupy ${block.groups.join(', ')}`}
+        className={`absolute isolate flex flex-col items-start gap-[3px] overflow-hidden rounded-[10px] px-2 pb-1.5 pt-2.5 text-left text-ink ${next ? 'pressed' : ''}`}
+        style={style}
+      >
+        {live ? (
+          <>
+            <span aria-hidden="true" className="pointer-events-none absolute inset-0 -z-20 overflow-hidden rounded-[inherit]">
+              <span className="absolute -left-9 -top-11 h-[130px] w-[130px] rounded-full opacity-60 blur-[28px]" style={{ background: accent }} />
+              <span className="absolute -bottom-14 -right-9 h-[130px] w-[130px] rounded-full opacity-50 blur-[30px]" style={{ background: accent2 }} />
             </span>
-          )}
-          <span className="flex flex-wrap items-center gap-[3px]">
-            <GroupTags groups={block.groups} size="sm" />
-            {live && (
-              <span className="gloss inline-flex h-[18px] items-center gap-1 rounded-full pl-1.5 pr-1.5 text-[11px] font-semibold text-white" style={{ backgroundColor: accent }}>
-                <span className="live-dot text-white" />Trwa
-              </span>
-            )}
-            {next && untilMin > 0 && <span className="text-[11px] font-semibold text-ink-2">za {durationLabel(untilMin)}</span>}
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 -z-10 rounded-[inherit]"
+              style={{
+                background: 'var(--glass-fill)',
+                WebkitBackdropFilter: 'blur(18px) saturate(180%)',
+                backdropFilter: 'blur(18px) saturate(180%)',
+                boxShadow: 'inset 0 0 0 1px var(--glass-rim), inset 0 1.5px 0 var(--glass-hi), inset 0 -1px 0 rgba(255,255,255,.3)',
+              }}
+            />
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-px top-px -z-10 h-[42%]"
+              style={{ borderRadius: '9px 9px 40% 40% / 9px 9px 14px 14px', background: 'linear-gradient(180deg, var(--glass-sheen), rgba(255,255,255,0))' }}
+            />
+          </>
+        ) : (
+          <span aria-hidden="true" className="absolute inset-x-0 top-0 flex h-1">
+            {block.groups.map(g => <span key={g} className="flex-1" style={{ background: getGroupColor(g) }} />)}
           </span>
+        )}
+        <span className="flex flex-wrap items-center gap-[3px]">
+          <GroupTags groups={block.groups} size="sm" />
           {live && (
-            <span className="flex w-full flex-col gap-[3px] py-0.5">
-              <span className="relative block h-[5px] w-full overflow-hidden rounded-full" style={{ background: 'var(--glass-track)', boxShadow: 'inset 0 1px 2px rgba(28,25,23,.16)' }}>
-                <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${progress}%`, backgroundColor: accent, backgroundImage: 'linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0) 60%)' }} />
-              </span>
-              <span className="text-[11px] leading-[14px] text-ink-2">pozostało: <span className="font-mono font-semibold text-ink">{durationLabel(remainingMin)}</span></span>
+            <span className="gloss inline-flex h-[18px] items-center gap-1 rounded-full pl-1.5 pr-1.5 text-[11px] font-semibold text-white" style={{ backgroundColor: accent }}>
+              <span className="live-dot text-white" />Trwa
             </span>
           )}
-          <span className="font-mono text-xs leading-4 text-ink-2">{block.start}–{block.end}</span>
-          <span className="line-clamp-3 text-[13px] font-semibold leading-[17px]">{block.event.title}</span>
-          {place && <span className="text-xs leading-4 text-ink-2">{place}</span>}
-        </button>
-      </Popover.Trigger>
-      <Popover.Portal>
-        <Popover.Content
-          side={flip ? 'left' : 'right'}
-          align="start"
-          sideOffset={10}
-          collisionPadding={16}
-          className="z-50 animate-pop-in rounded-[14px] border border-line bg-surface p-4 shadow-pop outline-none"
-        >
-          <BlockDetails block={block} onClose={() => onOpenChange(false)} />
-        </Popover.Content>
-      </Popover.Portal>
-    </Popover.Root>
+          {next && untilMin > 0 && <span className="text-[11px] font-semibold text-ink-2">za {durationLabel(untilMin)}</span>}
+        </span>
+        {live && (
+          <span className="flex w-full flex-col gap-[3px] py-0.5">
+            <span className="relative block h-[5px] w-full overflow-hidden rounded-full" style={{ background: 'var(--glass-track)', boxShadow: 'inset 0 1px 2px rgba(28,25,23,.16)' }}>
+              <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${progress}%`, backgroundColor: accent, backgroundImage: 'linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0) 60%)' }} />
+            </span>
+            <span className="text-[11px] leading-[14px] text-ink-2">pozostało: <span className="font-mono font-semibold text-ink">{durationLabel(remainingMin)}</span></span>
+          </span>
+        )}
+        <span className="font-mono text-xs leading-4 text-ink-2">{block.start}–{block.end}</span>
+        <span className="line-clamp-3 text-[13px] font-semibold leading-[17px]">{block.event.title}</span>
+        {place && <span className="text-xs leading-4 text-ink-2">{place}</span>}
+      </button>
+    </ClassPopover>
   );
 }
