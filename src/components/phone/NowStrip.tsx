@@ -56,7 +56,7 @@ export function NowStrip() {
         {open && (
           <div className="flex animate-fade-in flex-col gap-2.5 px-3.5 pb-3.5 pt-1">
             <div className="flex items-center gap-1">
-              <GroupTags groups={next.groups} />
+              <GroupTags groups={next.groups} everyone={next.everyone} />
               <span className="ml-auto tabular-nums text-[13px] opacity-70">{capitalize(day)}, {next.start} – {next.end}</span>
             </div>
             <div className="text-[15px] font-semibold">{next.event.title}</div>
@@ -106,7 +106,7 @@ export function NowStrip() {
       {open && (
         <div className="flex animate-fade-in flex-col gap-2.5 px-3.5 pb-3.5 pt-3">
           <div className="flex items-center gap-1">
-            <GroupTags groups={block.groups} />
+            <GroupTags groups={block.groups} everyone={block.everyone} />
             <span className="ml-auto text-[13px] opacity-70">
               {isNow ? `jeszcze ${durationLabel(live.remainingMin)}` : `dziś, ${block.start} – ${block.end}`}
             </span>

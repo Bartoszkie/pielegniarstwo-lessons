@@ -34,6 +34,7 @@ export const Info = (p: IconProps) => <Svg {...p}><circle cx="12" cy="12" r="9" 
 export const Clock = (p: IconProps) => <Svg {...p}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></Svg>;
 export const Video = (p: IconProps) => <Svg {...p}><rect x="3" y="6" width="13" height="12" rx="2.5" /><path d="M16 10.5l5-3v9l-5-3" /></Svg>;
 export const Rows = (p: IconProps) => <Svg {...p}><path d="M4 7h16M4 12h16M4 17h11" /></Svg>;
+export const University = (p: IconProps) => <Svg {...p}><path d="M3 10l9-6 9 6" /><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8" /><path d="M3 21h18" /></Svg>;
 export const ArrowDown = (p: IconProps) => <Svg {...p}><path d="M12 5v14" /><path d="M6 13l6 6 6-6" /></Svg>;
 export const Help = (p: IconProps) => <Svg {...p}><circle cx="12" cy="12" r="9" /><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5v.4" /><path d="M12 16.8v.01" /></Svg>;
 export const ExternalLink = (p: IconProps) => <Svg {...p}><path d="M14 4h6v6" /><path d="M20 4l-9 9" /><path d="M19 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4" /></Svg>;

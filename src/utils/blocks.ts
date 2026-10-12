@@ -3,6 +3,8 @@ import { mergeClasses } from './classMerger';
 import { instructorKeys, normalizeForSearch, parseDescription } from './eventUtils';
 import { toMinutes } from './dateUtils';
 
+export type ClassMode = 'online' | 'onsite' | 'unknown';
+
 /** A merged, parsed class as the UI shows it. */
 export interface ClassBlock {
   id: string;
@@ -15,6 +17,10 @@ export interface ClassBlock {
   description: string;
   event: ParsedEvent;
   kind: ClassKind;
+  /** Online, at the university (a room is given), or not said */
+  mode: ClassMode;
+  /** The file has this class for every group, e.g. a lecture for the whole year */
+  everyone: boolean;
   instructors: string[];
   /** Lower-cased, diacritic-free text used for search */
   haystack: string;
@@ -35,6 +41,8 @@ export function buildDayBlocks(day: ScheduleDay): ClassBlock[] {
         }
       }
       const groups = [...merged.groups].sort();
+      // Simulation classes take place on site even when the cell names no room
+      const mode: ClassMode = event.online ? 'online' : event.location || event.kind === 'simulation' ? 'onsite' : 'unknown';
       return {
         id: `${day.date}|${start}|${groups.join(',')}|${merged.description}`,
         date: day.date,
@@ -46,8 +54,12 @@ export function buildDayBlocks(day: ScheduleDay): ClassBlock[] {
         description: merged.description,
         event,
         kind: event.kind,
+        mode,
+        everyone: merged.everyone,
         instructors: instructorKeys(event.instructor),
-        haystack: normalizeForSearch(`${event.title} ${event.instructor} ${event.location} ${event.online ? 'online' : ''} ${groups.join(' ')}`),
+        haystack: normalizeForSearch(
+          `${event.title} ${event.instructor} ${event.location} ${mode === 'online' ? 'online zdalnie' : mode === 'onsite' ? 'stacjonarnie na uczelni' : ''} ${groups.join(' ')}`,
+        ),
       };
     })
     .sort((a, b) => a.startMin - b.startMin || a.endMin - b.endMin);

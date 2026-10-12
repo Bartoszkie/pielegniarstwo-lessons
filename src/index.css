@@ -19,6 +19,11 @@
   --hero-ink: 255 255 255;
   --note: 254 243 199;
   --note-ink: 146 64 14;
+  /* Class mode badges: online (blue) and at the university (sand) */
+  --online-bg: 229 236 252;
+  --online-ink: 31 60 136;
+  --onsite-bg: 250 238 214;
+  --onsite-ink: 133 77 14;
   --warn: 234 88 12;
   --warn-bg: 255 247 237;
   --warn-ink: 154 52 18;
@@ -58,6 +63,10 @@
   --hero-ink: 250 250 249;
   --note: 58 42 15;
   --note-ink: 252 211 77;
+  --online-bg: 30 41 72;
+  --online-ink: 165 189 247;
+  --onsite-bg: 62 44 17;
+  --onsite-ink: 245 200 130;
   --warn: 251 146 60;
   --warn-bg: 59 32 14;
   --warn-ink: 253 186 116;

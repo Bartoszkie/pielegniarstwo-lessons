@@ -5,8 +5,8 @@ import { ArrowDown } from '../ui/icons';
 
 const PINK = '#D0336E';
 
-/** Today without classes: a light, happy card with when the next ones are. */
-export function FreeDayCard() {
+/** Today without classes: a light, happy card with when the next ones are (and why it's free, if the plan says). */
+export function FreeDayCard({ note }: { note?: string }) {
   const { live, todayKey, calendar } = useApp();
   const { next } = live;
 
@@ -21,7 +21,9 @@ export function FreeDayCard() {
     >
       <TeaIllustration />
       <div className="flex min-w-0 flex-col gap-1.5">
-        <p className="font-serif text-[30px] italic leading-8">Dziś wolne, hurra!</p>
+        {/* No celebrating in the middle of exams */}
+        <p className="font-serif text-[30px] italic leading-8">{note && /sesj/i.test(note) ? 'Powodzenia w sesji!' : 'Dziś wolne, hurra!'}</p>
+        {note && <p className="text-sm font-semibold">{note}</p>}
         {next ? (
           <>
             <p className="text-sm text-ink-2">

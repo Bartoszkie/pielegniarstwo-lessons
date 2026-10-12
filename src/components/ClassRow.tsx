@@ -2,7 +2,8 @@ import { ClassBlock } from '../utils/blocks';
 import { getGroupColor } from '../constants/groupColors';
 import { durationLabel } from '../utils/dateUtils';
 import { GroupTags } from './ui/GroupTag';
-import { Info, MapPin, UserIcon, Video } from './ui/icons';
+import { Info, UserIcon } from './ui/icons';
+import { ModeBadge } from './ui/ModeBadge';
 
 export type RowState = 'live' | 'next' | 'none';
 
@@ -103,7 +104,7 @@ export function ClassRow({ block, state = 'none', progress = 0, remainingMin = 0
 
       <div className="flex min-w-0 flex-col gap-1">
         <div className="flex flex-wrap items-center gap-1">
-          <GroupTags groups={block.groups} />
+          <GroupTags groups={block.groups} everyone={block.everyone} />
           {live && (
             <span
               className="gloss ml-1 inline-flex h-[22px] items-center gap-1.5 rounded-full pl-2 pr-2.5 text-xs font-semibold text-white"
@@ -123,17 +124,12 @@ export function ClassRow({ block, state = 'none', progress = 0, remainingMin = 0
 
         <div className="text-[15px] font-semibold leading-[21px] [overflow-wrap:anywhere]">{event.title}</div>
 
-        {event.online ? (
-          <div className="flex items-center gap-1.5 text-[13px] font-medium leading-[19px]">
-            <Video size={14} className="shrink-0 text-ink-2" />
-            <span>Online</span>
+        {block.mode !== 'unknown' && (
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] font-medium leading-[19px]">
+            <ModeBadge mode={block.mode} />
+            {block.mode === 'onsite' && event.location && <span>{event.location}</span>}
           </div>
-        ) : event.location ? (
-          <div className="flex items-center gap-1.5 text-[13px] font-medium leading-[19px]">
-            <MapPin size={14} className="shrink-0 text-ink-2" />
-            <span>{event.location}</span>
-          </div>
-        ) : null}
+        )}
 
         {event.instructor && (
           <div className="flex items-center gap-1.5 text-[13px] leading-[19px] text-ink-2">

@@ -3,7 +3,7 @@ import { ClassBlock, isClass, layoutLanes } from '../../utils/blocks';
 import { addDays, durationLabel, formatDate, WEEKDAYS_SHORT } from '../../utils/dateUtils';
 import { getGroupColor, groupTint } from '../../constants/groupColors';
 import { GroupTags } from '../ui/GroupTag';
-import { Info } from '../ui/icons';
+import { Info, University, Video } from '../ui/icons';
 import { ClassPopover } from './ClassPopover';
 
 const HOUR_PX = 64;
@@ -165,13 +165,13 @@ function GridBlock({ block, top, lane, lanes, state, progress, remainingMin, unt
     if (selected) Object.assign(style, { boxShadow: '0 0 0 2px rgb(var(--ink))', zIndex: 2 });
   }
 
-  const place = block.event.online ? 'Online' : block.event.location;
+  const place = block.mode === 'online' ? 'Online' : block.event.location || (block.mode === 'onsite' ? 'Na uczelni' : '');
 
   return (
     <ClassPopover block={block} open={selected} onOpenChange={onOpenChange} flip={flip}>
       <button
         type="button"
-        aria-label={`${block.event.title}, ${block.start}–${block.end}, grupy ${block.groups.join(', ')}`}
+        aria-label={`${block.event.title}, ${block.start}–${block.end}${block.mode === 'online' ? ', online' : ''}, ${block.everyone ? 'wszystkie grupy' : `grupy ${block.groups.join(', ')}`}`}
         className={`absolute isolate flex flex-col items-start gap-[3px] overflow-hidden rounded-[10px] px-2 pb-1.5 pt-2.5 text-left text-ink ${next ? 'pressed' : ''}`}
         style={style}
       >
@@ -203,7 +203,7 @@ function GridBlock({ block, top, lane, lanes, state, progress, remainingMin, unt
           </span>
         )}
         <span className="flex flex-wrap items-center gap-[3px]">
-          <GroupTags groups={block.groups} size="sm" />
+          <GroupTags groups={block.groups} size="sm" everyone={block.everyone} />
           {live && (
             <span className="gloss inline-flex h-[18px] items-center gap-1 rounded-full pl-1.5 pr-1.5 text-[11px] font-semibold text-white" style={{ backgroundColor: accent }}>
               <span className="live-dot text-white" />Trwa
@@ -221,7 +221,13 @@ function GridBlock({ block, top, lane, lanes, state, progress, remainingMin, unt
         )}
         <span className="tabular-nums text-xs leading-4 text-ink-2">{block.start}–{block.end}</span>
         <span className="line-clamp-3 text-[13px] font-semibold leading-[17px]">{block.event.title}</span>
-        {place && <span className="text-xs leading-4 text-ink-2">{place}</span>}
+        {place && (
+          <span className={`flex items-start gap-1 text-xs font-medium leading-4 ${block.mode === 'online' ? 'text-online-ink' : block.mode === 'onsite' ? 'text-onsite-ink' : 'text-ink-2'}`}>
+            {block.mode === 'online' && <Video size={12} strokeWidth={2.2} className="mt-0.5 shrink-0" />}
+            {block.mode === 'onsite' && <University size={12} strokeWidth={2.2} className="mt-0.5 shrink-0" />}
+            {place}
+          </span>
+        )}
       </button>
     </ClassPopover>
   );

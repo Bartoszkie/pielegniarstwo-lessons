@@ -11,6 +11,7 @@ import { PhoneMonth } from './PhoneMonth';
 import { BottomDock } from './BottomDock';
 import { FilterSheet } from './FilterSheet';
 import { ClassSheet } from './ClassSheet';
+import { ReloadBanner } from '../ReloadBanner';
 
 export function PhoneApp() {
   const { calendar, hasSelection, search } = useApp();
@@ -64,6 +65,7 @@ export function PhoneApp() {
       )}
 
       <main className="flex flex-col gap-5 px-3 pt-1">
+        {!searching && <ReloadBanner />}
         {searching ? (
           <SearchResults results={results} query={query} onOpenClass={openClass} />
         ) : calendar.view === 'week' ? (

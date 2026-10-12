@@ -5,6 +5,8 @@ export interface MergedClass {
   end_time: string;
   description: string;
   groups: GroupId[];
+  /** In the file for every group */
+  everyone: boolean;
 }
 
 // Helper to check if times are consecutive (allowing small breaks)
@@ -30,12 +32,14 @@ export function mergeClasses(classes: ClassEvent[]): MergedClass[] {
       if (!existing.groups.includes(cls.group)) {
         existing.groups.push(cls.group);
       }
+      existing.everyone = existing.everyone || !!cls.everyone;
     } else {
       groupMerged.set(key, {
         start_time: cls.start_time,
         end_time: cls.end_time,
         description: cls.description,
-        groups: [cls.group]
+        groups: [cls.group],
+        everyone: !!cls.everyone
       });
     }
   }

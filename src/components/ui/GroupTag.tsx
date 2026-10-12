@@ -20,7 +20,22 @@ export function GroupTag({ group, size = 'md' }: GroupTagProps) {
   );
 }
 
-export function GroupTags({ groups, size }: { groups: GroupId[]; size?: 'sm' | 'md' }) {
+/** One neutral badge instead of all of them, for classes every group has (e.g. lectures). */
+export function EveryoneTag({ size = 'md' }: { size?: 'sm' | 'md' }) {
+  return (
+    <span
+      title="Zajęcia dla wszystkich grup"
+      className={`gloss inline-flex shrink-0 items-center bg-[#57534E] font-semibold text-white ${
+        size === 'sm' ? 'h-[18px] rounded px-1 text-[11px]' : 'h-[22px] rounded-md px-1.5 text-xs'
+      }`}
+    >
+      {size === 'sm' ? 'Wszystkie' : 'Wszystkie grupy'}
+    </span>
+  );
+}
+
+export function GroupTags({ groups, size, everyone }: { groups: GroupId[]; size?: 'sm' | 'md'; everyone?: boolean }) {
+  if (everyone) return <EveryoneTag size={size} />;
   return (
     <>
       {groups.map(group => (

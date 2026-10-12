@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import { ScheduleDay, GroupId, ScheduleMode, ParseWarning } from '../types';
-import { parseExcelFile } from '../utils/excelParser';
+import { parseExcelFile, PARSER_VERSION } from '../utils/excelParser';
 import { isInfoDescription } from '../utils/eventUtils';
 
 export interface LoadResult {
@@ -18,6 +18,8 @@ interface UseScheduleReturn {
   error: string | null;
   warnings: ParseWarning[];
   lastUpdated: string | null;
+  /** The saved plan was read by an older version of the parser; loading the file again shows more */
+  needsReload: boolean;
   loadFile: (file: File) => Promise<LoadResult>;
   toggleGroup: (group: GroupId) => void;
   selectAllGroups: () => void;
@@ -35,6 +37,7 @@ interface UseScheduleReturn {
 
 const STORAGE_KEYS = {
   DATA: 'schedule-data',
+  PARSER_VERSION: 'schedule-parser-version',
   GROUPS: 'schedule-groups',
   SELECTED: 'schedule-selected',
   MODE: 'schedule-mode',
@@ -102,8 +105,11 @@ export function useSchedule(): UseScheduleReturn {
   const [lastUpdated, setLastUpdated] = useState<string | null>(() =>
     loadFromStorage<string | null>(STORAGE_KEYS.LAST_UPDATED, null)
   );
+  // Plans saved before the version was stored come from version 1
+  const [parserVersion, setParserVersion] = useState(() => loadFromStorage<number>(STORAGE_KEYS.PARSER_VERSION, 1));
 
   const isLoaded = rawScheduleData.length > 0;
+  const needsReload = isLoaded && parserVersion < PARSER_VERSION;
 
   // Filter by mode and selection. Notices (days off, breaks) apply to everyone.
   const filteredScheduleData = useMemo(() => {
@@ -156,6 +162,8 @@ export function useSchedule(): UseScheduleReturn {
       saveToStorage(STORAGE_KEYS.TEACHERS, result.teachers);
       saveToStorage(STORAGE_KEYS.WARNINGS, result.warnings);
       saveToStorage(STORAGE_KEYS.LAST_UPDATED, timestamp);
+      saveToStorage(STORAGE_KEYS.PARSER_VERSION, PARSER_VERSION);
+      setParserVersion(PARSER_VERSION);
 
       return { ok: true, days: result.data.length, warnings: result.warnings.length };
     } catch (err) {
@@ -241,6 +249,7 @@ export function useSchedule(): UseScheduleReturn {
     error,
     warnings,
     lastUpdated,
+    needsReload,
     loadFile,
     toggleGroup,
     selectAllGroups,

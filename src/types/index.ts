@@ -19,6 +19,8 @@ export interface ClassEvent {
   description: string;
   group: GroupId;
   instructor?: string[];
+  /** The same class is in the file for every group (e.g. a lecture for the whole year) */
+  everyone?: boolean;
 }
 
 export interface ScheduleDay {

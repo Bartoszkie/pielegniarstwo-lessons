@@ -2,7 +2,7 @@ import { useApp } from '../../app/AppContext';
 import { isClass } from '../../utils/blocks';
 import { classesLabel, formatDate, getDayLabel, getMonthDays, isSameMonth, WEEKDAYS_SHORT } from '../../utils/dateUtils';
 import { getGroupColor, groupTint } from '../../constants/groupColors';
-import { Info } from '../ui/icons';
+import { Info, Video } from '../ui/icons';
 import { ClassPopover } from './ClassPopover';
 
 interface MonthGridProps {
@@ -66,7 +66,7 @@ export function MonthGrid({ selectedId, onToggle }: MonthGridProps) {
                     <ClassPopover key={block.id} block={block} open={selected} onOpenChange={open => onToggle(block.id, open)} flip={index % 7 >= 4}>
                       <button
                         type="button"
-                        aria-label={`${block.event.title}, ${block.start}–${block.end}, grupy ${block.groups.join(', ')}`}
+                        aria-label={`${block.event.title}, ${block.start}–${block.end}${block.mode === 'online' ? ', online' : ''}, ${block.everyone ? 'wszystkie grupy' : `grupy ${block.groups.join(', ')}`}`}
                         className="flex h-6 w-full min-w-0 items-center gap-1.5 rounded-md px-1.5 text-left"
                         style={{
                           ...(block.groups.length === 1
@@ -81,6 +81,7 @@ export function MonthGrid({ selectedId, onToggle }: MonthGridProps) {
                           ))}
                         </span>
                         <span className="shrink-0 tabular-nums text-xs text-ink-2">{block.start}</span>
+                        {block.mode === 'online' && <Video size={12} strokeWidth={2.2} className="shrink-0 text-online-ink" />}
                         <span className="min-w-0 truncate text-xs font-medium">{block.event.title}</span>
                       </button>
                     </ClassPopover>

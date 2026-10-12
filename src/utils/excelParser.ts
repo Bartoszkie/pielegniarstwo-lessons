@@ -1,8 +1,20 @@
 import { ScheduleDay, ClassEvent, GroupId, ALL_GROUPS, ParseWarning } from '../types';
 import { instructorKeys, parseDescription, surname } from './eventUtils';
 
-// Time slot column mapping (columns C-T in Excel = indices 2-19)
-const TIME_SLOTS: { col: number; start: string; end: string }[] = [
+/**
+ * Bumped whenever parsing changes what a file yields, so plans saved by an older version
+ * can ask to be loaded again. 2: merged cells of any size (lectures for all groups), breaks.
+ */
+export const PARSER_VERSION = 2;
+
+interface TimeSlot {
+  col: number;
+  start: string;
+  end: string;
+}
+
+// Time slot columns C-S (indices 2-18), used when the header row can't be read
+const DEFAULT_TIME_SLOTS: TimeSlot[] = [
   { col: 2, start: '08:00', end: '08:45' },
   { col: 3, start: '08:45', end: '09:30' },
   { col: 4, start: '09:30', end: '10:15' },
@@ -19,8 +31,13 @@ const TIME_SLOTS: { col: number; start: string; end: string }[] = [
   { col: 15, start: '18:05', end: '18:50' },
   { col: 16, start: '18:50', end: '19:35' },
   { col: 17, start: '19:40', end: '20:25' },
-  { col: 18, start: '20:25', end: '21:10' },
+  { col: 18, start: '20:25', end: '21:15' },
 ];
+
+const HEADER_ROW = 3;
+const FIRST_DATA_ROW = 4;
+const SLOT_HEADER_RE = /^(\d{1,2})[.:](\d{2})\s*-\s*(\d{1,2})[.:](\d{2})$/;
+const DATE_RANGE_RE = /(\d{1,2})\.(\d{1,2})\.(\d{4})\s*[-–]\s*(\d{1,2})\.(\d{1,2})\.(\d{4})/;
 
 export interface ParseResult {
   success: boolean;
@@ -36,11 +53,32 @@ function extractInstructors(description: string): string[] {
   return instructorKeys(parseDescription(description).instructor);
 }
 
+const pad = (value: string | number) => String(value).padStart(2, '0');
+
+/** The time slots as the header row names them ("08.00-08.45", …), else the usual ones. */
+function readTimeSlots(header: unknown[] | undefined, grupaCol: number): TimeSlot[] {
+  if (!header) return DEFAULT_TIME_SLOTS;
+  const slots: TimeSlot[] = [];
+  for (let col = 2; col < grupaCol; col++) {
+    const match = String(header[col] ?? '').trim().match(SLOT_HEADER_RE);
+    if (!match) return DEFAULT_TIME_SLOTS;
+    slots.push({ col, start: `${pad(match[1])}:${match[2]}`, end: `${pad(match[3])}:${match[4]}` });
+  }
+  return slots.length ? slots : DEFAULT_TIME_SLOTS;
+}
+
 export async function parseExcelFile(file: File): Promise<ParseResult> {
   const warnings: ParseWarning[] = [];
   const scheduleMap = new Map<string, Map<GroupId, ClassEvent[]>>();
   const groupsFound = new Set<GroupId>();
   const teachersFound = new Set<string>();
+
+  const addEvents = (date: string, group: GroupId, events: ClassEvent[]) => {
+    if (!scheduleMap.has(date)) scheduleMap.set(date, new Map());
+    const dateGroups = scheduleMap.get(date)!;
+    if (!dateGroups.has(group)) dateGroups.set(group, []);
+    dateGroups.get(group)!.push(...events);
+  };
 
   try {
     // Loaded on demand: the library is large and only needed when a file is read
@@ -49,74 +87,19 @@ export async function parseExcelFile(file: File): Promise<ParseResult> {
     const workbook = XLSX.read(arrayBuffer, { type: 'array' });
 
     // Assume first sheet contains the schedule
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-
-    // Convert to JSON array (rows)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 }) as unknown[][];
 
-    // Handle merged cells - SELECTIVELY copy values for shared classes only
-    // Only handle small merges (2 rows max) in time slot columns to avoid
-    // copying large holiday break regions to all cells
-    const merges = sheet['!merges'] || [];
+    // Find the GRUPA column in the header row (Excel row 4)
+    const headerRow = rows[HEADER_ROW] as unknown[] | undefined;
+    let grupaColIndex = headerRow ? headerRow.findIndex(h => String(h ?? '').trim().toUpperCase() === 'GRUPA') : -1;
 
-    for (const merge of merges) {
-      const startRow = merge.s.r;
-      const startCol = merge.s.c;
-      const endRow = merge.e.r;
-      const endCol = merge.e.c;
-
-      // Skip merges that span more than 2 rows (likely holidays/headers)
-      const rowSpan = endRow - startRow + 1;
-      if (rowSpan > 2) continue;
-
-      // Only process merges in time slot columns (2-18)
-      if (startCol < 2 || startCol > 18) continue;
-
-      // Get the value from the top-left cell
-      const sourceValue = rows[startRow]?.[startCol];
-
-      if (sourceValue !== undefined && sourceValue !== null) {
-        const valueStr = String(sourceValue);
-        // Skip if it looks like a holiday/break message
-        if (valueStr.toUpperCase().includes('PRZERWA') ||
-            valueStr.toUpperCase().includes('ŚWIĘT') ||
-            valueStr.toUpperCase().includes('SWIAT')) continue;
-
-        // Copy to other cells in the merge (shared class between groups)
-        for (let r = startRow; r <= endRow; r++) {
-          for (let c = startCol; c <= endCol; c++) {
-            if (r !== startRow || c !== startCol) {
-              if (!rows[r]) rows[r] = [];
-              (rows[r] as unknown[])[c] = sourceValue;
-            }
-          }
-        }
-      }
-    }
-
-    // Dynamically find GRUPA column from header row (row index 3 = Excel row 4)
-    const headerRow = rows[3] as unknown[];
-    let grupaColIndex = -1;
-
-    // Search header row for GRUPA column
-    if (headerRow) {
-      for (let i = 0; i < headerRow.length; i++) {
-        const header = String(headerRow[i] || '').trim().toUpperCase();
-        if (header === 'GRUPA') {
-          grupaColIndex = i;
-          break;
-        }
-      }
-    }
-
-    // Fallback: if GRUPA header not found, detect by finding valid group values in first data row
+    // Fallback: if the header is missing, find the first column holding a group in the first data row
     if (grupaColIndex === -1) {
-      const firstDataRow = rows[4];
+      const firstDataRow = rows[FIRST_DATA_ROW];
       if (firstDataRow) {
         for (let testCol = 15; testCol < Math.min(firstDataRow.length, 30); testCol++) {
-          const testValue = String(firstDataRow[testCol] || '').trim().toUpperCase();
-          if (ALL_GROUPS.includes(testValue as GroupId)) {
+          if (isValidGroup(String(firstDataRow[testCol] ?? '').trim().toUpperCase())) {
             grupaColIndex = testCol;
             break;
           }
@@ -135,8 +118,45 @@ export async function parseExcelFile(file: File): Promise<ParseResult> {
       };
     }
 
-    // Skip header rows (0-3), start from row 4 (index 4)
-    for (let rowIndex = 4; rowIndex < rows.length; rowIndex++) {
+    const timeSlots = readTimeSlots(headerRow, grupaColIndex);
+    const firstSlotCol = timeSlots[0].col;
+    const lastSlotCol = timeSlots[timeSlots.length - 1].col;
+    const banners: { title: string; from: string; to: string }[] = [];
+
+    // A merged cell only holds its value in the top-left cell. The rows it spans are the groups
+    // (and days) it is for: two rows for a pair like 7A+7B, all 18 for a lecture for the whole year,
+    // hundreds for a break. Copy the value to every row and slot it covers.
+    for (const merge of sheet['!merges'] ?? []) {
+      const { s, e } = merge;
+      if (s.r < FIRST_DATA_ROW) continue;
+      const value = rows[s.r]?.[s.c];
+      if (value === undefined || value === null || !String(value).trim()) continue;
+
+      // A row merged across the whole sheet, date column included, announces a period
+      // ("ZIMOWA SESJA … 01.02.2027-21.02.2027"): turn it into notices for those days
+      if (s.c < firstSlotCol && e.c >= grupaColIndex) {
+        const text = String(value).replace(/\s+/g, ' ').trim();
+        const range = text.match(DATE_RANGE_RE);
+        if (range) {
+          banners.push({
+            title: text,
+            from: `${range[3]}-${pad(range[2])}-${pad(range[1])}`,
+            to: `${range[6]}-${pad(range[5])}-${pad(range[4])}`,
+          });
+        }
+        continue;
+      }
+
+      if (s.c < firstSlotCol || s.c > lastSlotCol) continue;
+      for (let r = s.r; r <= e.r; r++) {
+        if (!rows[r]) rows[r] = [];
+        for (let c = Math.max(s.c, firstSlotCol); c <= Math.min(e.c, lastSlotCol); c++) {
+          if (r !== s.r || c !== s.c) rows[r][c] = value;
+        }
+      }
+    }
+
+    for (let rowIndex = FIRST_DATA_ROW; rowIndex < rows.length; rowIndex++) {
       const row = rows[rowIndex];
       if (!row || row.length < grupaColIndex) continue;
 
@@ -150,8 +170,7 @@ export async function parseExcelFile(file: File): Promise<ParseResult> {
         continue;
       }
 
-      // Get group from dynamically detected column
-      const groupValue = String(row[grupaColIndex] || '').trim().toUpperCase();
+      const groupValue = String(row[grupaColIndex] ?? '').trim().toUpperCase();
       if (!isValidGroup(groupValue)) {
         if (groupValue) {
           warnings.push({ row: rowIndex + 1, message: `nieznana grupa „${groupValue}”` });
@@ -161,70 +180,79 @@ export async function parseExcelFile(file: File): Promise<ParseResult> {
       const group = groupValue as GroupId;
       groupsFound.add(group);
 
-      // Parse time slots (columns C-T, indices 2-18)
+      // One event per run of slots holding the same text (a class usually spans several slots)
       const classes: ClassEvent[] = [];
-      for (const slot of TIME_SLOTS) {
+      for (const slot of timeSlots) {
         const cellValue = row[slot.col];
-        if (cellValue && String(cellValue).trim()) {
-          const description = String(cellValue).trim();
-          const instructors = extractInstructors(description);
+        const description = cellValue === undefined || cellValue === null ? '' : String(cellValue).trim();
+        if (!description) continue;
 
-          // Add all found instructors to the set
-          for (const instructor of instructors) {
-            teachersFound.add(instructor);
-          }
-
-          classes.push({
-            start_time: slot.start,
-            end_time: slot.end,
-            description,
-            group: group,
-            instructor: instructors.length > 0 ? instructors : undefined
-          });
+        const previous = classes[classes.length - 1];
+        const previousSlot = timeSlots.find(t => t.col === slot.col - 1);
+        if (previous && previousSlot && previous.description === description && previous.end_time === previousSlot.end) {
+          previous.end_time = slot.end;
+          continue;
         }
+
+        const instructors = extractInstructors(description);
+        instructors.forEach(instructor => teachersFound.add(instructor));
+        classes.push({
+          start_time: slot.start,
+          end_time: slot.end,
+          description,
+          group,
+          instructor: instructors.length > 0 ? instructors : undefined
+        });
       }
 
-      // Store in map structure
-      if (classes.length > 0) {
-        if (!scheduleMap.has(parsedDate)) {
-          scheduleMap.set(parsedDate, new Map());
+      if (classes.length > 0) addEvents(parsedDate, group, classes);
+    }
+
+    // Periods announced across the sheet (exam session, breaks) become a notice on each of their days
+    const groups = Array.from(groupsFound).sort();
+    for (const banner of banners) {
+      for (let date = banner.from; date <= banner.to; date = nextDate(date)) {
+        for (const group of groups) {
+          addEvents(date, group, [{ start_time: timeSlots[0].start, end_time: timeSlots[timeSlots.length - 1].end, description: banner.title, group }]);
         }
-        const dateGroups = scheduleMap.get(parsedDate)!;
-        if (!dateGroups.has(group)) {
-          dateGroups.set(group, []);
-        }
-        dateGroups.get(group)!.push(...classes);
       }
     }
 
-    // Convert map to ScheduleDay array
+    // Convert map to ScheduleDay array, marking classes that every group has
     const scheduleData: ScheduleDay[] = [];
     scheduleMap.forEach((groupEvents, date) => {
       const allClasses: ClassEvent[] = [];
-      groupEvents.forEach((events) => {
-        allClasses.push(...events);
-      });
+      groupEvents.forEach(events => allClasses.push(...events));
 
-      if (allClasses.length > 0) {
-        const [y, m, d] = date.split('-').map(Number);
-        const dateObj = new Date(y, m - 1, d);
-        const dayNames = ['niedziela', 'poniedziałek', 'wtorek', 'środa', 'czwartek', 'piątek', 'sobota'];
-
-        scheduleData.push({
-          date,
-          day: dayNames[dateObj.getDay()],
-          classes: allClasses.sort((a, b) => a.start_time.localeCompare(b.start_time))
-        });
+      const groupsPerClass = new Map<string, Set<GroupId>>();
+      for (const cls of allClasses) {
+        const key = `${cls.start_time}|${cls.end_time}|${cls.description}`;
+        if (!groupsPerClass.has(key)) groupsPerClass.set(key, new Set());
+        groupsPerClass.get(key)!.add(cls.group);
       }
+      if (groupsFound.size > 1) {
+        for (const cls of allClasses) {
+          if (groupsPerClass.get(`${cls.start_time}|${cls.end_time}|${cls.description}`)!.size === groupsFound.size) {
+            cls.everyone = true;
+          }
+        }
+      }
+
+      const [y, m, d] = date.split('-').map(Number);
+      const dayNames = ['niedziela', 'poniedziałek', 'wtorek', 'środa', 'czwartek', 'piątek', 'sobota'];
+      scheduleData.push({
+        date,
+        day: dayNames[new Date(y, m - 1, d).getDay()],
+        classes: allClasses.sort((a, b) => a.start_time.localeCompare(b.start_time))
+      });
     });
 
-    // Sort by date
     scheduleData.sort((a, b) => a.date.localeCompare(b.date));
 
     return {
       success: true,
       data: scheduleData,
-      groups: Array.from(groupsFound).sort(),
+      groups,
       teachers: Array.from(teachersFound).sort((a, b) => surname(a).localeCompare(surname(b), 'pl') || a.localeCompare(b, 'pl')),
       warnings
     };
@@ -241,33 +269,31 @@ export async function parseExcelFile(file: File): Promise<ParseResult> {
   }
 }
 
+/** "2026-12-31" → "2027-01-01" */
+function nextDate(date: string): string {
+  const [y, m, d] = date.split('-').map(Number);
+  const next = new Date(Date.UTC(y, m - 1, d + 1));
+  return `${next.getUTCFullYear()}-${pad(next.getUTCMonth() + 1)}-${pad(next.getUTCDate())}`;
+}
+
 function parseExcelDate(value: unknown): string | null {
   if (typeof value === 'number') {
     // Excel serial date number - use UTC to avoid timezone issues
     // Excel epoch is December 30, 1899 (serial 0)
     const MS_PER_DAY = 24 * 60 * 60 * 1000;
     const EXCEL_EPOCH = Date.UTC(1899, 11, 30);
-    const utcTimestamp = EXCEL_EPOCH + value * MS_PER_DAY;
-    const date = new Date(utcTimestamp);
-
-    // Extract using UTC methods to avoid timezone shifts
-    const y = date.getUTCFullYear();
-    const m = String(date.getUTCMonth() + 1).padStart(2, '0');
-    const d = String(date.getUTCDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
+    const date = new Date(EXCEL_EPOCH + value * MS_PER_DAY);
+    return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`;
   }
 
   if (typeof value === 'string') {
-    // Try parsing "10/1/25" format (M/D/YY - American style based on screenshot analysis)
+    // "10/1/25" is M/D/YY (10/1/25 is a Wednesday, as in the plan)
     const parts = value.split('/');
     if (parts.length === 3) {
-      const [part1, part2, part3] = parts.map(p => parseInt(p, 10));
-      // Format is M/D/YY (American) based on the screenshot where 10/1/25 is Wednesday (Oct 1, 2025 is Wednesday)
-      const year = part3 < 100 ? 2000 + part3 : part3;
-      const month = part1 - 1; // Month is 0-indexed
-      const day = part2;
-      // Use UTC to avoid timezone issues
-      return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const [month, day, yearPart] = parts.map(p => parseInt(p, 10));
+      if ([month, day, yearPart].some(Number.isNaN)) return null;
+      const year = yearPart < 100 ? 2000 + yearPart : yearPart;
+      return `${year}-${pad(month)}-${pad(day)}`;
     }
   }
 

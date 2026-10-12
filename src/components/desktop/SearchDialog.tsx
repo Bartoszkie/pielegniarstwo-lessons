@@ -99,7 +99,7 @@ export function SearchDialog({ open, onOpenChange, onPick }: SearchDialogProps) 
                         <span className="truncate text-[15px] font-semibold">{block.event.title}</span>
                         {meta && <span className="truncate text-[13px] text-ink-2">{meta}</span>}
                       </span>
-                      <span className="flex shrink-0 gap-1"><GroupTags groups={block.groups} /></span>
+                      <span className="flex shrink-0 gap-1"><GroupTags groups={block.groups} everyone={block.everyone} /></span>
                       <Return size={16} className={`shrink-0 text-ink-2 ${i === current ? 'opacity-100' : 'opacity-0'}`} />
                     </button>
                   );

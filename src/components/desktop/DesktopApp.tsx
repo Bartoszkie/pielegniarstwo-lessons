@@ -10,6 +10,7 @@ import { Sidebar } from './Sidebar';
 import { WeekGrid } from './WeekGrid';
 import { MonthGrid } from './MonthGrid';
 import { SearchDialog } from './SearchDialog';
+import { ReloadBanner } from '../ReloadBanner';
 
 export function DesktopApp() {
   const { calendar, kindCounts, kind, hasSelection } = useApp();
@@ -93,6 +94,8 @@ export function DesktopApp() {
             </div>
           </div>
         </div>
+
+        <ReloadBanner />
 
         {hasSelection && <KindChips size="lg" className="flex-wrap" />}
 

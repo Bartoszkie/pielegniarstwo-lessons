@@ -8,6 +8,7 @@ import { capitalize, DAY_NAMES_FULL, durationLabel, getDayLabel, MONTH_SHORT, pa
 import { KIND_LABELS } from '../../utils/eventUtils';
 import { GroupTags } from '../ui/GroupTag';
 import { KindIcon } from '../ui/KindIcon';
+import { ModeBadge } from '../ui/ModeBadge';
 import { ChevronRight, Clock, Close, Info, MapPin, UserIcon, Video } from '../ui/icons';
 
 const SHOWN_DATES = 3;
@@ -78,11 +79,12 @@ function SheetBody({ block, onJump }: { block: ClassBlock; onJump: (date: string
 
       <div className="flex flex-col gap-2">
         <div className="flex flex-wrap items-center gap-2">
-          <GroupTags groups={block.groups} />
+          <GroupTags groups={block.groups} everyone={block.everyone} />
           <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-ink-2">
             {kindIcon && <KindIcon kind={block.kind as KindFilter} size={18} />}
             {KIND_LABELS[block.kind].toLowerCase()}
           </span>
+          <ModeBadge mode={block.mode} />
         </div>
         <Drawer.Title className="text-[30px] font-extrabold leading-[34px] tracking-[-0.025em] [overflow-wrap:anywhere]">{event.title}</Drawer.Title>
       </div>
