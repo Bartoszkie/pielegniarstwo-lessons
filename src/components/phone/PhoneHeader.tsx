@@ -3,6 +3,7 @@ import { MONTH_NAMES, getWeekLabelShort, formatTimestamp } from '../../utils/dat
 import { GroupTag } from '../ui/GroupTag';
 import { ChevronDown, Search, UserIcon } from '../ui/icons';
 import { DisplayTitle } from '../ui/DisplayTitle';
+import { Collapse } from '../ui/Collapse';
 
 interface PhoneHeaderProps {
   summaryOpen: boolean;
@@ -33,7 +34,7 @@ export function PhoneHeader({
   if (searchOpen) {
     return (
       <header className="sticky top-0 z-20 flex items-center gap-1 bg-bg/90 px-4 pb-1 pt-[max(12px,env(safe-area-inset-top))] backdrop-blur-md">
-        <label className="relative min-w-0 flex-1">
+        <label className="enter-quick relative min-w-0 flex-1">
           <span className="sr-only">Szukaj zajęć</span>
           <Search size={18} strokeWidth={2.2} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2" />
           <input
@@ -66,7 +67,7 @@ export function PhoneHeader({
           onClick={onToggleSummary}
           className="flex h-11 items-center gap-1.5 rounded-xl px-2"
         >
-          <span className="whitespace-nowrap text-2xl leading-7 tracking-[-0.02em]"><DisplayTitle text={title} /></span>
+          <span key={title} className="enter-quick whitespace-nowrap text-2xl leading-7 tracking-[-0.02em]"><DisplayTitle text={title} /></span>
           <ChevronDown size={18} strokeWidth={2.2} className={`text-ink-2 transition-transform duration-200 ${summaryOpen ? 'rotate-180' : ''}`} />
           <span className="sr-only">{summaryOpen ? 'Ukryj podsumowanie' : 'Pokaż podsumowanie'}</span>
         </button>
@@ -98,13 +99,13 @@ export function PhoneHeader({
         </div>
       </header>
 
-      {summaryOpen && (
-        <div className="grid animate-pop-in grid-cols-3 gap-2 px-4 pb-1 pt-1.5">
+      <Collapse open={summaryOpen}>
+        <div className="grid grid-cols-3 gap-2 px-4 pb-1 pt-1.5">
           <SummaryTile value={String(stats.thisWeek)} label="w tym tygodniu" />
           <SummaryTile value={String(stats.remaining)} label="do końca semestru" />
           <SummaryTile value={schedule.lastUpdated ? formatTimestamp(schedule.lastUpdated).slice(0, 5) : '—'} label="plan z dnia" />
         </div>
-      )}
+      </Collapse>
     </>
   );
 }

@@ -73,13 +73,14 @@ export function SearchDialog({ open, onOpenChange, onPick }: SearchDialogProps) 
             {!query.trim() ? (
               <p className="px-3 py-6 text-center text-sm text-ink-2">Wpisz nazwę przedmiotu, nazwisko prowadzącego albo numer sali.</p>
             ) : results.length === 0 ? (
-              <div className="flex flex-col items-center gap-1.5 px-3 py-8 text-center">
+              <div key={query} className="enter-quick flex flex-col items-center gap-1.5 px-3 py-8 text-center">
                 <span className="text-[15px] font-semibold">Brak wyników dla „{query.trim()}”</span>
                 <span className="text-sm text-ink-2">Spróbuj samego nazwiska albo numeru sali.</span>
               </div>
             ) : (
-              <>
-                <div className="px-3 pb-1.5 pt-2 text-xs font-semibold text-ink-2">Najpierw najbliższe</div>
+              // Keyed by the query, so each new set of results visibly fades in
+              <div key={query}>
+                <div className="enter-quick px-3 pb-1.5 pt-2 text-xs font-semibold text-ink-2">Najpierw najbliższe</div>
                 {results.map((block, i) => {
                   const date = parseDate(block.date);
                   const meta = [block.event.online ? 'Online' : block.event.location, block.event.instructor].filter(Boolean).join(' · ');
@@ -89,7 +90,8 @@ export function SearchDialog({ open, onOpenChange, onPick }: SearchDialogProps) 
                       type="button"
                       onClick={() => pick(block)}
                       onMouseMove={() => current !== i && setActive(i)}
-                      className={`flex w-full items-center gap-3.5 rounded-xl px-3 py-2.5 text-left ${i === current ? 'bg-surface-2' : ''}`}
+                      style={{ '--i': i + 1 } as React.CSSProperties}
+                      className={`enter-quick flex w-full items-center gap-3.5 rounded-xl px-3 py-2.5 text-left ${i === current ? 'bg-surface-2' : ''}`}
                     >
                       <span className="flex w-[104px] shrink-0 flex-col gap-0.5">
                         <span className="text-[13px] font-semibold">{WEEKDAYS_SHORT[weekdayIndex(date)]} {date.getDate()} {MONTH_SHORT[date.getMonth()]}</span>
@@ -104,7 +106,7 @@ export function SearchDialog({ open, onOpenChange, onPick }: SearchDialogProps) 
                     </button>
                   );
                 })}
-              </>
+              </div>
             )}
           </div>
 

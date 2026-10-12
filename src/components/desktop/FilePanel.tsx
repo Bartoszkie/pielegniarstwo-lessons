@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useApp } from '../../app/AppContext';
 import { formatTimestamp, pluralPl } from '../../utils/dateUtils';
 import { ChevronUp, FileUp, Info } from '../ui/icons';
+import { Collapse } from '../ui/Collapse';
 
 /** Collapsible "Plan wczytany" box; an orange dot flags rows the parser skipped. */
 export function FilePanel() {
@@ -32,8 +33,8 @@ export function FilePanel() {
           <ChevronUp size={16} strokeWidth={2.2} className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
         </span>
       </button>
-      {open && (
-        <div id="file-panel" className="flex animate-fade-in flex-col gap-2.5 px-3 pb-3">
+      <Collapse open={open} id="file-panel">
+        <div className="flex flex-col gap-2.5 px-3 pb-3">
           {hasWarnings && (
             <div className="flex items-start gap-2 rounded-[9px] bg-warn-bg px-2.5 py-2 text-[13px] leading-[18px] text-warn-ink">
               <Info size={14} className="mt-0.5 shrink-0" />
@@ -69,7 +70,7 @@ export function FilePanel() {
           </div>
           <span className="text-xs leading-4 text-ink-2">Nowy plik zastąpi obecny plan. Wybrane grupy zostaną zachowane.</span>
         </div>
-      )}
+      </Collapse>
     </div>
   );
 }

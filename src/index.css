@@ -33,10 +33,11 @@
 
   --raise-line: rgba(28, 25, 23, 0.07);
   --press-line: rgba(28, 25, 23, 0.05);
-  --shadow-raise: 0 1px 2px rgba(28, 25, 23, 0.06), 0 3px 8px rgba(28, 25, 23, 0.07);
+  /* Raised and pressed shadows share one layer list (3 inset, 2 outer) so a button can animate between them */
+  --shadow-raise: inset 0 0 0 rgba(28, 25, 23, 0), inset 0 0 0 rgba(28, 25, 23, 0), inset 0 0 0 rgba(255, 255, 255, 0), 0 1px 2px rgba(28, 25, 23, 0.06), 0 3px 8px rgba(28, 25, 23, 0.07);
   --shadow-raise-lg: 0 1px 2px rgba(28, 25, 23, 0.06), 0 6px 18px rgba(28, 25, 23, 0.10);
-  --shadow-raise-hover: 0 1px 2px rgba(28, 25, 23, 0.06), 0 10px 22px rgba(28, 25, 23, 0.12);
-  --shadow-press: inset 0 2px 5px rgba(28, 25, 23, 0.14), inset 0 1px 1px rgba(28, 25, 23, 0.08);
+  --shadow-raise-hover: inset 0 0 0 rgba(28, 25, 23, 0), inset 0 0 0 rgba(28, 25, 23, 0), inset 0 0 0 rgba(255, 255, 255, 0), 0 1px 2px rgba(28, 25, 23, 0.06), 0 10px 22px rgba(28, 25, 23, 0.12);
+  --shadow-press: inset 0 2px 5px rgba(28, 25, 23, 0.14), inset 0 1px 1px rgba(28, 25, 23, 0.08), inset 0 0 0 rgba(255, 255, 255, 0), 0 0 0 rgba(28, 25, 23, 0), 0 0 0 rgba(28, 25, 23, 0);
   --shadow-pop: 0 14px 32px rgba(28, 25, 23, 0.18), 0 2px 6px rgba(28, 25, 23, 0.08);
 
   --glass-fill: rgba(255, 255, 255, 0.48);
@@ -76,10 +77,10 @@
 
   --raise-line: rgba(255, 255, 255, 0.09);
   --press-line: rgba(0, 0, 0, 0.55);
-  --shadow-raise: inset 0 1px 0 rgba(255, 255, 255, 0.09), 0 1px 2px rgba(0, 0, 0, 0.6), 0 4px 10px rgba(0, 0, 0, 0.45);
+  --shadow-raise: inset 0 1px 0 rgba(255, 255, 255, 0.09), inset 0 0 0 rgba(0, 0, 0, 0), inset 0 0 0 rgba(255, 255, 255, 0), 0 1px 2px rgba(0, 0, 0, 0.6), 0 4px 10px rgba(0, 0, 0, 0.45);
   --shadow-raise-lg: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 4px rgba(0, 0, 0, 0.6), 0 8px 22px rgba(0, 0, 0, 0.55);
-  --shadow-raise-hover: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 2px 4px rgba(0, 0, 0, 0.6), 0 10px 24px rgba(0, 0, 0, 0.6);
-  --shadow-press: inset 0 2px 6px rgba(0, 0, 0, 0.75), inset 0 1px 1px rgba(0, 0, 0, 0.6), inset 0 -1px 0 rgba(255, 255, 255, 0.1), 0 1px 0 rgba(255, 255, 255, 0.07);
+  --shadow-raise-hover: inset 0 1px 0 rgba(255, 255, 255, 0.12), inset 0 0 0 rgba(0, 0, 0, 0), inset 0 0 0 rgba(255, 255, 255, 0), 0 2px 4px rgba(0, 0, 0, 0.6), 0 10px 24px rgba(0, 0, 0, 0.6);
+  --shadow-press: inset 0 2px 6px rgba(0, 0, 0, 0.75), inset 0 1px 1px rgba(0, 0, 0, 0.6), inset 0 -1px 0 rgba(255, 255, 255, 0.1), 0 1px 0 rgba(255, 255, 255, 0.07), 0 0 0 rgba(0, 0, 0, 0);
   --shadow-pop: 0 16px 40px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.4);
 
   --glass-fill: rgba(41, 37, 36, 0.5);
@@ -113,24 +114,101 @@
 
 @layer components {
   /* Raised = tappable. Pressed in = selected / current. */
+  /* Going down is quick; coming back up springs a little, like a real key */
+  .raised,
+  .pressed,
+  .tactile {
+    transition:
+      transform .34s cubic-bezier(.34, 1.56, .64, 1),
+      box-shadow .26s ease,
+      background-color .22s ease,
+      border-color .22s ease;
+  }
+
   .raised {
     background-color: rgb(var(--raised));
     border: 1px solid var(--raise-line);
     box-shadow: var(--shadow-raise);
-    transition: transform .18s cubic-bezier(.2, .8, .2, 1), box-shadow .18s ease, background-color .18s ease;
   }
 
   .raised:active:not(:disabled) {
-    transform: scale(.97);
+    transform: translateY(1px) scale(.965);
     background-color: rgb(var(--pressed));
+    border-color: var(--press-line);
     box-shadow: var(--shadow-press);
-    transition-duration: .08s;
+    transition-duration: .07s;
+    transition-timing-function: ease-out;
   }
 
   .pressed {
     background-color: rgb(var(--pressed));
     border: 1px solid var(--press-line);
     box-shadow: var(--shadow-press);
+  }
+
+  .tactile:active:not(:disabled) {
+    transform: translateY(1px) scale(.965);
+    transition-duration: .07s;
+    transition-timing-function: ease-out;
+  }
+
+  /* A coloured chip that gets switched on pops in */
+  .chip-on {
+    animation: chip-on .4s cubic-bezier(.34, 1.56, .64, 1);
+  }
+
+  /* A button that becomes selected settles into place */
+  button.pressed {
+    animation: press-settle .36s cubic-bezier(.34, 1.56, .64, 1);
+  }
+
+  button.pressed:active:not(:disabled) {
+    transform: translateY(1px) scale(.98);
+    transition-duration: .07s;
+    transition-timing-function: ease-out;
+  }
+
+  /* Content that appears (a new week, results, a screen) fades up; --i staggers siblings */
+  .enter {
+    animation: enter .38s cubic-bezier(.2, .8, .2, 1) backwards;
+    animation-delay: calc(min(var(--i, 0), 10) * 40ms);
+  }
+
+  .enter-quick {
+    animation: enter-quick .22s cubic-bezier(.2, .8, .2, 1) backwards;
+    animation-delay: calc(min(var(--i, 0), 12) * 22ms);
+  }
+
+  .fade-enter {
+    animation: fade-enter .32s ease-out backwards;
+  }
+
+  /* The free-day teacup: rising steam, a floating heart, twinkling sparkles */
+  .tea-steam,
+  .tea-heart,
+  .tea-spark {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .tea-steam {
+    animation: tea-steam 3.2s ease-in-out infinite;
+  }
+
+  .tea-steam-late {
+    animation-delay: -1.6s;
+  }
+
+  .tea-heart {
+    animation: tea-heart 3.2s ease-in-out infinite;
+  }
+
+  .tea-spark {
+    animation: tea-spark 2.6s ease-in-out infinite;
+  }
+
+  .tea-spark-late {
+    animation-delay: -1.3s;
   }
 
   @media (hover: hover) {
@@ -176,6 +254,49 @@
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
+}
+
+@keyframes press-settle {
+  0% { transform: translateY(1px) scale(.95); }
+  100% { transform: none; }
+}
+
+@keyframes chip-on {
+  0% { transform: scale(.92); }
+  55% { transform: scale(1.04); }
+  100% { transform: none; }
+}
+
+@keyframes enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes enter-quick {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes fade-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes tea-steam {
+  0% { transform: translateY(3px); opacity: 0; }
+  30% { opacity: 1; }
+  75% { opacity: .55; }
+  100% { transform: translateY(-7px); opacity: 0; }
+}
+
+@keyframes tea-heart {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-3.5px) scale(1.1); }
+}
+
+@keyframes tea-spark {
+  0%, 100% { opacity: .3; transform: scale(.65) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1.1) rotate(25deg); }
 }
 
 @keyframes kind-spin {

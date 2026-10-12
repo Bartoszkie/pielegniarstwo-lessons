@@ -21,7 +21,7 @@ export function Onboarding() {
   const [dragOver, setDragOver] = useState(false);
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-[440px] flex-col gap-7 px-5 pb-8 pt-[max(40px,env(safe-area-inset-top))]">
+    <div className="fade-enter mx-auto flex min-h-dvh w-full max-w-[440px] flex-col gap-7 px-5 pb-8 pt-[max(40px,env(safe-area-inset-top))]">
       <header className="flex flex-col gap-3.5">
         <AppLogo size={44} />
         <div className="flex flex-col gap-1">

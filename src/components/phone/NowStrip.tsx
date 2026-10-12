@@ -3,6 +3,7 @@ import { useApp } from '../../app/AppContext';
 import { addDays, capitalize, durationLabel, formatDate, parseDate, relativeDayLabel } from '../../utils/dateUtils';
 import { GroupTags } from '../ui/GroupTag';
 import { ChevronDown } from '../ui/icons';
+import { Collapse } from '../ui/Collapse';
 
 /**
  * Slim dark bar about today: the class happening now, the next one today,
@@ -25,7 +26,7 @@ export function NowStrip() {
     const headline = live.today === 'free' ? 'Dziś wolne' : 'Na dziś koniec';
     if (!next) {
       return (
-        <article className="flex min-h-[52px] items-center gap-2.5 rounded-2xl bg-hero pl-3.5 pr-3 text-hero-ink">
+        <article className="enter flex min-h-[52px] items-center gap-2.5 rounded-2xl bg-hero pl-3.5 pr-3 text-hero-ink">
           <span className="h-1.5 w-1.5 shrink-0 rounded-full border border-current" />
           <span className="text-[15px] font-semibold">{headline}</span>
           <span className="min-w-0 truncate text-[13px] opacity-70">· brak kolejnych zajęć w planie</span>
@@ -35,7 +36,7 @@ export function NowStrip() {
     const day = relativeDayLabel(parseDate(next.date), parseDate(todayKey));
     const place = next.event.online ? 'Online' : next.event.location;
     return (
-      <article className="overflow-hidden rounded-2xl bg-hero text-hero-ink">
+      <article className="enter overflow-hidden rounded-2xl bg-hero text-hero-ink">
         <button
           type="button"
           aria-expanded={open}
@@ -53,8 +54,8 @@ export function NowStrip() {
           {live.untilNextLabel !== 'jutro' && <span className="shrink-0 text-[13px] font-semibold">{live.untilNextLabel}</span>}
           <ChevronDown size={18} strokeWidth={2.2} className={`shrink-0 opacity-70 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
         </button>
-        {open && (
-          <div className="flex animate-fade-in flex-col gap-2.5 px-3.5 pb-3.5 pt-1">
+        <Collapse open={open}>
+          <div className="flex flex-col gap-2.5 px-3.5 pb-3.5 pt-1">
             <div className="flex items-center gap-1">
               <GroupTags groups={next.groups} everyone={next.everyone} />
               <span className="ml-auto tabular-nums text-[13px] opacity-70">{capitalize(day)}, {next.start} – {next.end}</span>
@@ -72,7 +73,7 @@ export function NowStrip() {
               Pokaż w planie
             </button>
           </div>
-        )}
+        </Collapse>
       </article>
     );
   }
@@ -82,7 +83,7 @@ export function NowStrip() {
   const nextToday = isNow && next && live.nextInDays === 0 ? next : null;
 
   return (
-    <article className="overflow-hidden rounded-2xl bg-hero text-hero-ink">
+    <article className="enter overflow-hidden rounded-2xl bg-hero text-hero-ink">
       <button
         type="button"
         aria-expanded={open}
@@ -103,8 +104,8 @@ export function NowStrip() {
           </>
         )}
       </button>
-      {open && (
-        <div className="flex animate-fade-in flex-col gap-2.5 px-3.5 pb-3.5 pt-3">
+      <Collapse open={open}>
+        <div className="flex flex-col gap-2.5 px-3.5 pb-3.5 pt-3">
           <div className="flex items-center gap-1">
             <GroupTags groups={block.groups} everyone={block.everyone} />
             <span className="ml-auto text-[13px] opacity-70">
@@ -128,7 +129,7 @@ export function NowStrip() {
             </>
           )}
         </div>
-      )}
+      </Collapse>
     </article>
   );
 }

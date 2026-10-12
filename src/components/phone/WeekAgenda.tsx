@@ -54,7 +54,7 @@ interface WeekAgendaProps {
 
 /** The phone week view: one card per day with classes; empty days folded into one line, except today. */
 export function WeekAgenda({ onPick, onOpenClass }: WeekAgendaProps) {
-  const { calendar, visibleByDate, live, todayKey, hasSelection } = useApp();
+  const { calendar, visibleByDate, live, todayKey, hasSelection, kind } = useApp();
   const cursorKey = formatDate(calendar.cursor);
   const previousKey = useRef(cursorKey);
 
@@ -107,14 +107,24 @@ export function WeekAgenda({ onPick, onOpenClass }: WeekAgendaProps) {
   }
   flush();
 
-  if (!entries.some(e => e.type !== 'gap')) return <EmptyState kind="empty-week" />;
+  // A new week (or filter) remounts the list, so its entries fade up one after another
+  const animKey = `${formatDate(calendar.weekStart)}|${kind}`;
+
+  if (!entries.some(e => e.type !== 'gap')) {
+    return (
+      <div key={animKey} className="enter">
+        <EmptyState kind="empty-week" />
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col gap-[18px]">
-      {entries.map(entry => {
+    <div key={animKey} className="flex flex-col gap-[18px]">
+      {entries.map((entry, index) => {
+        const enter = { '--i': index } as React.CSSProperties;
         if (entry.type === 'gap') {
           return (
-            <p key={entry.key} className="flex min-h-11 items-center gap-2.5 rounded-[14px] border border-dashed border-line-strong px-3.5 py-2.5 text-sm text-ink-2">
+            <p key={entry.key} style={enter} className="enter flex min-h-11 items-center gap-2.5 rounded-[14px] border border-dashed border-line-strong px-3.5 py-2.5 text-sm text-ink-2">
               <Moon size={18} className="shrink-0" />
               <span><span className="font-semibold text-ink">{entry.range}</span> · bez zajęć</span>
             </p>
@@ -122,7 +132,7 @@ export function WeekAgenda({ onPick, onOpenClass }: WeekAgendaProps) {
         }
         if (entry.type === 'notice') {
           return (
-            <p key={entry.key} className="flex min-h-11 items-center gap-2.5 rounded-[14px] border border-line bg-surface px-3.5 py-2.5 text-sm text-ink-2">
+            <p key={entry.key} style={enter} className="enter flex min-h-11 items-center gap-2.5 rounded-[14px] border border-line bg-surface px-3.5 py-2.5 text-sm text-ink-2">
               <Info size={18} className="shrink-0 text-ink" />
               <span><span className="font-semibold text-ink">{entry.range}</span> · {entry.text}</span>
             </p>
@@ -132,7 +142,7 @@ export function WeekAgenda({ onPick, onOpenClass }: WeekAgendaProps) {
           // A filter can hide today's classes; only a really free day gets the card
           const reallyFree = live.today === 'free';
           return (
-            <section key={entry.key} id={`day-${entry.key}`} className="flex scroll-mt-20 flex-col gap-2">
+            <section key={entry.key} id={`day-${entry.key}`} style={enter} className="enter flex scroll-mt-20 flex-col gap-2">
               <DayHeading date={entry.date} today>
                 {!reallyFree && <span className="text-sm font-normal text-ink-2">· brak zajęć tego rodzaju</span>}
               </DayHeading>
@@ -145,7 +155,7 @@ export function WeekAgenda({ onPick, onOpenClass }: WeekAgendaProps) {
         const parallel = classes.some((a, i) => classes.some((b, j) => i !== j && a.startMin < b.endMin && b.startMin < a.endMin));
         const mode = dayMode(classes);
         return (
-          <section key={entry.key} id={`day-${entry.key}`} className="flex scroll-mt-20 flex-col gap-2">
+          <section key={entry.key} id={`day-${entry.key}`} style={enter} className="enter flex scroll-mt-20 flex-col gap-2">
             <DayHeading date={entry.date} today={isTodayDay}>
               {mode !== 'unknown' && <ModeBadge mode={mode} size="sm" />}
               {parallel && <span className="text-[13px] font-normal text-ink-2">· zajęcia równoległe</span>}

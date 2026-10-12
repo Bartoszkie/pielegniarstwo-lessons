@@ -95,6 +95,7 @@ export function WeekGrid({ selectedId, onToggle }: WeekGridProps) {
                       selected={selectedId === block.id}
                       onOpenChange={open => onToggle(block.id, open)}
                       flip={i >= 4}
+                      column={i}
                     />
                   ))}
                   {showNow && key === todayKey && (
@@ -133,9 +134,11 @@ interface GridBlockProps {
   selected: boolean;
   onOpenChange: (open: boolean) => void;
   flip: boolean;
+  /** Day of the week, so blocks fade in column by column */
+  column: number;
 }
 
-function GridBlock({ block, top, lane, lanes, state, progress, remainingMin, untilLabel, selected, onOpenChange, flip }: GridBlockProps) {
+function GridBlock({ block, top, lane, lanes, state, progress, remainingMin, untilLabel, selected, onOpenChange, flip, column }: GridBlockProps) {
   const height = ((block.endMin - block.startMin) / 60) * HOUR_PX;
   const single = block.groups.length === 1;
   const accent = getGroupColor(block.groups[0]);
@@ -150,6 +153,7 @@ function GridBlock({ block, top, lane, lanes, state, progress, remainingMin, unt
     left: `calc(${(lane * 100) / lanes}% + 4px)`,
     width: `calc(${100 / lanes}% - 8px)`,
   };
+  Object.assign(style, { '--i': column });
   if (live) {
     Object.assign(style, {
       zIndex: 3,
@@ -172,7 +176,7 @@ function GridBlock({ block, top, lane, lanes, state, progress, remainingMin, unt
       <button
         type="button"
         aria-label={`${block.event.title}, ${block.start}–${block.end}${block.mode === 'online' ? ', online' : ''}, ${block.everyone ? 'wszystkie grupy' : `grupy ${block.groups.join(', ')}`}`}
-        className={`absolute isolate flex flex-col items-start gap-[3px] overflow-hidden rounded-[10px] px-2 pb-1.5 pt-2.5 text-left text-ink ${next ? 'pressed' : ''}`}
+        className={`enter absolute isolate flex flex-col items-start gap-[3px] overflow-hidden rounded-[10px] px-2 pb-1.5 pt-2.5 text-left text-ink ${next ? 'pressed' : ''}`}
         style={style}
       >
         {live ? (

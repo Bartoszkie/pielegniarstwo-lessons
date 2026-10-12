@@ -48,13 +48,14 @@ export function GroupPicker({ pairsPerRow = 3, compact = false }: GroupPickerPro
                   type="button"
                   aria-pressed={on}
                   onClick={() => toggleGroup(group)}
-                  className={`flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-[10px] tabular-nums font-semibold transition-transform active:scale-[.97] ${
+                  className={`flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-[10px] tabular-nums font-semibold ${
                     compact ? 'h-10 text-sm' : 'h-12 text-[15px]'
-                  } ${on ? 'gloss text-white' : 'raised text-ink'}`}
+                  } ${on ? 'gloss tactile chip-on text-white' : 'raised text-ink'}`}
                   style={on ? {
                     backgroundColor: color,
                     border: `1px solid color-mix(in oklab, ${color} 80%, #000)`,
-                    boxShadow: `inset 0 1px 0 rgba(255,255,255,.35), inset 0 -2px 0 rgba(0,0,0,.2), 0 2px 4px rgba(28,25,23,.2), 0 6px 12px -4px color-mix(in oklab, ${color} 60%, transparent)`,
+                    // Same layer list as the raised shadow (3 inset, 2 outer), so switching animates
+                    boxShadow: `inset 0 1px 0 rgba(255,255,255,.35), inset 0 -2px 0 rgba(0,0,0,.2), inset 0 0 0 rgba(0,0,0,0), 0 2px 4px rgba(28,25,23,.2), 0 6px 12px -4px color-mix(in oklab, ${color} 60%, transparent)`,
                   } : undefined}
                 >
                   {on ? <Check size={compact ? 12 : 14} strokeWidth={2.8} /> : <GroupSwatch group={group} size={compact ? 9 : 10} />}

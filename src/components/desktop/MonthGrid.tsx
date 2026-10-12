@@ -41,7 +41,9 @@ export function MonthGrid({ selectedId, onToggle }: MonthGridProps) {
             return (
               <div
                 key={key}
-                className={`flex min-h-[124px] min-w-0 flex-col gap-[3px] p-2 ${!inMonth ? 'bg-bg' : weekend ? 'bg-bg/50' : 'bg-surface'}`}
+                // Rows fade in one after another
+                style={{ '--i': Math.floor(index / 7) } as React.CSSProperties}
+                className={`enter-quick flex min-h-[124px] min-w-0 flex-col gap-[3px] p-2 ${!inMonth ? 'bg-bg' : weekend ? 'bg-bg/50' : 'bg-surface'}`}
               >
                 <button
                   type="button"

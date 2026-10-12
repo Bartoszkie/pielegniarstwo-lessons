@@ -48,7 +48,7 @@ export function PhoneApp() {
   };
 
   return (
-    <div className="min-h-dvh pb-[calc(140px+env(safe-area-inset-bottom))]">
+    <div className="fade-enter min-h-dvh pb-[calc(140px+env(safe-area-inset-bottom))]">
       <PhoneHeader
         summaryOpen={summaryOpen}
         onToggleSummary={() => setSummaryOpen(v => !v)}
@@ -95,7 +95,7 @@ function SearchResults({ results, query, onOpenClass }: SearchResultsProps) {
   const { calendar } = useApp();
   if (results.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-1.5 px-4 py-10 text-center">
+      <div key={query} className="enter-quick flex flex-col items-center gap-1.5 px-4 py-10 text-center">
         <span className="text-[15px] font-semibold">Brak zajęć dla „{query.trim()}”</span>
         <span className="text-sm text-ink-2">Spróbuj samego nazwiska, przedmiotu albo numeru sali.</span>
       </div>
@@ -107,12 +107,13 @@ function SearchResults({ results, query, onOpenClass }: SearchResultsProps) {
   shown.forEach(block => byDate.set(block.date, [...(byDate.get(block.date) ?? []), block]));
 
   return (
-    <div className="flex flex-col gap-4">
-      <p className="px-2 text-sm text-ink-2">
+    // Keyed by the query, so each change of results visibly fades in
+    <div key={query} className="flex flex-col gap-4">
+      <p className="enter-quick px-2 text-sm text-ink-2">
         {results.length > shown.length ? `Pokazano ${shown.length} z ${results.length} wyników` : `Wyniki: ${results.length}`} · najpierw najbliższe
       </p>
-      {[...byDate.entries()].map(([date, blocks]) => (
-        <section key={date} className="flex flex-col gap-2">
+      {[...byDate.entries()].map(([date, blocks], index) => (
+        <section key={date} className="enter-quick flex flex-col gap-2" style={{ '--i': index + 1 } as React.CSSProperties}>
           <button type="button" onClick={() => calendar.setCursor(parseDate(date))} className="self-start px-2 text-left text-[15px] font-semibold">
             {capitalize(getDayLabel(parseDate(date)))}
           </button>

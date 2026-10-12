@@ -50,7 +50,7 @@ export function FreeDayCard({ note }: { note?: string }) {
   );
 }
 
-/** A pink cup of tea with a heart of steam */
+/** A pink cup of tea with a heart of steam; the steam rises, the heart floats, the sparkles twinkle */
 function TeaIllustration() {
   const id = useId();
   return (
@@ -76,10 +76,11 @@ function TeaIllustration() {
       <ellipse cx="47" cy="45" rx="25" ry="5.5" fill="#F9C9DA" />
       <ellipse cx="47" cy="45.6" rx="21.5" ry="3.9" fill={`url(#${id}tea)`} />
       <path d="M28 54c.6 7 3.4 12.5 8.2 16" fill="none" stroke="#FFFFFF" strokeWidth="2.6" strokeLinecap="round" opacity="0.55" />
-      <path d="M40 37c-4-5 3-8 0-13M53 36c-4-5 3-8 0-13" fill="none" stroke="#D6D3D1" strokeWidth="2.6" strokeLinecap="round" />
-      <path d="M47 17.5c-1.6-3-6.2-2.2-6.2 1.1 0 3 4 5.3 6.2 7 2.2-1.7 6.2-4 6.2-7 0-3.3-4.6-4.1-6.2-1.1z" fill={PINK} />
-      <path d="M80 18l1.6 4.4L86 24l-4.4 1.6L80 30l-1.6-4.4L74 24l4.4-1.6z" fill="#F7A1BE" />
-      <path d="M16 30l1.1 3L20 34l-2.9 1L16 38l-1.1-3L12 34l2.9-1z" fill="#F7A1BE" />
+      <path className="tea-steam" d="M40 37c-4-5 3-8 0-13" fill="none" stroke="#D6D3D1" strokeWidth="2.6" strokeLinecap="round" />
+      <path className="tea-steam tea-steam-late" d="M53 36c-4-5 3-8 0-13" fill="none" stroke="#D6D3D1" strokeWidth="2.6" strokeLinecap="round" />
+      <path className="tea-heart" d="M47 17.5c-1.6-3-6.2-2.2-6.2 1.1 0 3 4 5.3 6.2 7 2.2-1.7 6.2-4 6.2-7 0-3.3-4.6-4.1-6.2-1.1z" fill={PINK} />
+      <path className="tea-spark" d="M80 18l1.6 4.4L86 24l-4.4 1.6L80 30l-1.6-4.4L74 24l4.4-1.6z" fill="#F7A1BE" />
+      <path className="tea-spark tea-spark-late" d="M16 30l1.1 3L20 34l-2.9 1L16 38l-1.1-3L12 34l2.9-1z" fill="#F7A1BE" />
     </svg>
   );
 }

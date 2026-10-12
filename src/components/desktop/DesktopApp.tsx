@@ -48,12 +48,12 @@ export function DesktopApp() {
   const periodWord = calendar.view === 'week' ? 'w tym tygodniu' : 'w tym miesiącu';
 
   return (
-    <div className="flex min-h-dvh flex-wrap items-stretch">
+    <div className="fade-enter flex min-h-dvh flex-wrap items-stretch">
       <Sidebar />
       <main className="flex min-w-0 flex-[999_1_560px] flex-col gap-5 px-7 pb-8 pt-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="flex flex-col gap-0.5">
-            <h1 className="text-[28px] leading-8 tracking-[-0.02em]"><DisplayTitle text={title} /></h1>
+            <h1 key={title} className="enter-quick text-[28px] leading-8 tracking-[-0.02em]"><DisplayTitle text={title} /></h1>
             <p className="text-sm text-ink-2">
               {hasSelection ? `${classesLabel(total)} ${periodWord}${kind !== 'all' ? ` · widoczne: ${shown}` : ''}` : 'Wybierz grupę, żeby zobaczyć zajęcia'}
             </p>
@@ -100,8 +100,9 @@ export function DesktopApp() {
         {hasSelection && <KindChips size="lg" className="flex-wrap" />}
 
         {calendar.view === 'week'
-          ? <WeekGrid selectedId={selectedId} onToggle={toggleBlock} />
-          : <MonthGrid selectedId={selectedId} onToggle={toggleBlock} />}
+          // Keyed by the period and filter, so a new week or month fades its classes in
+          ? <WeekGrid key={`${title}|${kind}`} selectedId={selectedId} onToggle={toggleBlock} />
+          : <MonthGrid key={`${title}|${kind}`} selectedId={selectedId} onToggle={toggleBlock} />}
       </main>
 
       <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} onPick={openBlock} />

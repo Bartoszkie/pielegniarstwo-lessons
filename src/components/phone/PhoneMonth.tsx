@@ -9,7 +9,7 @@ import { FreeDayCard } from './FreeDayCard';
 
 /** Phone month view: a compact grid with group dots and the chosen day's classes below it. */
 export function PhoneMonth({ onPick, onOpenClass }: { onPick: () => void; onOpenClass: (block: ClassBlock) => void }) {
-  const { calendar, visibleByDate, todayKey, live, hasSelection } = useApp();
+  const { calendar, visibleByDate, todayKey, live, hasSelection, kind } = useApp();
   if (!hasSelection) return <EmptyState kind="no-selection" onPick={onPick} />;
 
   const { cursor } = calendar;
@@ -21,7 +21,8 @@ export function PhoneMonth({ onPick, onOpenClass }: { onPick: () => void; onOpen
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="rounded-2xl border border-line bg-surface px-2 pb-2 pt-2.5">
+      {/* A new month (or filter) fades the grid in; a newly picked day fades its list in */}
+      <div key={`${cursor.getFullYear()}-${cursor.getMonth()}|${kind}`} className="enter rounded-2xl border border-line bg-surface px-2 pb-2 pt-2.5">
         <div className="grid grid-cols-7 pb-1.5">
           {WEEKDAYS_NARROW.map(day => (
             <span key={day} className="text-center text-xs font-medium text-ink-2">{day}</span>
@@ -76,7 +77,7 @@ export function PhoneMonth({ onPick, onOpenClass }: { onPick: () => void; onOpen
         </div>
       </div>
 
-      <section className="flex flex-col gap-2">
+      <section key={`${cursorKey}|${kind}`} className="enter-quick flex flex-col gap-2" style={{ '--i': 2 } as React.CSSProperties}>
         <h2 className="flex items-baseline justify-between gap-2 px-2 text-[15px] font-semibold leading-[22px]">
           <span>{capitalize(getDayLabel(cursor))}{isTodaySelected ? ' · dziś' : ''}</span>
           <span className="text-[13px] font-normal text-ink-2">{classesLabel(selectedClasses.length)}</span>

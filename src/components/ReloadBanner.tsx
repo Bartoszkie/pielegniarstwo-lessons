@@ -6,7 +6,7 @@ export function ReloadBanner() {
   const { schedule, openFilePicker } = useApp();
   if (!schedule.needsReload) return null;
   return (
-    <div role="status" className="flex items-start gap-3 rounded-2xl border border-warn/40 bg-warn-bg p-3.5 text-warn-ink">
+    <div role="status" className="enter flex items-start gap-3 rounded-2xl border border-warn/40 bg-warn-bg p-3.5 text-warn-ink">
       <Info size={18} className="mt-0.5 shrink-0" />
       <div className="flex min-w-0 flex-1 flex-col gap-2.5">
         <p className="text-sm leading-5">
