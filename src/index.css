@@ -225,10 +225,6 @@
     text-shadow: 0 1px 0 rgba(0, 0, 0, 0.22);
   }
 
-  .sr-only-focusable:not(:focus) {
-    @apply sr-only;
-  }
-
   /* 3D category icons tilt on hover and spin once when picked */
   .kind-ico {
     display: inline-flex;

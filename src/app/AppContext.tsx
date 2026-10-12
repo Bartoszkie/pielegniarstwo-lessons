@@ -3,7 +3,7 @@ import { KindFilter } from '../types';
 import { useSchedule } from '../hooks/useSchedule';
 import { UseCalendarReturn } from '../hooks/useCalendar';
 import { buildDayBlocks, ClassBlock, isClass, matchesKind } from '../utils/blocks';
-import { addDays, formatDate, getStartOfWeek, parseDate, isSameMonth, toMinutes, daysBetween, durationLabel, relativeDayLabel } from '../utils/dateUtils';
+import { addDays, formatDate, getStartOfWeek, parseDate, isSameMonth, daysBetween, durationLabel, relativeDayLabel } from '../utils/dateUtils';
 import { normalizeForSearch } from '../utils/eventUtils';
 import { ThemePreference } from '../hooks/useTheme';
 
@@ -217,9 +217,4 @@ export function useApp(): AppContextValue {
   const ctx = useContext(AppContext);
   if (!ctx) throw new Error('useApp must be used inside AppProvider');
   return ctx;
-}
-
-/** Minutes from a "HH:MM" string relative to now, for "za 40 min" labels */
-export function minutesUntil(time: string, now: Date): number {
-  return toMinutes(time) - (now.getHours() * 60 + now.getMinutes());
 }

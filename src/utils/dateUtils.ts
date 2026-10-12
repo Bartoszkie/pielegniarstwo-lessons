@@ -89,11 +89,6 @@ export function isSameMonth(date: Date, referenceDate: Date): boolean {
   return date.getMonth() === referenceDate.getMonth() && date.getFullYear() === referenceDate.getFullYear();
 }
 
-export function isWeekend(date: Date): boolean {
-  const day = date.getDay();
-  return day === 0 || day === 6;
-}
-
 export function getMonthLabel(date: Date): string {
   return `${MONTH_NAMES[date.getMonth()]} ${date.getFullYear()}`;
 }

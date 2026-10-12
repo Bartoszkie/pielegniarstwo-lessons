@@ -54,14 +54,6 @@ export const ThemeAuto = (p: IconProps) => (
   </Svg>
 );
 
-export const CalendarIcon = (p: IconProps) => (
-  <Svg {...p}>
-    <rect x="3.5" y="5" width="17" height="15.5" rx="3" />
-    <path d="M3.5 10h17" />
-    <path d="M8 3v4M16 3v4" />
-  </Svg>
-);
-
 export const CalendarGrid = (p: IconProps) => (
   <Svg {...p}>
     <rect x="3.5" y="5" width="17" height="15.5" rx="3" />
