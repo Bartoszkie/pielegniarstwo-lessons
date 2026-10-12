@@ -2,6 +2,7 @@ import { Drawer } from 'vaul';
 import { useApp } from '../../app/AppContext';
 import { formatTimestamp, pluralPl } from '../../utils/dateUtils';
 import { ModeToggle } from '../ui/ModeToggle';
+import { MakeupEntry } from '../makeup/MakeupEntry';
 import { GroupPicker } from '../ui/GroupPicker';
 import { TeacherPicker } from '../ui/TeacherPicker';
 import { Check, Close, Info } from '../ui/icons';
@@ -55,8 +56,9 @@ export function FilterSheet({ open, onOpenChange }: FilterSheetProps) {
             )}
           </div>
 
-          <div className="mx-5 mt-4">
+          <div className="mx-5 mt-4 flex flex-col gap-2">
             <ModeToggle />
+            <MakeupEntry onStart={() => onOpenChange(false)} />
           </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-4 pt-2">

@@ -24,6 +24,35 @@ export interface ClassBlock {
   instructors: string[];
   /** Lower-cased, diacritic-free text used for search */
   haystack: string;
+  /** Added by the student: another group's class, attended to make up a missed one */
+  makeup?: MakeupLink;
+  /** The student makes this class up with another group, on the date given */
+  madeUpOn?: MakeupLink;
+}
+
+/** Ties a make-up class and the student's own class it replaces */
+export interface MakeupLink {
+  id: string;
+  /** Which class of the subject it is, for the student's group: 1, 2, … */
+  n: number;
+  total: number;
+  /** The student's group */
+  group: GroupId;
+  /** The other date: the make-up for the replaced class, the replaced class for the make-up */
+  date: string;
+  start: string;
+  /** The groups the student joins for the make-up */
+  groups: GroupId[];
+}
+
+/** One subject of one kind, e.g. "Dietetyka|exercise": classes are counted per subject and group */
+export function subjectKey(block: Pick<ClassBlock, 'event' | 'kind'>): string {
+  return `${block.event.title}|${block.kind}`;
+}
+
+/** Online, at the university (a room is given, or a simulation), or not said */
+export function classMode(event: ParsedEvent): ClassMode {
+  return event.online ? 'online' : event.location || event.kind === 'simulation' ? 'onsite' : 'unknown';
 }
 
 export function buildDayBlocks(day: ScheduleDay): ClassBlock[] {
@@ -41,8 +70,7 @@ export function buildDayBlocks(day: ScheduleDay): ClassBlock[] {
         }
       }
       const groups = [...merged.groups].sort();
-      // Simulation classes take place on site even when the cell names no room
-      const mode: ClassMode = event.online ? 'online' : event.location || event.kind === 'simulation' ? 'onsite' : 'unknown';
+      const mode = classMode(event);
       return {
         id: `${day.date}|${start}|${groups.join(',')}|${merged.description}`,
         date: day.date,
@@ -72,6 +100,11 @@ export function matchesKind(block: ClassBlock, filter: KindFilter): boolean {
 
 export function isClass(block: ClassBlock): boolean {
   return block.kind !== 'info';
+}
+
+/** A class the student goes to: not a notice, and not one made up on another date */
+export function isAttended(block: ClassBlock): boolean {
+  return block.kind !== 'info' && !block.madeUpOn;
 }
 
 export interface BlockLane {

@@ -13,6 +13,8 @@ import { Onboarding } from './components/Onboarding';
 import { PhoneApp } from './components/phone/PhoneApp';
 import { DesktopApp } from './components/desktop/DesktopApp';
 import { HowItWorksDialog, WarningsDialog } from './components/Dialogs';
+import { MakeupWizard } from './components/makeup/MakeupWizard';
+import { MakeupConfirm } from './components/makeup/MakeupConfirm';
 
 function isExcelFile(file: File): boolean {
   return /\.(xls|xlsx)$/i.test(file.name) || [
@@ -93,6 +95,12 @@ export default function App() {
         </a>
       )}
 
+      {schedule.isLoaded && (
+        <>
+          <MakeupWizard />
+          <MakeupConfirm />
+        </>
+      )}
       <HowItWorksDialog open={howOpen} onOpenChange={setHowOpen} />
       <WarningsDialog open={warningsOpen} onOpenChange={setWarningsOpen} warnings={schedule.warnings} />
       <Toaster

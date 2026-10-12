@@ -15,6 +15,9 @@ export const DAY_NAMES_FULL = [
   'niedziela', 'poniedziałek', 'wtorek', 'środa', 'czwartek', 'piątek', 'sobota'
 ];
 
+/** Indexed by Date.getDay() (Sunday = 0) */
+export const DAY_NAMES_SHORT = ['ndz', 'pon', 'wt', 'śr', 'czw', 'pt', 'sob'];
+
 /** Monday-first short weekday names for calendar headers */
 export const WEEKDAYS_SHORT = ['Pon', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob', 'Ndz'];
 export const WEEKDAYS_NARROW = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'So', 'Nd'];
@@ -54,6 +57,11 @@ export function relativeDayLabel(date: Date, today: Date): string {
   if (days === 0) return 'dziś';
   if (days === 1) return 'jutro';
   return `${DAY_NAMES_FULL[date.getDay()]} ${date.getDate()} ${MONTH_SHORT[date.getMonth()]}`;
+}
+
+/** "sob 17 paź" */
+export function shortDateLabel(date: Date): string {
+  return `${DAY_NAMES_SHORT[date.getDay()]} ${date.getDate()} ${MONTH_SHORT[date.getMonth()]}`;
 }
 
 export function isToday(date: Date): boolean {

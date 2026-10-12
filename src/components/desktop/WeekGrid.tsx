@@ -3,7 +3,7 @@ import { ClassBlock, isClass, layoutLanes } from '../../utils/blocks';
 import { addDays, durationLabel, formatDate, WEEKDAYS_SHORT } from '../../utils/dateUtils';
 import { getGroupColor, groupTint } from '../../constants/groupColors';
 import { GroupTags } from '../ui/GroupTag';
-import { Info, University, Video } from '../ui/icons';
+import { Info, Redo, University, Video } from '../ui/icons';
 import { ClassPopover } from './ClassPopover';
 
 const HOUR_PX = 64;
@@ -139,6 +139,8 @@ interface GridBlockProps {
 }
 
 function GridBlock({ block, top, lane, lanes, state, progress, remainingMin, untilLabel, selected, onOpenChange, flip, column }: GridBlockProps) {
+  const { numberOf } = useApp();
+  const count = numberOf(block);
   const height = ((block.endMin - block.startMin) / 60) * HOUR_PX;
   const single = block.groups.length === 1;
   const accent = getGroupColor(block.groups[0]);
@@ -175,8 +177,8 @@ function GridBlock({ block, top, lane, lanes, state, progress, remainingMin, unt
     <ClassPopover block={block} open={selected} onOpenChange={onOpenChange} flip={flip}>
       <button
         type="button"
-        aria-label={`${block.event.title}, ${block.start}–${block.end}${block.mode === 'online' ? ', online' : ''}, ${block.everyone ? 'wszystkie grupy' : `grupy ${block.groups.join(', ')}`}`}
-        className={`enter absolute isolate flex flex-col items-start gap-[3px] overflow-hidden rounded-[10px] px-2 pb-1.5 pt-2.5 text-left text-ink ${next ? 'pressed' : ''}`}
+        aria-label={`${block.event.title}, ${block.start}–${block.end}${count ? `, zajęcia ${count.n} z ${count.total}` : ''}${block.makeup ? ', odrabianie' : ''}${block.madeUpOn ? ', odrabiane w innym terminie' : ''}${block.mode === 'online' ? ', online' : ''}, ${block.everyone ? 'wszystkie grupy' : `grupy ${block.groups.join(', ')}`}`}
+        className={`enter absolute isolate flex flex-col items-start gap-[3px] overflow-hidden rounded-[10px] px-2 pb-1.5 pt-2.5 text-left text-ink ${next ? 'pressed' : ''} ${block.madeUpOn ? 'opacity-55 grayscale' : ''}`}
         style={style}
       >
         {live ? (
@@ -214,6 +216,11 @@ function GridBlock({ block, top, lane, lanes, state, progress, remainingMin, unt
             </span>
           )}
           {next && <span className="text-[11px] font-semibold text-ink-2">{untilLabel}</span>}
+          {block.makeup && (
+            <span className="inline-flex h-[18px] items-center gap-1 rounded-full bg-hero px-1.5 text-[11px] font-semibold text-hero-ink">
+              <Redo size={11} strokeWidth={2.6} />Odrabianie
+            </span>
+          )}
         </span>
         {live && (
           <span className="flex w-full flex-col gap-[3px] py-0.5">
@@ -223,7 +230,10 @@ function GridBlock({ block, top, lane, lanes, state, progress, remainingMin, unt
             <span className="text-[11px] leading-[14px] text-ink-2">pozostało: <span className="tabular-nums font-semibold text-ink">{durationLabel(remainingMin)}</span></span>
           </span>
         )}
-        <span className="tabular-nums text-xs leading-4 text-ink-2">{block.start}–{block.end}</span>
+        <span className="tabular-nums text-xs leading-4 text-ink-2">
+          {block.start}–{block.end}
+          {count && <span className="font-semibold text-ink"> · {count.n}/{count.total}</span>}
+        </span>
         <span className="line-clamp-3 text-[13px] font-semibold leading-[17px]">{block.event.title}</span>
         {place && (
           <span className={`flex items-start gap-1 text-xs font-medium leading-4 ${block.mode === 'online' ? 'text-online-ink' : block.mode === 'onsite' ? 'text-onsite-ink' : 'text-ink-2'}`}>

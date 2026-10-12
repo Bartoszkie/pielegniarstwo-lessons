@@ -1,8 +1,10 @@
-import { createContext, useContext, useMemo, useState, ReactNode } from 'react';
-import { KindFilter } from '../types';
+import { createContext, useCallback, useContext, useMemo, useState, ReactNode } from 'react';
+import { GroupId, KindFilter } from '../types';
 import { useSchedule } from '../hooks/useSchedule';
 import { UseCalendarReturn } from '../hooks/useCalendar';
-import { buildDayBlocks, ClassBlock, isClass, matchesKind } from '../utils/blocks';
+import { useMakeups } from '../hooks/useMakeups';
+import { buildDayBlocks, ClassBlock, isAttended, isClass, matchesKind, subjectKey } from '../utils/blocks';
+import { applyMakeups, buildClassIndex, ClassIndex, ClassNumber, findNumber, MakeupOption, SavedMakeup } from '../utils/makeup';
 import { addDays, formatDate, getStartOfWeek, parseDate, isSameMonth, daysBetween, durationLabel, relativeDayLabel } from '../utils/dateUtils';
 import { normalizeForSearch } from '../utils/eventUtils';
 import { ThemePreference } from '../hooks/useTheme';
@@ -34,6 +36,12 @@ export interface Stats {
   nextLabel: string;
 }
 
+/** Odrabianie: pick a subject, then which class of it, then see the other groups' dates */
+export type MakeupFlow =
+  | { step: 'subject'; group: GroupId }
+  | { step: 'number'; group: GroupId; key: string; n?: number }
+  | { step: 'results'; group: GroupId; key: string; n: number };
+
 interface AppActions {
   openFilePicker: () => void;
   handleFile: (file: File) => void;
@@ -60,6 +68,22 @@ interface AppContextValue extends AppActions {
   stats: Stats;
   hasSelection: boolean;
   search: (query: string) => ClassBlock[];
+  /** Every group's classes, counted per subject */
+  classIndex: ClassIndex;
+  /** Which class of its subject a block is, for the student's group (null for instructors) */
+  numberOf: (block: ClassBlock) => ClassNumber | null;
+  /** Odrabianie is possible: groups are shown and at least one is selected */
+  canMakeup: boolean;
+  makeups: SavedMakeup[];
+  addMakeup: (makeup: SavedMakeup) => void;
+  removeMakeup: (id: string) => void;
+  makeupFlow: MakeupFlow | null;
+  setMakeupFlow: (flow: MakeupFlow | null) => void;
+  /** Opens odrabianie; with a block, straight at the other groups' dates for that class */
+  startMakeup: (block?: ClassBlock) => void;
+  /** The date picked from the results, waiting for confirmation */
+  pendingMakeup: MakeupOption | null;
+  setPendingMakeup: (option: MakeupOption | null) => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -80,16 +104,22 @@ export function AppProvider({
   children: ReactNode;
 }) {
   const [kind, setKind] = useState<KindFilter>('all');
+  const [makeupFlow, setMakeupFlow] = useState<MakeupFlow | null>(null);
+  const [pendingMakeup, setPendingMakeup] = useState<MakeupOption | null>(null);
+  const { makeups, addMakeup, removeMakeup } = useMakeups();
   const todayKey = formatDate(now);
   const nowMin = now.getHours() * 60 + now.getMinutes();
+  const isStudent = schedule.mode === 'student';
+
+  const classIndex = useMemo(() => buildClassIndex(schedule.allDays), [schedule.allDays]);
 
   const blocksByDate = useMemo(() => {
     const map: Record<string, ClassBlock[]> = {};
     for (const day of schedule.scheduleData) {
       map[day.date] = buildDayBlocks(day);
     }
-    return map;
-  }, [schedule.scheduleData]);
+    return isStudent ? applyMakeups(map, makeups, classIndex, schedule.selectedGroups) : map;
+  }, [schedule.scheduleData, isStudent, makeups, classIndex, schedule.selectedGroups]);
 
   const visibleByDate = useMemo(() => {
     if (kind === 'all') return blocksByDate;
@@ -126,13 +156,13 @@ export function AppProvider({
   }, [blocksByDate, calendar]);
 
   const live = useMemo<LiveState>(() => {
-    const todayClasses = (blocksByDate[todayKey] ?? []).filter(isClass);
+    const todayClasses = (blocksByDate[todayKey] ?? []).filter(isAttended);
     const current = todayClasses.find(b => b.startMin <= nowMin && nowMin < b.endMin) ?? null;
 
     // First class that hasn't started, looking past today when needed
     let next: ClassBlock | null = null;
     for (const date of Object.keys(blocksByDate).filter(d => d >= todayKey).sort()) {
-      next = blocksByDate[date].find(b => isClass(b) && (date > todayKey || b.startMin > nowMin)) ?? null;
+      next = blocksByDate[date].find(b => isAttended(b) && (date > todayKey || b.startMin > nowMin)) ?? null;
       if (next) break;
     }
 
@@ -164,7 +194,7 @@ export function AppProvider({
     let remaining = 0;
     for (const [date, blocks] of Object.entries(blocksByDate)) {
       for (const block of blocks) {
-        if (!isClass(block)) continue;
+        if (!isAttended(block)) continue;
         if (date >= weekStartKey && date <= weekEnd) thisWeek += 1;
         if (date > todayKey || (date === todayKey && block.endMin > nowMin)) remaining += 1;
       }
@@ -193,6 +223,31 @@ export function AppProvider({
     };
   }, [blocksByDate, todayKey, nowMin]);
 
+  const numberOf = useCallback((block: ClassBlock): ClassNumber | null => {
+    if (!isClass(block) || !isStudent) return null;
+    if (block.makeup) {
+      const { n, total, group } = block.makeup;
+      return { n, total, group, list: classIndex.get(group)?.get(subjectKey(block)) ?? [] };
+    }
+    for (const group of block.groups) {
+      const found = findNumber(classIndex, group, block);
+      if (found) return found;
+    }
+    return null;
+  }, [classIndex, isStudent]);
+
+  const canMakeup = isStudent && schedule.selectedGroups.size > 0;
+
+  const startMakeup = useCallback((block?: ClassBlock) => {
+    if (!canMakeup) return;
+    const found = block && numberOf(block);
+    if (block && found) {
+      setMakeupFlow({ step: 'results', group: found.group, key: subjectKey(block), n: found.n });
+      return;
+    }
+    setMakeupFlow({ step: 'subject', group: [...schedule.selectedGroups].sort()[0] });
+  }, [canMakeup, numberOf, schedule.selectedGroups]);
+
   const value: AppContextValue = {
     schedule,
     calendar,
@@ -207,6 +262,17 @@ export function AppProvider({
     stats,
     hasSelection,
     search,
+    classIndex,
+    numberOf,
+    canMakeup,
+    makeups,
+    addMakeup,
+    removeMakeup,
+    makeupFlow,
+    setMakeupFlow,
+    startMakeup,
+    pendingMakeup,
+    setPendingMakeup,
     ...actions,
   };
 

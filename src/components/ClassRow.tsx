@@ -1,9 +1,10 @@
 import { ClassBlock } from '../utils/blocks';
-import type { LiveState } from '../app/AppContext';
+import { useApp, type LiveState } from '../app/AppContext';
 import { getGroupColor } from '../constants/groupColors';
-import { durationLabel } from '../utils/dateUtils';
+import { durationLabel, parseDate, shortDateLabel } from '../utils/dateUtils';
+import { ClassCount } from './ui/ClassCount';
 import { GroupTags } from './ui/GroupTag';
-import { Info, UserIcon } from './ui/icons';
+import { Info, Redo, UserIcon } from './ui/icons';
 import { ModeBadge } from './ui/ModeBadge';
 
 export type RowState = 'live' | 'next' | 'none';
@@ -40,6 +41,8 @@ const KIND_TEXT: Record<string, string> = {
 
 /** One class in a day list. The live class is a raised glass panel, the next one is pressed in. */
 export function ClassRow({ block, state = 'none', progress = 0, remainingMin = 0, untilLabel, dateLabel, onOpen, divided }: ClassRowProps) {
+  const { numberOf } = useApp();
+  const count = numberOf(block);
   const divider = divided && <span aria-hidden="true" className="absolute inset-x-4 top-0 h-px bg-line" />;
 
   const { event } = block;
@@ -105,7 +108,7 @@ export function ClassRow({ block, state = 'none', progress = 0, remainingMin = 0
       {onOpen && (
         <button
           type="button"
-          aria-label={`Szczegóły: ${event.title}, ${block.start}–${block.end}`}
+          aria-label={`Szczegóły: ${event.title}, ${block.start}–${block.end}${count ? `, zajęcia ${count.n} z ${count.total}` : ''}${block.makeup ? ', odrabianie' : ''}`}
           onClick={onOpen}
           className="absolute inset-0 z-[1] rounded-[inherit] transition-colors active:bg-ink/[.04]"
         />
@@ -119,7 +122,15 @@ export function ClassRow({ block, state = 'none', progress = 0, remainingMin = 0
 
       <div className="flex min-w-0 flex-col gap-1">
         <div className="flex flex-wrap items-center gap-1">
-          <GroupTags groups={block.groups} everyone={block.everyone} />
+          <span className={`flex flex-wrap gap-1 ${block.madeUpOn ? 'grayscale' : ''}`}>
+            <GroupTags groups={block.groups} everyone={block.everyone} />
+          </span>
+          {block.makeup && (
+            <span className="ml-1 inline-flex h-[22px] items-center gap-1 rounded-full bg-hero pl-1.5 pr-2 text-xs font-semibold text-hero-ink">
+              <Redo size={12} strokeWidth={2.6} />
+              Odrabianie
+            </span>
+          )}
           {live && (
             <span
               className="gloss ml-1 inline-flex h-[22px] items-center gap-1.5 rounded-full pl-2 pr-2.5 text-xs font-semibold text-white"
@@ -132,12 +143,13 @@ export function ClassRow({ block, state = 'none', progress = 0, remainingMin = 0
           {next && untilLabel && (
             <span className="ml-1 text-xs font-semibold text-ink-2">Następne · {untilLabel}</span>
           )}
-          {!live && !next && KIND_TEXT[block.kind] && (
+          {!live && !next && !block.makeup && KIND_TEXT[block.kind] && (
             <span className="ml-1 text-xs text-ink-2">{KIND_TEXT[block.kind]}</span>
           )}
+          {count && <ClassCount n={count.n} total={count.total} className="ml-auto pl-2" />}
         </div>
 
-        <div className="text-[15px] font-semibold leading-[21px] [overflow-wrap:anywhere]">{event.title}</div>
+        <div className={`text-[15px] font-semibold leading-[21px] [overflow-wrap:anywhere] ${block.madeUpOn ? 'text-ink-2' : ''}`}>{event.title}</div>
 
         {block.mode !== 'unknown' && (
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] font-medium leading-[19px]">
@@ -150,6 +162,20 @@ export function ClassRow({ block, state = 'none', progress = 0, remainingMin = 0
           <div className="flex items-center gap-1.5 text-[13px] leading-[19px] text-ink-2">
             <UserIcon size={14} className="shrink-0" />
             <span>{event.instructor}</span>
+          </div>
+        )}
+
+        {block.makeup && (
+          <div className="mt-0.5 flex items-start gap-1.5 text-[13px] font-semibold leading-[18px]">
+            <Redo size={14} strokeWidth={2.2} className="mt-0.5 shrink-0" />
+            <span>Z grupą {block.groups.join(' · ')}, zamiast {shortDateLabel(parseDate(block.makeup.date))}</span>
+          </div>
+        )}
+
+        {block.madeUpOn && (
+          <div className="mt-0.5 flex items-start gap-1.5 text-[13px] font-semibold leading-[18px] text-ink-2">
+            <Redo size={14} strokeWidth={2.2} className="mt-0.5 shrink-0" />
+            <span>Odrabiasz: {shortDateLabel(parseDate(block.madeUpOn.date))}, {block.madeUpOn.start}, z grupą {block.madeUpOn.groups.join(' · ')}</span>
           </div>
         )}
 

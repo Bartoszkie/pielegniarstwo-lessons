@@ -16,7 +16,7 @@ const SHORT_DAYS = ['NDZ', 'PON', 'WT', 'ŚR', 'CZW', 'PT', 'SOB'];
  * The arrows move by a week or a month (following the view); the tile in the middle is today:
  * pressed while today is on screen, raised to bring you back otherwise.
  */
-export function BottomDock() {
+export function BottomDock({ landOn }: { /** Days a new month may open on; by default the days with classes */ landOn?: string[] } = {}) {
   const { calendar, visibleByDate, schedule, now, todayKey, openFilePicker, openHowItWorks, openWarnings } = useApp();
   const [menuOpen, setMenuOpen] = useState(false);
   const isWeek = calendar.view === 'week';
@@ -37,7 +37,8 @@ export function BottomDock() {
       return;
     }
     const prefix = formatDate(month).slice(0, 8);
-    const firstWithClasses = Object.keys(visibleByDate).filter(k => k.startsWith(prefix) && visibleByDate[k].some(isClass)).sort()[0];
+    const candidates = landOn ?? Object.keys(visibleByDate).filter(k => visibleByDate[k].some(isClass));
+    const firstWithClasses = candidates.filter(k => k.startsWith(prefix)).sort()[0];
     calendar.setCursor(firstWithClasses ? parseDate(firstWithClasses) : month);
   };
 

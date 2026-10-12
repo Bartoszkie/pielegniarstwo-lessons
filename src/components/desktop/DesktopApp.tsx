@@ -2,18 +2,19 @@ import { useCallback, useEffect, useState } from 'react';
 import { useApp } from '../../app/AppContext';
 import { ClassBlock } from '../../utils/blocks';
 import { classesLabel, getMonthLabel, getWeekLabel, parseDate } from '../../utils/dateUtils';
-import { ViewType } from '../../types';
 import { KindChips } from '../ui/KindChips';
 import { DisplayTitle } from '../ui/DisplayTitle';
-import { ChevronLeft, ChevronRight, Search } from '../ui/icons';
+import { Search } from '../ui/icons';
 import { Sidebar } from './Sidebar';
 import { WeekGrid } from './WeekGrid';
 import { MonthGrid } from './MonthGrid';
 import { SearchDialog } from './SearchDialog';
 import { ReloadBanner } from '../ReloadBanner';
+import { PeriodNav } from './PeriodNav';
+import { DesktopMakeup } from '../makeup/DesktopMakeup';
 
 export function DesktopApp() {
-  const { calendar, kindCounts, kind, hasSelection } = useApp();
+  const { calendar, kindCounts, kind, hasSelection, makeupFlow } = useApp();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
 
@@ -50,6 +51,7 @@ export function DesktopApp() {
   return (
     <div className="fade-enter flex min-h-dvh flex-wrap items-stretch">
       <Sidebar />
+      {makeupFlow?.step === 'results' ? <DesktopMakeup flow={makeupFlow} /> : (
       <main className="flex min-w-0 flex-[999_1_560px] flex-col gap-5 px-7 pb-8 pt-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="flex flex-col gap-0.5">
@@ -68,30 +70,7 @@ export function DesktopApp() {
             >
               <Search size={18} strokeWidth={2.2} />
             </button>
-            <div className="flex items-center gap-1">
-              <button type="button" aria-label={calendar.view === 'week' ? 'Poprzedni tydzień' : 'Poprzedni miesiąc'} onClick={() => calendar.shiftPeriod(-1)} className="raised grid h-10 w-10 place-items-center rounded-[10px]">
-                <ChevronLeft size={18} />
-              </button>
-              <button type="button" onClick={calendar.goToToday} className="raised h-10 rounded-[10px] px-3.5 text-sm font-semibold">
-                Dziś
-              </button>
-              <button type="button" aria-label={calendar.view === 'week' ? 'Następny tydzień' : 'Następny miesiąc'} onClick={() => calendar.shiftPeriod(1)} className="raised grid h-10 w-10 place-items-center rounded-[10px]">
-                <ChevronRight size={18} />
-              </button>
-            </div>
-            <div className="flex gap-1">
-              {(['week', 'month'] as ViewType[]).map(view => (
-                <button
-                  key={view}
-                  type="button"
-                  aria-pressed={calendar.view === view}
-                  onClick={() => calendar.setView(view)}
-                  className={`h-10 rounded-[10px] px-3.5 text-sm ${calendar.view === view ? 'pressed font-semibold' : 'raised font-medium'}`}
-                >
-                  {view === 'week' ? 'Tydzień' : 'Miesiąc'}
-                </button>
-              ))}
-            </div>
+            <PeriodNav />
           </div>
         </div>
 
@@ -104,6 +83,7 @@ export function DesktopApp() {
           ? <WeekGrid key={`${title}|${kind}`} selectedId={selectedId} onToggle={toggleBlock} />
           : <MonthGrid key={`${title}|${kind}`} selectedId={selectedId} onToggle={toggleBlock} />}
       </main>
+      )}
 
       <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} onPick={openBlock} />
     </div>

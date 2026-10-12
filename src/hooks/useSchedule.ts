@@ -10,7 +10,10 @@ export interface LoadResult {
 }
 
 interface UseScheduleReturn {
+  /** Classes of the selected groups or instructors, plus notices */
   scheduleData: ScheduleDay[];
+  /** The whole plan, every group */
+  allDays: ScheduleDay[];
   availableGroups: GroupId[];
   selectedGroups: Set<GroupId>;
   isLoaded: boolean;
@@ -242,6 +245,7 @@ export function useSchedule(): UseScheduleReturn {
 
   return {
     scheduleData: filteredScheduleData,
+    allDays: rawScheduleData,
     availableGroups,
     selectedGroups,
     isLoaded,

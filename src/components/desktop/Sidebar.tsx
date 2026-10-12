@@ -6,6 +6,7 @@ import { TeacherPicker } from '../ui/TeacherPicker';
 import { AppLogo } from '../ui/AppLogo';
 import { FilePanel } from './FilePanel';
 import { ThemeToggle } from '../ui/ThemeToggle';
+import { MakeupEntry } from '../makeup/MakeupEntry';
 
 export function Sidebar() {
   const { schedule, stats, openHowItWorks } = useApp();
@@ -20,7 +21,10 @@ export function Sidebar() {
         </div>
       </div>
 
-      <ModeToggle compact />
+      <div className="flex flex-col gap-2">
+        <ModeToggle compact />
+        <MakeupEntry compact />
+      </div>
 
       {schedule.mode === 'student' ? <GroupPicker pairsPerRow={2} compact /> : <TeacherPicker compact />}
 

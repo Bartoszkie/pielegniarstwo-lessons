@@ -3,6 +3,7 @@ import { ClassBlock, isClass } from '../../utils/blocks';
 import { getGroupColor } from '../../constants/groupColors';
 import { classesLabel, formatDate, getDayLabel, getMonthDays, isSameDay, isSameMonth, capitalize, WEEKDAYS_NARROW } from '../../utils/dateUtils';
 import { GroupId } from '../../types';
+import { Redo } from '../ui/icons';
 import { ClassRow, rowState } from '../ClassRow';
 import { EmptyState } from './EmptyState';
 import { FreeDayCard } from './FreeDayCard';
@@ -36,7 +37,8 @@ export function PhoneMonth({ onPick, onOpenClass }: { onPick: () => void; onOpen
             const classes = blocks.filter(isClass);
             const hasInfo = blocks.length > classes.length;
             const groups: GroupId[] = [];
-            classes.forEach(b => b.groups.forEach(g => { if (!groups.includes(g)) groups.push(g); }));
+            classes.filter(b => !b.makeup).forEach(b => b.groups.forEach(g => { if (!groups.includes(g)) groups.push(g); }));
+            const hasMakeup = classes.some(b => b.makeup);
             const isToday = key === todayKey;
             const isSel = isSameDay(date, cursor);
             const numberClass = isToday
@@ -54,7 +56,7 @@ export function PhoneMonth({ onPick, onOpenClass }: { onPick: () => void; onOpen
                 type="button"
                 disabled={!inMonth}
                 aria-pressed={isSel}
-                aria-label={`${getDayLabel(date)}${classes.length ? `, ${classesLabel(classes.length)}` : ''}`}
+                aria-label={`${getDayLabel(date)}${classes.length ? `, ${classesLabel(classes.length)}` : ''}${hasMakeup ? ', odrabianie' : ''}`}
                 onClick={() => calendar.setCursor(date)}
                 className="flex h-[52px] flex-col items-center gap-1 pt-0.5"
               >
@@ -65,8 +67,13 @@ export function PhoneMonth({ onPick, onOpenClass }: { onPick: () => void; onOpen
                 >
                   {date.getDate()}
                 </span>
-                <span className="flex h-1.5 gap-[3px]">
-                  {groups.slice(0, 3).map(g => (
+                <span className="flex h-1.5 items-center gap-[3px]">
+                  {hasMakeup && (
+                    <span className="-my-[3px] grid h-3 w-[18px] place-items-center rounded-full bg-hero text-hero-ink">
+                      <Redo size={9} strokeWidth={3} />
+                    </span>
+                  )}
+                  {groups.slice(0, hasMakeup ? 2 : 3).map(g => (
                     <span key={g} className="h-1.5 w-1.5 rounded-full" style={{ background: getGroupColor(g) }} />
                   ))}
                   {!classes.length && hasInfo && <span className="h-0.5 w-2.5 self-center rounded-full bg-ink-3" />}

@@ -12,9 +12,10 @@ import { BottomDock } from './BottomDock';
 import { FilterSheet } from './FilterSheet';
 import { ClassSheet } from './ClassSheet';
 import { ReloadBanner } from '../ReloadBanner';
+import { PhoneMakeup } from '../makeup/PhoneMakeup';
 
 export function PhoneApp() {
-  const { calendar, hasSelection, search } = useApp();
+  const { calendar, hasSelection, search, makeupFlow } = useApp();
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -46,6 +47,15 @@ export function PhoneApp() {
     setQuery('');
     calendar.setCursor(parseDate(date));
   };
+
+  if (makeupFlow?.step === 'results') {
+    return (
+      <>
+        <PhoneMakeup flow={makeupFlow} />
+        <FilterSheet open={filtersOpen} onOpenChange={setFiltersOpen} />
+      </>
+    );
+  }
 
   return (
     <div className="fade-enter min-h-dvh pb-[calc(140px+env(safe-area-inset-bottom))]">

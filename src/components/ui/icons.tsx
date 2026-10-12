@@ -39,6 +39,18 @@ export const ArrowDown = (p: IconProps) => <Svg {...p}><path d="M12 5v14" /><pat
 export const Help = (p: IconProps) => <Svg {...p}><circle cx="12" cy="12" r="9" /><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5v.4" /><path d="M12 16.8v.01" /></Svg>;
 export const ExternalLink = (p: IconProps) => <Svg {...p}><path d="M14 4h6v6" /><path d="M20 4l-9 9" /><path d="M19 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4" /></Svg>;
 export const Return = (p: IconProps) => <Svg {...p}><path d="M9 10l-5 5 5 5" /><path d="M20 4v7a4 4 0 0 1-4 4H4" /></Svg>;
+/** Odrabianie: the same class again, with another group */
+export const Redo = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M4 12a8 8 0 0 1 13.7-5.7L20 8.5" />
+    <path d="M20 4v4.5h-4.5" />
+    <path d="M20 12a8 8 0 0 1-13.7 5.7L4 15.5" />
+    <path d="M4 20v-4.5h4.5" />
+  </Svg>
+);
+export const Plus = (p: IconProps) => <Svg {...p}><path d="M12 5v14M5 12h14" /></Svg>;
+export const PlusCircle = (p: IconProps) => <Svg {...p}><circle cx="12" cy="12" r="9" /><path d="M12 8v8M8 12h8" /></Svg>;
+export const Warning = (p: IconProps) => <Svg {...p}><path d="M12 4l9 16H3z" /><path d="M12 10v4" /><path d="M12 17v.01" /></Svg>;
 
 export const Sun = (p: IconProps) => (
   <Svg {...p}>
