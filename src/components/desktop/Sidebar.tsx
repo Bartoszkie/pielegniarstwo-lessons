@@ -5,6 +5,7 @@ import { GroupPicker } from '../ui/GroupPicker';
 import { TeacherPicker } from '../ui/TeacherPicker';
 import { AppMark } from '../ui/icons';
 import { FilePanel } from './FilePanel';
+import { ThemeToggle } from '../ui/ThemeToggle';
 
 export function Sidebar() {
   const { schedule, stats, openHowItWorks } = useApp();
@@ -42,9 +43,12 @@ export function Sidebar() {
 
       <div className="mt-auto flex flex-col gap-2">
         <FilePanel />
-        <button type="button" onClick={openHowItWorks} className="self-start py-1 text-[13px] font-medium text-ink-2 hover:text-ink">
-          Jak to działa?
-        </button>
+        <div className="flex items-center justify-between gap-2">
+          <button type="button" onClick={openHowItWorks} className="py-1 text-[13px] font-medium text-ink-2 hover:text-ink">
+            Jak to działa?
+          </button>
+          <ThemeToggle variant="icons" />
+        </div>
       </div>
     </aside>
   );

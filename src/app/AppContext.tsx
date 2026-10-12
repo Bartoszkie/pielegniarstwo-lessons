@@ -5,6 +5,7 @@ import { UseCalendarReturn } from '../hooks/useCalendar';
 import { buildDayBlocks, ClassBlock, isClass, matchesKind } from '../utils/blocks';
 import { addDays, formatDate, getStartOfWeek, parseDate, isSameMonth, DAY_NAMES_FULL, toMinutes } from '../utils/dateUtils';
 import { normalizeForSearch } from '../utils/eventUtils';
+import { ThemePreference } from '../hooks/useTheme';
 
 type Schedule = ReturnType<typeof useSchedule>;
 
@@ -29,6 +30,8 @@ interface AppActions {
   handleFile: (file: File) => void;
   openHowItWorks: () => void;
   openWarnings: () => void;
+  theme: ThemePreference;
+  setTheme: (theme: ThemePreference) => void;
 }
 
 interface AppContextValue extends AppActions {

@@ -5,6 +5,7 @@ import { useSchedule } from './hooks/useSchedule';
 import { useCalendar } from './hooks/useCalendar';
 import { useNow } from './hooks/useNow';
 import { useMediaQuery } from './hooks/useMediaQuery';
+import { useTheme } from './hooks/useTheme';
 import { pluralPl } from './utils/dateUtils';
 import { Onboarding } from './components/Onboarding';
 import { PhoneApp } from './components/phone/PhoneApp';
@@ -23,6 +24,7 @@ export default function App() {
   const calendar = useCalendar();
   const now = useNow();
   const isDesktop = useMediaQuery('(min-width: 1024px)');
+  const { theme, setTheme } = useTheme();
   const fileInput = useRef<HTMLInputElement>(null);
   const [howOpen, setHowOpen] = useState(false);
   const [warningsOpen, setWarningsOpen] = useState(false);
@@ -53,7 +55,9 @@ export default function App() {
     handleFile: (file: File) => { void handleFile(file); },
     openHowItWorks: () => setHowOpen(true),
     openWarnings: () => setWarningsOpen(true),
-  }), [handleFile]);
+    theme,
+    setTheme,
+  }), [handleFile, theme, setTheme]);
 
   return (
     <AppProvider schedule={schedule} calendar={calendar} now={now} actions={actions}>

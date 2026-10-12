@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useApp } from '../../app/AppContext';
 import { addDays, DAY_NAMES_FULL, formatDate, getDayLabel, isSameDay } from '../../utils/dateUtils';
 import { ViewType } from '../../types';
+import { ThemeToggle } from '../ui/ThemeToggle';
 import { CalendarGrid, Check, ChevronLeft, ChevronRight, FileUp, Help, Info, MoreVertical, Rows, Undo } from '../ui/icons';
 
 const HUMP_WIDTH = 310;
@@ -102,6 +103,9 @@ export function BottomDock() {
                 </MenuItem>
               )}
               <MenuItem onClick={() => { setMenuOpen(false); openHowItWorks(); }} icon={<Help size={18} />}>Jak to działa?</MenuItem>
+              <div className="mx-2 my-1.5 h-px bg-line" />
+              <span className="block px-2.5 pb-1 pt-0.5 text-[11px] font-semibold text-ink-2">Motyw</span>
+              <ThemeToggle />
             </Popover.Content>
           </Popover.Portal>
         </Popover.Root>
