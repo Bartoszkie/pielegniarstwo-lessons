@@ -20,12 +20,12 @@ export function BlockDetails({ block, onClose }: { block: ClassBlock; onClose: (
           <GroupTags groups={block.groups} />
           <span className="ml-1 text-xs text-ink-2">{KIND_LABELS[block.kind].toLowerCase()}</span>
         </div>
-        <div className="text-lg font-semibold leading-6 tracking-[-0.01em] [overflow-wrap:anywhere]">{event.title}</div>
+        <div className="text-lg font-bold leading-6 tracking-[-0.01em] [overflow-wrap:anywhere]">{event.title}</div>
       </div>
       <div className="flex flex-col gap-2 text-sm">
         <div className="flex items-center gap-2">
           <Clock size={16} className="shrink-0 text-ink-2" />
-          <span className="font-mono font-medium">{block.start} – {block.end}</span>
+          <span className="tabular-nums font-medium">{block.start} – {block.end}</span>
           <span className="text-ink-2">· {durationLabel(block.endMin - block.startMin)}</span>
         </div>
         {(event.online || event.location) && (

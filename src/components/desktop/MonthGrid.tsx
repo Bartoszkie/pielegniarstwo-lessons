@@ -80,7 +80,7 @@ export function MonthGrid({ selectedId, onToggle }: MonthGridProps) {
                             <span key={g} className="h-3 w-1.5 rounded-sm" style={{ background: getGroupColor(g) }} />
                           ))}
                         </span>
-                        <span className="shrink-0 font-mono text-xs text-ink-2">{block.start}</span>
+                        <span className="shrink-0 tabular-nums text-xs text-ink-2">{block.start}</span>
                         <span className="min-w-0 truncate text-xs font-medium">{block.event.title}</span>
                       </button>
                     </ClassPopover>

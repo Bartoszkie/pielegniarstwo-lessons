@@ -66,7 +66,7 @@ export function BottomDock() {
               className="pressed flex h-14 w-14 flex-col items-center justify-center gap-px rounded-2xl"
             >
               <span className="text-[10px] font-bold leading-3 tracking-[.06em] text-accent">{SHORT_DAYS[calendar.cursor.getDay()]}</span>
-              <span className="text-2xl font-semibold leading-[26px] tracking-[-0.02em]">{calendar.cursor.getDate()}</span>
+              <span className="text-2xl font-bold leading-[26px] tracking-[-0.02em]">{calendar.cursor.getDate()}</span>
             </button>
             {!isToday && (
               <button type="button" aria-label="Wróć do dziś" onClick={calendar.goToToday} className="raised grid h-6 w-10 animate-pop-in place-items-center rounded-full">

@@ -25,7 +25,7 @@ export function NowStrip() {
         {isNow ? <span className="live-dot shrink-0" /> : <span className="h-1.5 w-1.5 shrink-0 rounded-full border border-current" />}
         <span className="shrink-0 text-[13px] font-semibold opacity-70">{isNow ? 'Teraz' : 'Następne'}</span>
         <span className="min-w-0 flex-1 truncate text-[15px] font-semibold">{block.event.title}</span>
-        <span className="shrink-0 font-mono text-[13px] opacity-70">
+        <span className="shrink-0 tabular-nums text-[13px] opacity-70">
           {isNow ? `do ${block.end}` : `za ${durationLabel(live.untilNextMin)}`}
         </span>
         <ChevronDown size={18} strokeWidth={2.2} className={`shrink-0 opacity-70 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
@@ -52,7 +52,7 @@ export function NowStrip() {
               <div className="h-px bg-current opacity-15" />
               <div className="flex min-w-0 items-baseline gap-2.5 text-sm">
                 <span className="opacity-70">Potem</span>
-                <span className="font-mono font-medium">{live.next.start}</span>
+                <span className="tabular-nums font-medium">{live.next.start}</span>
                 <span className="min-w-0 truncate font-medium">
                   {live.next.event.title}
                   {live.next.event.location ? ` · ${live.next.event.location}` : ''}

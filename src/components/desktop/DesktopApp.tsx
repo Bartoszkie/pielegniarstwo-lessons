@@ -4,6 +4,7 @@ import { ClassBlock } from '../../utils/blocks';
 import { classesLabel, getMonthLabel, getWeekLabel, parseDate } from '../../utils/dateUtils';
 import { ViewType } from '../../types';
 import { KindChips } from '../ui/KindChips';
+import { DisplayTitle } from '../ui/DisplayTitle';
 import { ChevronLeft, ChevronRight, Search } from '../ui/icons';
 import { Sidebar } from './Sidebar';
 import { WeekGrid } from './WeekGrid';
@@ -51,7 +52,7 @@ export function DesktopApp() {
       <main className="flex min-w-0 flex-[999_1_560px] flex-col gap-5 px-7 pb-8 pt-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="flex flex-col gap-0.5">
-            <h1 className="text-[26px] font-semibold leading-8 tracking-[-0.02em]">{title}</h1>
+            <h1 className="text-[28px] leading-8 tracking-[-0.02em]"><DisplayTitle text={title} /></h1>
             <p className="text-sm text-ink-2">
               {hasSelection ? `${classesLabel(total)} ${periodWord}${kind !== 'all' ? ` · widoczne: ${shown}` : ''}` : 'Wybierz grupę, żeby zobaczyć zajęcia'}
             </p>

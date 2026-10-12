@@ -48,7 +48,7 @@ export function GroupPicker({ pairsPerRow = 3, compact = false }: GroupPickerPro
                   type="button"
                   aria-pressed={on}
                   onClick={() => toggleGroup(group)}
-                  className={`flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-[10px] font-mono font-semibold transition-transform active:scale-[.97] ${
+                  className={`flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-[10px] tabular-nums font-semibold transition-transform active:scale-[.97] ${
                     compact ? 'h-10 text-sm' : 'h-12 text-[15px]'
                   } ${on ? 'gloss text-white' : 'raised text-ink'}`}
                   style={on ? {

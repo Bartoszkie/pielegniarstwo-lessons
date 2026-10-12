@@ -15,8 +15,8 @@ export function Sidebar() {
       <div className="flex items-center gap-3">
         <AppLogo size={36} />
         <div className="flex min-w-0 flex-col">
-          <span className="text-base font-semibold leading-[22px]">Plan zajęć</span>
-          <span className="text-[13px] leading-[18px] text-ink-2">Pielęgniarstwo</span>
+          <span className="text-base font-bold leading-5 tracking-[-0.01em]">Plan zajęć</span>
+          <span className="font-serif text-[17px] italic leading-5 text-ink-2">Pielęgniarstwo</span>
         </div>
       </div>
 

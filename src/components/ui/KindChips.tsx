@@ -23,7 +23,7 @@ export function KindChips({ size = 'md', className = '' }: { size?: 'md' | 'lg';
               <KindIcon kind={value} size={size === 'lg' ? 28 : 24} />
             </span>
             {KIND_FILTER_LABELS[value]}
-            <span className="font-mono text-xs font-medium text-ink-2">{count}</span>
+            <span className="tabular-nums text-xs font-medium text-ink-2">{count}</span>
           </button>
         );
       })}

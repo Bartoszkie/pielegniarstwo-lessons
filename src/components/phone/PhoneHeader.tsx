@@ -2,6 +2,7 @@ import { useApp } from '../../app/AppContext';
 import { MONTH_NAMES, getWeekLabelShort, formatTimestamp } from '../../utils/dateUtils';
 import { GroupTag } from '../ui/GroupTag';
 import { ChevronDown, Search, UserIcon } from '../ui/icons';
+import { DisplayTitle } from '../ui/DisplayTitle';
 
 interface PhoneHeaderProps {
   summaryOpen: boolean;
@@ -65,7 +66,7 @@ export function PhoneHeader({
           onClick={onToggleSummary}
           className="flex h-11 items-center gap-1.5 rounded-xl px-2"
         >
-          <span className="whitespace-nowrap text-[22px] font-semibold leading-7 tracking-[-0.02em]">{title}</span>
+          <span className="whitespace-nowrap text-2xl leading-7 tracking-[-0.02em]"><DisplayTitle text={title} /></span>
           <ChevronDown size={18} strokeWidth={2.2} className={`text-ink-2 transition-transform duration-200 ${summaryOpen ? 'rotate-180' : ''}`} />
           <span className="sr-only">{summaryOpen ? 'Ukryj podsumowanie' : 'Pokaż podsumowanie'}</span>
         </button>
@@ -89,7 +90,7 @@ export function PhoneHeader({
             ) : (
               <>
                 {selected.slice(0, 3).map(group => <GroupTag key={group} group={group} />)}
-                {selected.length > 3 && <span className="px-0.5 font-mono text-xs font-semibold text-ink-2">+{selected.length - 3}</span>}
+                {selected.length > 3 && <span className="px-0.5 tabular-nums text-xs font-semibold text-ink-2">+{selected.length - 3}</span>}
               </>
             )}
             <ChevronDown size={16} className="text-ink-2" />
@@ -111,7 +112,7 @@ export function PhoneHeader({
 function SummaryTile({ value, label }: { value: string; label: string }) {
   return (
     <div className="flex flex-col gap-0.5 rounded-xl border border-line bg-surface px-3 py-2.5">
-      <span className="font-mono text-lg font-semibold leading-[22px]">{value}</span>
+      <span className="tabular-nums text-lg font-semibold leading-[22px]">{value}</span>
       <span className="text-xs leading-4 text-ink-2">{label}</span>
     </div>
   );

@@ -64,7 +64,7 @@ export function SearchDialog({ open, onOpenChange, onPick }: SearchDialogProps) 
               autoComplete="off"
               className="h-full min-w-0 flex-1 bg-transparent text-[17px] text-ink outline-none placeholder:text-ink-3"
             />
-            <Dialog.Close className="h-7 shrink-0 rounded-[7px] border border-line bg-surface px-2 font-mono text-xs font-semibold text-ink-2 shadow-[0_1px_0_rgba(28,25,23,.08)]">
+            <Dialog.Close className="h-7 shrink-0 rounded-[7px] border border-line bg-surface px-2 tabular-nums text-xs font-semibold text-ink-2 shadow-[0_1px_0_rgba(28,25,23,.08)]">
               Esc
             </Dialog.Close>
           </div>
@@ -93,7 +93,7 @@ export function SearchDialog({ open, onOpenChange, onPick }: SearchDialogProps) 
                     >
                       <span className="flex w-[104px] shrink-0 flex-col gap-0.5">
                         <span className="text-[13px] font-semibold">{WEEKDAYS_SHORT[weekdayIndex(date)]} {date.getDate()} {MONTH_SHORT[date.getMonth()]}</span>
-                        <span className="font-mono text-xs text-ink-2">{block.start}–{block.end}</span>
+                        <span className="tabular-nums text-xs text-ink-2">{block.start}–{block.end}</span>
                       </span>
                       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                         <span className="truncate text-[15px] font-semibold">{block.event.title}</span>
@@ -125,7 +125,7 @@ export function SearchDialog({ open, onOpenChange, onPick }: SearchDialogProps) 
 function Kbd({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <span className="inline-flex items-center gap-1">
-      <kbd className="rounded border border-line-strong bg-surface px-1.5 py-px font-mono text-[11px]">{label}</kbd>
+      <kbd className="rounded border border-line-strong bg-surface px-1.5 py-px tabular-nums text-[11px]">{label}</kbd>
       {children}
     </span>
   );

@@ -81,7 +81,7 @@ export function ClassRow({ block, state = 'none', progress = 0, remainingMin = 0
         </>
       )}
 
-      <div className="flex flex-col gap-0.5 font-mono text-sm font-medium leading-5">
+      <div className="flex flex-col gap-0.5 tabular-nums text-sm font-medium leading-5">
         {dateLabel && <span className="mb-0.5 font-sans text-xs font-semibold text-ink-2">{dateLabel}</span>}
         <span>{block.start}</span>
         <span className="text-[13px] font-normal text-ink-2">{block.end}</span>
@@ -149,7 +149,7 @@ export function ClassRow({ block, state = 'none', progress = 0, remainingMin = 0
               />
             </div>
             <span className="shrink-0 text-xs text-ink-2">
-              pozostało: <span className="font-mono font-semibold text-ink">{durationLabel(remainingMin)}</span>
+              pozostało: <span className="tabular-nums font-semibold text-ink">{durationLabel(remainingMin)}</span>
             </span>
           </div>
         )}

@@ -10,7 +10,7 @@ interface GroupTagProps {
 export function GroupTag({ group, size = 'md' }: GroupTagProps) {
   return (
     <span
-      className={`gloss inline-flex shrink-0 items-center font-mono font-semibold text-white ${
+      className={`gloss inline-flex shrink-0 items-center tabular-nums font-semibold text-white ${
         size === 'sm' ? 'h-[18px] rounded px-1 text-[11px]' : 'h-[22px] rounded-md px-1.5 text-xs'
       }`}
       style={{ backgroundColor: getGroupColor(group) }}

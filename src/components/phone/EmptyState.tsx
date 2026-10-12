@@ -13,7 +13,7 @@ export function EmptyState({ kind, onPick }: EmptyStateProps) {
     const teacher = schedule.mode === 'teacher';
     return (
       <div className="flex flex-col items-center gap-2 rounded-2xl border border-line bg-surface px-6 py-10 text-center">
-        <span className="text-base font-semibold">{teacher ? 'Nie wybrano wykładowcy' : 'Nie wybrano żadnej grupy'}</span>
+        <span className="font-serif text-2xl italic leading-7 [text-wrap:balance]">{teacher ? 'Nie wybrano wykładowcy' : 'Nie wybrano żadnej grupy'}</span>
         <span className="text-sm text-ink-2">
           {teacher ? 'Zaznacz prowadzących, żeby zobaczyć ich zajęcia.' : 'Zaznacz swoją grupę, żeby zobaczyć zajęcia.'}
         </span>
@@ -29,7 +29,7 @@ export function EmptyState({ kind, onPick }: EmptyStateProps) {
   const next = stats.next;
   return (
     <div className="flex flex-col items-center gap-2 rounded-2xl border border-line bg-surface px-6 py-10 text-center">
-      <span className="text-base font-semibold">
+      <span className="font-serif text-2xl italic leading-7 [text-wrap:balance]">
         {kind === 'empty-week' ? 'W tym tygodniu nie ma zajęć' : 'Tego dnia nie ma zajęć'}
       </span>
       {filter !== 'all' ? (

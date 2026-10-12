@@ -64,12 +64,12 @@ export function WeekGrid({ selectedId, onToggle }: WeekGridProps) {
           <div className="relative grid grid-cols-[64px_repeat(7,minmax(0,1fr))]">
             <div className="relative" style={{ height: gridHeight }}>
               {hours.map(h => (
-                <span key={h} className="absolute right-2.5 -translate-y-1/2 font-mono text-xs text-ink-2" style={{ top: (h - fromHour) * HOUR_PX }}>
+                <span key={h} className="absolute right-2.5 -translate-y-1/2 tabular-nums text-xs text-ink-2" style={{ top: (h - fromHour) * HOUR_PX }}>
                   {String(h).padStart(2, '0')}:00
                 </span>
               ))}
               {showNow && (
-                <span className="absolute right-1.5 z-[4] -translate-y-1/2 rounded-[5px] bg-ink px-1.5 py-px font-mono text-xs font-semibold text-bg" style={{ top: nowTop }}>
+                <span className="absolute right-1.5 z-[4] -translate-y-1/2 rounded-[5px] bg-ink px-1.5 py-px tabular-nums text-xs font-semibold text-bg" style={{ top: nowTop }}>
                   {String(now.getHours()).padStart(2, '0')}:{String(now.getMinutes()).padStart(2, '0')}
                 </span>
               )}
@@ -110,7 +110,7 @@ export function WeekGrid({ selectedId, onToggle }: WeekGridProps) {
           {!hasSelection && (
             <div className="absolute inset-0 grid place-items-center bg-surface/70">
               <div className="flex max-w-[320px] flex-col items-center gap-1.5 rounded-[14px] border border-line bg-surface px-6 py-5 text-center shadow-pop">
-                <span className="text-base font-semibold">{schedule.mode === 'teacher' ? 'Nie wybrano wykładowcy' : 'Nie wybrano żadnej grupy'}</span>
+                <span className="font-serif text-2xl italic leading-7 [text-wrap:balance]">{schedule.mode === 'teacher' ? 'Nie wybrano wykładowcy' : 'Nie wybrano żadnej grupy'}</span>
                 <span className="text-sm text-ink-2">Zaznacz {schedule.mode === 'teacher' ? 'prowadzących' : 'swoją grupę'} w panelu po lewej, żeby zobaczyć zajęcia.</span>
               </div>
             </div>
@@ -216,10 +216,10 @@ function GridBlock({ block, top, lane, lanes, state, progress, remainingMin, unt
             <span className="relative block h-[5px] w-full overflow-hidden rounded-full" style={{ background: 'var(--glass-track)', boxShadow: 'inset 0 1px 2px rgba(28,25,23,.16)' }}>
               <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${progress}%`, backgroundColor: accent, backgroundImage: 'linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0) 60%)' }} />
             </span>
-            <span className="text-[11px] leading-[14px] text-ink-2">pozostało: <span className="font-mono font-semibold text-ink">{durationLabel(remainingMin)}</span></span>
+            <span className="text-[11px] leading-[14px] text-ink-2">pozostało: <span className="tabular-nums font-semibold text-ink">{durationLabel(remainingMin)}</span></span>
           </span>
         )}
-        <span className="font-mono text-xs leading-4 text-ink-2">{block.start}–{block.end}</span>
+        <span className="tabular-nums text-xs leading-4 text-ink-2">{block.start}–{block.end}</span>
         <span className="line-clamp-3 text-[13px] font-semibold leading-[17px]">{block.event.title}</span>
         {place && <span className="text-xs leading-4 text-ink-2">{place}</span>}
       </button>

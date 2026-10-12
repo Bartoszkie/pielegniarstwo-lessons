@@ -24,7 +24,7 @@ export function FilePanel() {
       >
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="text-[13px] font-semibold leading-[18px]">Plan wczytany</span>
-          <span className="font-mono text-xs leading-4 text-ink-2">
+          <span className="tabular-nums text-xs leading-4 text-ink-2">
             {schedule.lastUpdated ? formatTimestamp(schedule.lastUpdated) : '—'}
           </span>
         </span>

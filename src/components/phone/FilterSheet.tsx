@@ -33,7 +33,7 @@ export function FilterSheet({ open, onOpenChange }: FilterSheetProps) {
           <div className="mx-auto mt-2 h-[5px] w-9 shrink-0 rounded-full bg-line-strong" />
           <div className="flex items-start justify-between gap-3 pl-5 pr-2.5 pt-3.5">
             <div className="flex min-w-0 flex-col gap-1.5">
-              <Drawer.Title className="text-[22px] font-semibold leading-7 tracking-[-0.015em]">Czyj plan pokazać?</Drawer.Title>
+              <Drawer.Title className="text-[22px] font-bold leading-7 tracking-[-0.015em]">Czyj plan pokazać?</Drawer.Title>
               {schedule.lastUpdated && (
                 <div className="flex items-center gap-1.5 text-[13px] text-ink-2">
                   <Check size={14} strokeWidth={2.4} className="text-ink" />

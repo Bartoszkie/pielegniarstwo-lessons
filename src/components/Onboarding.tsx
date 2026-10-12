@@ -25,8 +25,8 @@ export function Onboarding() {
       <header className="flex flex-col gap-3.5">
         <AppLogo size={44} />
         <div className="flex flex-col gap-1">
-          <h1 className="text-[32px] font-semibold leading-[38px] tracking-[-0.025em]">Plan zajęć</h1>
-          <p className="text-sm text-ink-2">Pielęgniarstwo</p>
+          <h1 className="text-[34px] font-extrabold leading-[38px] tracking-[-0.03em]">Plan zajęć</h1>
+          <p className="font-serif text-[26px] italic leading-7 text-ink-2">Pielęgniarstwo</p>
         </div>
         <p className="text-base leading-6 text-ink-2">
           Wczytaj arkusz z planem z uczelni. Zobaczysz tylko swoje zajęcia, dzień po dniu.
@@ -36,7 +36,7 @@ export function Onboarding() {
       <ol className="flex flex-col gap-4">
         {STEPS.map((step, index) => (
           <li key={step.title} className="grid grid-cols-[28px_minmax(0,1fr)] gap-x-3">
-            <span className="pressed grid h-7 w-7 place-items-center rounded-full font-mono text-[13px] font-semibold">{index + 1}</span>
+            <span className="pressed grid h-7 w-7 place-items-center rounded-full tabular-nums text-[13px] font-semibold">{index + 1}</span>
             <div className="flex flex-col gap-0.5 pt-0.5">
               <span className="text-[15px] font-semibold leading-[21px]">{step.title}</span>
               <span className="text-sm leading-5 text-ink-2">

@@ -22,7 +22,7 @@ function Sheet({ open, onOpenChange, title, subtitle, children }: {
         >
           <div className="flex items-start justify-between gap-3 px-6 pb-3 pt-5">
             <div>
-              <Dialog.Title className="text-[22px] font-semibold leading-7 tracking-[-0.015em]">{title}</Dialog.Title>
+              <Dialog.Title className="text-[22px] font-bold leading-7 tracking-[-0.015em]">{title}</Dialog.Title>
               {subtitle && <p className="mt-1 text-sm text-ink-2">{subtitle}</p>}
             </div>
             <Dialog.Close aria-label="Zamknij" className="-mr-2 grid h-10 w-10 shrink-0 place-items-center rounded-xl text-ink-2 hover:bg-surface-2">
@@ -47,7 +47,7 @@ export function HowItWorksDialog({ open, onOpenChange }: { open: boolean; onOpen
       <ol className="flex flex-col gap-4">
         {steps.map((step, index) => (
           <li key={step.title} className="grid grid-cols-[28px_minmax(0,1fr)] gap-x-3">
-            <span className="pressed grid h-7 w-7 place-items-center rounded-full font-mono text-[13px] font-semibold">{index + 1}</span>
+            <span className="pressed grid h-7 w-7 place-items-center rounded-full tabular-nums text-[13px] font-semibold">{index + 1}</span>
             <div className="flex flex-col gap-0.5 pt-0.5">
               <span className="text-[15px] font-semibold">{step.title}</span>
               <span className="text-sm leading-5 text-ink-2">{step.text}</span>
@@ -75,7 +75,7 @@ export function WarningsDialog({ open, onOpenChange, warnings }: { open: boolean
       <ul className="flex flex-col divide-y divide-line rounded-xl border border-line">
         {warnings.map(w => (
           <li key={`${w.row}-${w.message}`} className="flex gap-3 px-3.5 py-2.5 text-sm">
-            <span className="w-16 shrink-0 font-mono text-ink-2">wiersz {w.row}</span>
+            <span className="w-16 shrink-0 tabular-nums text-ink-2">wiersz {w.row}</span>
             <span>{w.message}</span>
           </li>
         ))}
