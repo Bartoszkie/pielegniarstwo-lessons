@@ -118,7 +118,7 @@ function SearchResults({ results, query, onOpenClass }: SearchResultsProps) {
             {capitalize(getDayLabel(parseDate(date)))}
           </button>
           <div className="overflow-hidden rounded-2xl border border-line bg-surface">
-            {blocks.map(block => <ClassRow key={block.id} block={block} onOpen={() => onOpenClass(block)} />)}
+            {blocks.map((block, i) => <ClassRow key={block.id} block={block} divided={i > 0} onOpen={() => onOpenClass(block)} />)}
           </div>
         </section>
       ))}

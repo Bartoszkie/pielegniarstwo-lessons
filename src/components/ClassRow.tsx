@@ -1,4 +1,5 @@
 import { ClassBlock } from '../utils/blocks';
+import type { LiveState } from '../app/AppContext';
 import { getGroupColor } from '../constants/groupColors';
 import { durationLabel } from '../utils/dateUtils';
 import { GroupTags } from './ui/GroupTag';
@@ -6,6 +7,13 @@ import { Info, UserIcon } from './ui/icons';
 import { ModeBadge } from './ui/ModeBadge';
 
 export type RowState = 'live' | 'next' | 'none';
+
+/** The live class (only on today's list) and the next class stand out; the rest are plain. */
+export function rowState(block: ClassBlock, live: LiveState, isToday: boolean): RowState {
+  if (isToday && live.current?.id === block.id) return 'live';
+  if (live.next?.id === block.id) return 'next';
+  return 'none';
+}
 
 interface ClassRowProps {
   block: ClassBlock;
@@ -18,6 +26,8 @@ interface ClassRowProps {
   dateLabel?: string;
   /** Tapping the row opens the class details */
   onOpen?: () => void;
+  /** A hairline above the row, between two plain rows */
+  divided?: boolean;
 }
 
 const KIND_TEXT: Record<string, string> = {
@@ -29,12 +39,15 @@ const KIND_TEXT: Record<string, string> = {
 };
 
 /** One class in a day list. The live class is a raised glass panel, the next one is pressed in. */
-export function ClassRow({ block, state = 'none', progress = 0, remainingMin = 0, untilLabel, dateLabel, onOpen }: ClassRowProps) {
+export function ClassRow({ block, state = 'none', progress = 0, remainingMin = 0, untilLabel, dateLabel, onOpen, divided }: ClassRowProps) {
+  const divider = divided && <span aria-hidden="true" className="absolute inset-x-4 top-0 h-px bg-line" />;
+
   const { event } = block;
 
   if (block.kind === 'info') {
     return (
-      <div className="flex items-start gap-3 px-4 py-3.5 text-ink-2">
+      <div className="relative flex items-start gap-3 px-4 py-3.5 text-ink-2">
+        {divider}
         <Info size={18} className="mt-0.5 shrink-0" />
         <div className="flex flex-col gap-0.5">
           <span className="text-[15px] font-semibold leading-[21px] text-ink">{event.title}</span>
@@ -86,6 +99,8 @@ export function ClassRow({ block, state = 'none', progress = 0, remainingMin = 0
           />
         </>
       )}
+
+      {divider}
 
       {onOpen && (
         <button

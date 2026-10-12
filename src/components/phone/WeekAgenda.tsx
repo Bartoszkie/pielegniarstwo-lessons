@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useApp } from '../../app/AppContext';
 import { ClassBlock, ClassMode, isClass } from '../../utils/blocks';
 import { addDays, DAY_NAMES_FULL, formatDate, capitalize, isSameDay } from '../../utils/dateUtils';
-import { ClassRow, RowState } from '../ClassRow';
+import { ClassRow, rowState } from '../ClassRow';
 import { Info, Moon } from '../ui/icons';
 import { ModeBadge } from '../ui/ModeBadge';
 import { EmptyState } from './EmptyState';
@@ -161,15 +161,14 @@ export function WeekAgenda({ onPick, onOpenClass }: WeekAgendaProps) {
               {parallel && <span className="text-[13px] font-normal text-ink-2">· zajęcia równoległe</span>}
             </DayHeading>
             <div className="overflow-hidden rounded-2xl border border-line bg-surface">
-              {entry.blocks.map(block => {
-                let state: RowState = 'none';
-                if (isTodayDay && live.current?.id === block.id) state = 'live';
-                else if (live.next?.id === block.id) state = 'next';
+              {entry.blocks.map((block, i) => {
+                const state = rowState(block, live, isTodayDay);
                 return (
                   <ClassRow
                     key={block.id}
                     block={block}
                     state={state}
+                    divided={i > 0 && state === 'none' && rowState(entry.blocks[i - 1], live, isTodayDay) === 'none'}
                     progress={live.progress}
                     remainingMin={live.remainingMin}
                     untilLabel={live.untilNextLabel}

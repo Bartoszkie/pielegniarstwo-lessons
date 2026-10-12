@@ -3,7 +3,7 @@ import { ClassBlock, isClass } from '../../utils/blocks';
 import { getGroupColor } from '../../constants/groupColors';
 import { classesLabel, formatDate, getDayLabel, getMonthDays, isSameDay, isSameMonth, capitalize, WEEKDAYS_NARROW } from '../../utils/dateUtils';
 import { GroupId } from '../../types';
-import { ClassRow, RowState } from '../ClassRow';
+import { ClassRow, rowState } from '../ClassRow';
 import { EmptyState } from './EmptyState';
 import { FreeDayCard } from './FreeDayCard';
 
@@ -88,15 +88,14 @@ export function PhoneMonth({ onPick, onOpenClass }: { onPick: () => void; onOpen
           <p className="rounded-2xl border border-line bg-surface px-4 py-6 text-center text-sm text-ink-2">Tego dnia nie ma zajęć.</p>
         ) : (
           <div className="overflow-hidden rounded-2xl border border-line bg-surface">
-            {selected.map(block => {
-              let state: RowState = 'none';
-              if (isTodaySelected && live.current?.id === block.id) state = 'live';
-              else if (live.next?.id === block.id) state = 'next';
+            {selected.map((block, i) => {
+              const state = rowState(block, live, isTodaySelected);
               return (
                 <ClassRow
                   key={block.id}
                   block={block}
                   state={state}
+                  divided={i > 0 && state === 'none' && rowState(selected[i - 1], live, isTodaySelected) === 'none'}
                   progress={live.progress}
                   remainingMin={live.remainingMin}
                   untilLabel={live.untilNextLabel}
