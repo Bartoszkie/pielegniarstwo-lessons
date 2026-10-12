@@ -65,5 +65,7 @@ Aplikacja do przeglądania harmonogramu zajęć dla studentów pielęgniarstwa.
 ⚠️ **Uwagi:** 
 - Jeśli nie wiesz jak to działa, kliknij w przycisk "Jak to działa?" na górze strony, aby zobaczyć instrukcje.
 - Po dodaniu do ekranu głównego aplikacja będzie działać jak natywna aplikacja mobilna, bez paska adresu przeglądarki.
+- Aplikacja aktualizuje się sama po otwarciu - nie trzeba jej usuwać i instalować ponownie (usunięcie aplikacji kasuje też wczytany plan). Numer wersji widać na dole okna "Jak to działa?".
+- Jeśli aplikacja była zainstalowana przed wprowadzeniem automatycznych aktualizacji, zamknij ją raz całkowicie (przesuń w górę w przełączniku aplikacji) i otwórz ponownie - od tej pory nowe wersje będą pobierać się same.
 - Parsowanie pliku Excel odbywa się lokalnie na urządzeniu użytkownika, co zapewnia prywatność danych - nie trzeba się logować
 - Jeśli masz przeczucie, że aplikacja, nie zczytała czegoś poprawnie, sprawdź w samym pliku Excel! Jest on defaultowo pełen błędów i któraś z jego wersji moze popsuć algorytm parsujący.

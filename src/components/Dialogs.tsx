@@ -65,6 +65,7 @@ export function HowItWorksDialog({ open, onOpenChange }: { open: boolean; onOpen
         <ExternalLink size={16} />
       </a>
       <Dialog.Close className="mt-2.5 h-12 w-full rounded-[14px] bg-ink text-[15px] font-semibold text-bg">Rozumiem</Dialog.Close>
+      <p className="mt-3 text-center text-xs tabular-nums text-ink-2">Wersja {__APP_VERSION__}</p>
     </Sheet>
   );
 }

@@ -6,6 +6,7 @@ import { useCalendar } from './hooks/useCalendar';
 import { useNow } from './hooks/useNow';
 import { useMediaQuery } from './hooks/useMediaQuery';
 import { useTheme } from './hooks/useTheme';
+import { useAppUpdate } from './hooks/useAppUpdate';
 import { pluralPl } from './utils/dateUtils';
 import { isClockOverridden } from './utils/clock';
 import { Onboarding } from './components/Onboarding';
@@ -30,6 +31,7 @@ export default function App() {
   const [howOpen, setHowOpen] = useState(false);
   const [warningsOpen, setWarningsOpen] = useState(false);
   const { loadFile, isLoaded } = schedule;
+  const { markPickerOpened, markPickerClosed } = useAppUpdate({ busy: schedule.isLoading });
 
   const handleFile = useCallback(async (file: File) => {
     if (!isExcelFile(file)) {
@@ -52,13 +54,16 @@ export default function App() {
   }, [loadFile, isLoaded]);
 
   const actions = useMemo(() => ({
-    openFilePicker: () => fileInput.current?.click(),
+    openFilePicker: () => {
+      markPickerOpened();
+      fileInput.current?.click();
+    },
     handleFile: (file: File) => { void handleFile(file); },
     openHowItWorks: () => setHowOpen(true),
     openWarnings: () => setWarningsOpen(true),
     theme,
     setTheme,
-  }), [handleFile, theme, setTheme]);
+  }), [handleFile, theme, setTheme, markPickerOpened]);
 
   return (
     <AppProvider schedule={schedule} calendar={calendar} now={now} actions={actions}>
@@ -70,6 +75,7 @@ export default function App() {
         accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         className="hidden"
         onChange={e => {
+          markPickerClosed();
           const file = e.target.files?.[0];
           if (file) void handleFile(file);
           e.target.value = '';
