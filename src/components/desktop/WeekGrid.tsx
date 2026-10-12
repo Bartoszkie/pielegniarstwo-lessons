@@ -110,7 +110,7 @@ export function WeekGrid({ selectedId, onToggle }: WeekGridProps) {
           {!hasSelection && (
             <div className="absolute inset-0 grid place-items-center bg-surface/70">
               <div className="flex max-w-[320px] flex-col items-center gap-1.5 rounded-[14px] border border-line bg-surface px-6 py-5 text-center shadow-pop">
-                <span className="font-serif text-2xl italic leading-7 [text-wrap:balance]">{schedule.mode === 'teacher' ? 'Nie wybrano wykładowcy' : 'Nie wybrano żadnej grupy'}</span>
+                <span className="font-serif text-[28px] italic leading-8 [text-wrap:balance]">{schedule.mode === 'teacher' ? 'Nie wybrano wykładowcy' : 'Nie wybrano żadnej grupy'}</span>
                 <span className="text-sm text-ink-2">Zaznacz {schedule.mode === 'teacher' ? 'prowadzących' : 'swoją grupę'} w panelu po lewej, żeby zobaczyć zajęcia.</span>
               </div>
             </div>

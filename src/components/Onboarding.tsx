@@ -26,7 +26,7 @@ export function Onboarding() {
         <AppLogo size={44} />
         <div className="flex flex-col gap-1">
           <h1 className="text-[34px] font-extrabold leading-[38px] tracking-[-0.03em]">Plan zajęć</h1>
-          <p className="font-serif text-[26px] italic leading-7 text-ink-2">Pielęgniarstwo</p>
+          <p className="font-serif text-[30px] italic leading-8 text-ink-2">Pielęgniarstwo</p>
         </div>
         <p className="text-base leading-6 text-ink-2">
           Wczytaj arkusz z planem z uczelni. Zobaczysz tylko swoje zajęcia, dzień po dniu.
