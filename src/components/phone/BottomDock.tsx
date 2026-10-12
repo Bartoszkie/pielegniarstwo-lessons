@@ -1,36 +1,44 @@
 import * as Popover from '@radix-ui/react-popover';
 import { useState } from 'react';
 import { useApp } from '../../app/AppContext';
-import { addDays, DAY_NAMES_FULL, formatDate, getDayLabel, isSameDay } from '../../utils/dateUtils';
+import { isClass } from '../../utils/blocks';
+import { addDays, formatDate, getDayLabel, getMonthLabel, getWeekLabel, isSameMonth, parseDate } from '../../utils/dateUtils';
 import { ViewType } from '../../types';
 import { ThemeToggle } from '../ui/ThemeToggle';
-import { CalendarGrid, Check, ChevronLeft, ChevronRight, FileUp, Help, Info, MoreVertical, Rows, Undo } from '../ui/icons';
+import { CalendarGrid, Check, ChevronLeft, ChevronRight, FileUp, Help, Info, MoreVertical, Rows } from '../ui/icons';
 
 const HUMP_WIDTH = 310;
 const BAR_TOP = 58;
 const SHORT_DAYS = ['NDZ', 'PON', 'WT', 'ŚR', 'CZW', 'PT', 'SOB'];
 
-/** Floating footer: the bar rises in a soft hump around the day controls, which overlap its edge. */
+/**
+ * Floating footer: the bar rises in a soft hump around the controls, which overlap its edge.
+ * The arrows move by a week or a month (following the view); the tile in the middle is today:
+ * pressed while today is on screen, raised to bring you back otherwise.
+ */
 export function BottomDock() {
-  const { calendar, visibleByDate, schedule, now, openFilePicker, openHowItWorks, openWarnings } = useApp();
+  const { calendar, visibleByDate, schedule, now, todayKey, openFilePicker, openHowItWorks, openWarnings } = useApp();
   const [menuOpen, setMenuOpen] = useState(false);
-  const isToday = isSameDay(calendar.cursor, now);
+  const isWeek = calendar.view === 'week';
+  const todayShown = isWeek
+    ? todayKey >= formatDate(calendar.weekStart) && todayKey <= formatDate(addDays(calendar.weekStart, 6))
+    : isSameMonth(now, calendar.cursor);
 
   const step = (direction: 1 | -1) => {
-    if (calendar.view === 'week') {
-      calendar.shiftDay(direction);
+    if (isWeek) {
+      // Land on the Monday, so the new week opens at the top
+      calendar.setCursor(addDays(calendar.weekStart, 7 * direction));
       return;
     }
-    // In month view jump to the previous / next day that has classes
-    const keys = Object.keys(visibleByDate).sort();
-    const current = formatDate(calendar.cursor);
-    const target = direction === 1 ? keys.find(k => k > current) : [...keys].reverse().find(k => k < current);
-    if (target) {
-      const [y, m, d] = target.split('-').map(Number);
-      calendar.setCursor(new Date(y, m - 1, d));
-    } else {
-      calendar.setCursor(addDays(calendar.cursor, direction));
+    // A new month opens on today when it's in it, else on its first day with classes
+    const month = new Date(calendar.cursor.getFullYear(), calendar.cursor.getMonth() + direction, 1);
+    if (isSameMonth(now, month)) {
+      calendar.goToToday();
+      return;
     }
+    const prefix = formatDate(month).slice(0, 8);
+    const firstWithClasses = Object.keys(visibleByDate).filter(k => k.startsWith(prefix) && visibleByDate[k].some(isClass)).sort()[0];
+    calendar.setCursor(firstWithClasses ? parseDate(firstWithClasses) : month);
   };
 
   const chooseView = (view: ViewType) => {
@@ -39,7 +47,6 @@ export function BottomDock() {
   };
 
   const hasWarnings = schedule.warnings.length > 0;
-  const stepLabel = calendar.view === 'week' ? 'dzień' : 'dzień z zajęciami';
 
   return (
     <nav aria-label="Nawigacja planu" className="pointer-events-none fixed inset-x-0 bottom-0 z-30">
@@ -55,26 +62,20 @@ export function BottomDock() {
         </div>
 
         <div className="pointer-events-auto absolute left-1/2 top-4 flex -translate-x-1/2 items-start gap-3.5">
-          <button type="button" aria-label={`Poprzedni ${stepLabel}`} onClick={() => step(-1)} className="raised mt-1.5 grid h-11 w-11 place-items-center rounded-full">
+          <button type="button" aria-label={isWeek ? 'Poprzedni tydzień' : 'Poprzedni miesiąc'} onClick={() => step(-1)} className="raised mt-1.5 grid h-11 w-11 place-items-center rounded-full">
             <ChevronLeft size={20} strokeWidth={2.2} />
           </button>
-          <div className="flex flex-col items-center gap-1.5">
-            <button
-              type="button"
-              aria-label={`${isToday ? 'Dziś, ' : 'Wybrany dzień: '}${getDayLabel(calendar.cursor)}`}
-              onClick={calendar.goToToday}
-              className="pressed flex h-14 w-14 flex-col items-center justify-center gap-px rounded-2xl"
-            >
-              <span className="text-[10px] font-bold leading-3 tracking-[.06em] text-accent">{SHORT_DAYS[calendar.cursor.getDay()]}</span>
-              <span className="text-2xl font-bold leading-[26px] tracking-[-0.02em]">{calendar.cursor.getDate()}</span>
-            </button>
-            {!isToday && (
-              <button type="button" aria-label="Wróć do dziś" onClick={calendar.goToToday} className="raised grid h-6 w-10 animate-pop-in place-items-center rounded-full">
-                <Undo size={14} strokeWidth={2.4} />
-              </button>
-            )}
-          </div>
-          <button type="button" aria-label={`Następny ${stepLabel}`} onClick={() => step(1)} className="raised mt-1.5 grid h-11 w-11 place-items-center rounded-full">
+          <button
+            type="button"
+            aria-pressed={todayShown}
+            aria-label={`${todayShown ? 'Dziś' : 'Wróć do dziś'}: ${getDayLabel(now)}`}
+            onClick={calendar.goToToday}
+            className={`flex h-14 w-14 flex-col items-center justify-center gap-px rounded-2xl ${todayShown ? 'pressed' : 'raised -translate-y-0.5'}`}
+          >
+            <span className="text-[10px] font-extrabold leading-3 tracking-[.06em] text-accent">{SHORT_DAYS[now.getDay()]}</span>
+            <span className="text-2xl font-bold leading-[26px] tracking-[-0.02em]">{now.getDate()}</span>
+          </button>
+          <button type="button" aria-label={isWeek ? 'Następny tydzień' : 'Następny miesiąc'} onClick={() => step(1)} className="raised mt-1.5 grid h-11 w-11 place-items-center rounded-full">
             <ChevronRight size={20} strokeWidth={2.2} />
           </button>
         </div>
@@ -110,7 +111,7 @@ export function BottomDock() {
           </Popover.Portal>
         </Popover.Root>
       </div>
-      <span className="sr-only" aria-live="polite">{DAY_NAMES_FULL[calendar.cursor.getDay()]}</span>
+      <span className="sr-only" aria-live="polite">{isWeek ? getWeekLabel(calendar.weekStart) : getMonthLabel(calendar.cursor)}</span>
     </nav>
   );
 }

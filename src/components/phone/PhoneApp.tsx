@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { ClassBlock } from '../../utils/blocks';
 import { useApp } from '../../app/AppContext';
 import { parseDate, getDayLabel, capitalize } from '../../utils/dateUtils';
 import { KindChips } from '../ui/KindChips';
@@ -9,6 +10,7 @@ import { WeekAgenda } from './WeekAgenda';
 import { PhoneMonth } from './PhoneMonth';
 import { BottomDock } from './BottomDock';
 import { FilterSheet } from './FilterSheet';
+import { ClassSheet } from './ClassSheet';
 
 export function PhoneApp() {
   const { calendar, hasSelection, search } = useApp();
@@ -16,6 +18,8 @@ export function PhoneApp() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(!hasSelection);
+  const [detail, setDetail] = useState<ClassBlock | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
 
   // Right after a file is loaded nothing is selected: open the picker
   useEffect(() => {
@@ -30,6 +34,17 @@ export function PhoneApp() {
   const results = useMemo(() => (searchOpen ? search(query) : []), [searchOpen, search, query]);
   const searching = searchOpen && query.trim().length > 0;
   const openFilters = () => setFiltersOpen(true);
+  const openClass = (block: ClassBlock) => {
+    setDetail(block);
+    setDetailOpen(true);
+  };
+  // From the sheet's list of next dates: close everything and show that day
+  const jumpTo = (date: string) => {
+    setDetailOpen(false);
+    setSearchOpen(false);
+    setQuery('');
+    calendar.setCursor(parseDate(date));
+  };
 
   return (
     <div className="min-h-dvh pb-[calc(140px+env(safe-area-inset-bottom))]">
@@ -50,24 +65,31 @@ export function PhoneApp() {
 
       <main className="flex flex-col gap-5 px-3 pt-1">
         {searching ? (
-          <SearchResults results={results} query={query} />
+          <SearchResults results={results} query={query} onOpenClass={openClass} />
         ) : calendar.view === 'week' ? (
           <>
             {hasSelection && !searchOpen && <NowStrip />}
-            <WeekAgenda onPick={openFilters} />
+            <WeekAgenda onPick={openFilters} onOpenClass={openClass} />
           </>
         ) : (
-          <PhoneMonth onPick={openFilters} />
+          <PhoneMonth onPick={openFilters} onOpenClass={openClass} />
         )}
       </main>
 
       <BottomDock />
       <FilterSheet open={filtersOpen} onOpenChange={setFiltersOpen} />
+      <ClassSheet block={detail} open={detailOpen} onOpenChange={setDetailOpen} onJump={jumpTo} />
     </div>
   );
 }
 
-function SearchResults({ results, query }: { results: ReturnType<ReturnType<typeof useApp>['search']>; query: string }) {
+interface SearchResultsProps {
+  results: ClassBlock[];
+  query: string;
+  onOpenClass: (block: ClassBlock) => void;
+}
+
+function SearchResults({ results, query, onOpenClass }: SearchResultsProps) {
   const { calendar } = useApp();
   if (results.length === 0) {
     return (
@@ -93,7 +115,7 @@ function SearchResults({ results, query }: { results: ReturnType<ReturnType<type
             {capitalize(getDayLabel(parseDate(date)))}
           </button>
           <div className="overflow-hidden rounded-2xl border border-line bg-surface">
-            {blocks.map(block => <ClassRow key={block.id} block={block} />)}
+            {blocks.map(block => <ClassRow key={block.id} block={block} onOpen={() => onOpenClass(block)} />)}
           </div>
         </section>
       ))}

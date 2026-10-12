@@ -1,5 +1,6 @@
 import { useApp } from '../../app/AppContext';
-import { getDayLabel, parseDate } from '../../utils/dateUtils';
+import { isClass } from '../../utils/blocks';
+import { addDays, formatDate, getDayLabel, parseDate } from '../../utils/dateUtils';
 
 interface EmptyStateProps {
   kind: 'no-selection' | 'empty-week' | 'empty-day';
@@ -7,7 +8,7 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({ kind, onPick }: EmptyStateProps) {
-  const { stats, calendar, schedule, kind: filter, setKind } = useApp();
+  const { calendar, schedule, visibleByDate, kind: filter, setKind } = useApp();
 
   if (kind === 'no-selection') {
     const teacher = schedule.mode === 'teacher';
@@ -26,7 +27,10 @@ export function EmptyState({ kind, onPick }: EmptyStateProps) {
     );
   }
 
-  const next = stats.next;
+  // The first classes after the empty week (or day) being looked at
+  const after = formatDate(kind === 'empty-week' ? addDays(calendar.weekStart, 6) : calendar.cursor);
+  const nextDate = Object.keys(visibleByDate).filter(d => d > after && visibleByDate[d].some(isClass)).sort()[0];
+  const next = nextDate ? visibleByDate[nextDate].find(isClass) ?? null : null;
   return (
     <div className="flex flex-col items-center gap-2 rounded-2xl border border-line bg-surface px-6 py-10 text-center">
       <span className="font-serif text-[28px] italic leading-8 [text-wrap:balance]">
@@ -38,7 +42,7 @@ export function EmptyState({ kind, onPick }: EmptyStateProps) {
         </button>
       ) : next ? (
         <>
-          <span className="text-sm text-ink-2">Najbliższe zajęcia: {getDayLabel(parseDate(next.date))}, {next.start}</span>
+          <span className="text-sm text-ink-2">Następne zajęcia: {getDayLabel(parseDate(next.date))}, {next.start}</span>
           <button
             type="button"
             onClick={() => calendar.setCursor(parseDate(next.date))}

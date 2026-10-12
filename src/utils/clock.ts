@@ -9,6 +9,9 @@ const override = (() => {
   return Number.isNaN(time) ? null : time;
 })();
 
+/** True while `?now=` fakes the clock (development only) */
+export const isClockOverridden = override !== null;
+
 export function getNow(): Date {
   return override === null ? new Date() : new Date(override + (Date.now() - startedAt));
 }

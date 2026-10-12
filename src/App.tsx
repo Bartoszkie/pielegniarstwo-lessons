@@ -7,6 +7,7 @@ import { useNow } from './hooks/useNow';
 import { useMediaQuery } from './hooks/useMediaQuery';
 import { useTheme } from './hooks/useTheme';
 import { pluralPl } from './utils/dateUtils';
+import { isClockOverridden } from './utils/clock';
 import { Onboarding } from './components/Onboarding';
 import { PhoneApp } from './components/phone/PhoneApp';
 import { DesktopApp } from './components/desktop/DesktopApp';
@@ -74,6 +75,17 @@ export default function App() {
           e.target.value = '';
         }}
       />
+
+      {isClockOverridden && (
+        // Development only: make a faked clock impossible to miss
+        <a
+          href={window.location.pathname}
+          title="Usuń ?now= z adresu i wróć do prawdziwego czasu"
+          className="fixed left-1/2 top-1 z-[60] -translate-x-1/2 whitespace-nowrap rounded-full bg-warn-bg px-2.5 py-1 text-[11px] font-semibold text-warn-ink shadow-pop ring-1 ring-warn"
+        >
+          Czas testowy: {now.toLocaleString('pl-PL', { weekday: 'short', day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' })} · wyłącz
+        </a>
+      )}
 
       <HowItWorksDialog open={howOpen} onOpenChange={setHowOpen} />
       <WarningsDialog open={warningsOpen} onOpenChange={setWarningsOpen} warnings={schedule.warnings} />

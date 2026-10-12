@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '../../app/AppContext';
-import { capitalize, durationLabel, parseDate, relativeDayLabel } from '../../utils/dateUtils';
+import { addDays, capitalize, durationLabel, formatDate, parseDate, relativeDayLabel } from '../../utils/dateUtils';
 import { GroupTags } from '../ui/GroupTag';
 import { ChevronDown } from '../ui/icons';
 
@@ -19,6 +19,9 @@ export function NowStrip() {
 
   // No class today, or today's are over: say so first, then when the next ones are
   if (!isNow && !isLaterToday) {
+    // A free today inside the shown week has its own card in the list
+    const todayInWeek = todayKey >= formatDate(calendar.weekStart) && todayKey <= formatDate(addDays(calendar.weekStart, 6));
+    if (live.today === 'free' && todayInWeek) return null;
     const headline = live.today === 'free' ? 'Dziś wolne' : 'Na dziś koniec';
     if (!next) {
       return (

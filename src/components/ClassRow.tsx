@@ -15,6 +15,8 @@ interface ClassRowProps {
   untilLabel?: string;
   /** Shows the date above the time, used in search results */
   dateLabel?: string;
+  /** Tapping the row opens the class details */
+  onOpen?: () => void;
 }
 
 const KIND_TEXT: Record<string, string> = {
@@ -26,7 +28,7 @@ const KIND_TEXT: Record<string, string> = {
 };
 
 /** One class in a day list. The live class is a raised glass panel, the next one is pressed in. */
-export function ClassRow({ block, state = 'none', progress = 0, remainingMin = 0, untilLabel, dateLabel }: ClassRowProps) {
+export function ClassRow({ block, state = 'none', progress = 0, remainingMin = 0, untilLabel, dateLabel, onOpen }: ClassRowProps) {
   const { event } = block;
 
   if (block.kind === 'info') {
@@ -48,8 +50,10 @@ export function ClassRow({ block, state = 'none', progress = 0, remainingMin = 0
 
   return (
     <div
-      className={`relative isolate grid grid-cols-[52px_minmax(0,1fr)] gap-x-3.5 overflow-hidden px-4 py-3.5 ${
-        live ? 'm-1.5 rounded-[14px]' : next ? 'pressed mx-1.5 mb-1.5 rounded-[14px]' : ''
+      // The live class floats as a glass card; the inset padding keeps its text on the same columns as the other rows.
+      // The next class is pressed in across the full width of the day card.
+      className={`relative isolate grid grid-cols-[52px_minmax(0,1fr)] gap-x-3.5 overflow-hidden ${
+        live ? 'm-1.5 rounded-[14px] px-2.5 py-2' : next ? 'bg-pressed px-4 py-3.5 shadow-press' : 'px-4 py-3.5'
       }`}
       style={live ? {
         boxShadow: `0 6px 16px -8px color-mix(in oklab, ${accent} 70%, transparent), 0 1px 2px rgba(28,25,23,.06)`,
@@ -82,6 +86,15 @@ export function ClassRow({ block, state = 'none', progress = 0, remainingMin = 0
         </>
       )}
 
+      {onOpen && (
+        <button
+          type="button"
+          aria-label={`Szczegóły: ${event.title}, ${block.start}–${block.end}`}
+          onClick={onOpen}
+          className="absolute inset-0 z-[1] rounded-[inherit] transition-colors active:bg-ink/[.04]"
+        />
+      )}
+
       <div className="flex flex-col gap-0.5 tabular-nums text-sm font-medium leading-5">
         {dateLabel && <span className="mb-0.5 font-sans text-xs font-semibold text-ink-2">{dateLabel}</span>}
         <span>{block.start}</span>
@@ -101,7 +114,7 @@ export function ClassRow({ block, state = 'none', progress = 0, remainingMin = 0
             </span>
           )}
           {next && untilLabel && (
-            <span className="ml-1 text-xs font-semibold text-ink-2">{untilLabel}</span>
+            <span className="ml-1 text-xs font-semibold text-ink-2">Następne · {untilLabel}</span>
           )}
           {!live && !next && KIND_TEXT[block.kind] && (
             <span className="ml-1 text-xs text-ink-2">{KIND_TEXT[block.kind]}</span>

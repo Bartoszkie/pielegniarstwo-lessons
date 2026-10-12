@@ -3,43 +3,66 @@ import { useApp } from '../../app/AppContext';
 import { ClassBlock, isClass } from '../../utils/blocks';
 import { addDays, DAY_NAMES_FULL, formatDate, capitalize, isSameDay } from '../../utils/dateUtils';
 import { ClassRow, RowState } from '../ClassRow';
+import { Moon } from '../ui/icons';
 import { EmptyState } from './EmptyState';
+import { FreeDayCard } from './FreeDayCard';
 
 type Entry =
   | { type: 'day'; date: Date; key: string; blocks: ClassBlock[] }
-  | { type: 'gap'; text: string; key: string }
+  | { type: 'gap'; range: string; key: string }
   | { type: 'free-today'; date: Date; key: string };
 
-function gapText(days: Date[]): string {
+function gapRange(days: Date[]): string {
   const name = (d: Date) => `${DAY_NAMES_FULL[d.getDay()]} ${d.getDate()}`;
-  if (days.length === 1) return `${capitalize(name(days[0]))} · bez zajęć`;
-  if (days.length === 2) return `${capitalize(name(days[0]))} i ${name(days[1])} · bez zajęć`;
-  return `${capitalize(name(days[0]))} – ${name(days[days.length - 1])} · bez zajęć`;
+  if (days.length === 1) return capitalize(name(days[0]));
+  if (days.length === 2) return `${capitalize(name(days[0]))} i ${name(days[1])}`;
+  return `${capitalize(name(days[0]))} – ${name(days[days.length - 1])}`;
 }
 
 function TodayBadge() {
   return <span className="inline-flex h-[22px] items-center rounded-full bg-ink px-2 text-xs font-semibold text-bg">Dziś</span>;
 }
 
-/** The phone week view: one card per day with classes, empty days folded into one line (except today). */
-export function WeekAgenda({ onPick }: { onPick: () => void }) {
+function DayHeading({ date, today, children }: { date: Date; today: boolean; children?: React.ReactNode }) {
+  return (
+    <h2 className="flex items-center gap-2 px-2 text-[15px] font-semibold leading-[22px]">
+      <span>{capitalize(DAY_NAMES_FULL[date.getDay()])}</span>
+      <span className="font-normal text-ink-2">{date.getDate()}</span>
+      {today && <TodayBadge />}
+      {children}
+    </h2>
+  );
+}
+
+interface WeekAgendaProps {
+  onPick: () => void;
+  onOpenClass: (block: ClassBlock) => void;
+}
+
+/** The phone week view: one card per day with classes; empty days folded into one line, except today. */
+export function WeekAgenda({ onPick, onOpenClass }: WeekAgendaProps) {
   const { calendar, visibleByDate, live, todayKey, hasSelection } = useApp();
   const cursorKey = formatDate(calendar.cursor);
   const previousKey = useRef(cursorKey);
 
-  // Scroll to the day picked with the footer arrows (not on first render)
+  // Follow the cursor (not on first render): a new week starts at the top, a picked day scrolls into view
   useEffect(() => {
     if (previousKey.current === cursorKey) return;
     previousKey.current = cursorKey;
-    document.getElementById(`day-${cursorKey}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, [cursorKey]);
+    const section = document.getElementById(`day-${cursorKey}`);
+    if (section && !isSameDay(calendar.cursor, calendar.weekStart)) {
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [cursorKey, calendar.cursor, calendar.weekStart]);
 
   if (!hasSelection) return <EmptyState kind="no-selection" onPick={onPick} />;
 
   const entries: Entry[] = [];
   let pending: Date[] = [];
   const flush = () => {
-    if (pending.length) entries.push({ type: 'gap', text: gapText(pending), key: `gap-${formatDate(pending[0])}` });
+    if (pending.length) entries.push({ type: 'gap', range: gapRange(pending), key: `gap-${formatDate(pending[0])}` });
     pending = [];
   };
   for (let i = 0; i < 7; i++) {
@@ -59,36 +82,39 @@ export function WeekAgenda({ onPick }: { onPick: () => void }) {
   }
   flush();
 
-  if (!entries.some(e => e.type === 'day')) return <EmptyState kind="empty-week" />;
+  if (!entries.some(e => e.type !== 'gap')) return <EmptyState kind="empty-week" />;
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-[18px]">
       {entries.map(entry => {
         if (entry.type === 'gap') {
-          return <p key={entry.key} className="px-2 text-sm text-ink-2">{entry.text}</p>;
+          return (
+            <p key={entry.key} className="flex min-h-11 items-center gap-2.5 rounded-[14px] border border-dashed border-line-strong px-3.5 py-2.5 text-sm text-ink-2">
+              <Moon size={18} className="shrink-0" />
+              <span><span className="font-semibold text-ink">{entry.range}</span> · bez zajęć</span>
+            </p>
+          );
         }
         if (entry.type === 'free-today') {
+          // A filter can hide today's classes; only a really free day gets the card
+          const reallyFree = live.today === 'free';
           return (
-            <p key={entry.key} id={`day-${entry.key}`} className="flex scroll-mt-20 items-center gap-2 px-2 text-[15px] leading-[22px]">
-              <span className="font-semibold">{capitalize(DAY_NAMES_FULL[entry.date.getDay()])}</span>
-              <span className="text-ink-2">{entry.date.getDate()}</span>
-              <TodayBadge />
-              <span className="text-sm text-ink-2">· bez zajęć</span>
-            </p>
+            <section key={entry.key} id={`day-${entry.key}`} className="flex scroll-mt-20 flex-col gap-2">
+              <DayHeading date={entry.date} today>
+                {!reallyFree && <span className="text-sm font-normal text-ink-2">· brak zajęć tego rodzaju</span>}
+              </DayHeading>
+              {reallyFree && <FreeDayCard />}
+            </section>
           );
         }
         const isTodayDay = entry.key === todayKey;
         const classes = entry.blocks.filter(isClass);
         const parallel = classes.some((a, i) => classes.some((b, j) => i !== j && a.startMin < b.endMin && b.startMin < a.endMin));
-        const isCursor = isSameDay(entry.date, calendar.cursor) && !isTodayDay;
         return (
           <section key={entry.key} id={`day-${entry.key}`} className="flex scroll-mt-20 flex-col gap-2">
-            <h2 className="flex items-center gap-2 px-2 text-[15px] font-semibold leading-[22px]">
-              <span className={isCursor ? 'underline decoration-2 underline-offset-4' : ''}>{capitalize(DAY_NAMES_FULL[entry.date.getDay()])}</span>
-              <span className="font-normal text-ink-2">{entry.date.getDate()}</span>
-              {isTodayDay && <TodayBadge />}
+            <DayHeading date={entry.date} today={isTodayDay}>
               {parallel && <span className="text-[13px] font-normal text-ink-2">· zajęcia równoległe</span>}
-            </h2>
+            </DayHeading>
             <div className="overflow-hidden rounded-2xl border border-line bg-surface">
               {entry.blocks.map(block => {
                 let state: RowState = 'none';
@@ -102,6 +128,7 @@ export function WeekAgenda({ onPick }: { onPick: () => void }) {
                     progress={live.progress}
                     remainingMin={live.remainingMin}
                     untilLabel={live.untilNextLabel}
+                    onOpen={isClass(block) ? () => onOpenClass(block) : undefined}
                   />
                 );
               })}

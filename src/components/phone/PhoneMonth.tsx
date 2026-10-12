@@ -1,13 +1,14 @@
 import { useApp } from '../../app/AppContext';
-import { isClass } from '../../utils/blocks';
+import { ClassBlock, isClass } from '../../utils/blocks';
 import { getGroupColor } from '../../constants/groupColors';
 import { classesLabel, formatDate, getDayLabel, getMonthDays, isSameDay, isSameMonth, capitalize, WEEKDAYS_NARROW } from '../../utils/dateUtils';
 import { GroupId } from '../../types';
 import { ClassRow, RowState } from '../ClassRow';
 import { EmptyState } from './EmptyState';
+import { FreeDayCard } from './FreeDayCard';
 
 /** Phone month view: a compact grid with group dots and the chosen day's classes below it. */
-export function PhoneMonth({ onPick }: { onPick: () => void }) {
+export function PhoneMonth({ onPick, onOpenClass }: { onPick: () => void; onOpenClass: (block: ClassBlock) => void }) {
   const { calendar, visibleByDate, todayKey, live, hasSelection } = useApp();
   if (!hasSelection) return <EmptyState kind="no-selection" onPick={onPick} />;
 
@@ -80,7 +81,9 @@ export function PhoneMonth({ onPick }: { onPick: () => void }) {
           <span>{capitalize(getDayLabel(cursor))}{isTodaySelected ? ' · dziś' : ''}</span>
           <span className="text-[13px] font-normal text-ink-2">{classesLabel(selectedClasses.length)}</span>
         </h2>
-        {selected.length === 0 ? (
+        {selected.length === 0 && isTodaySelected && live.today === 'free' ? (
+          <FreeDayCard />
+        ) : selected.length === 0 ? (
           <p className="rounded-2xl border border-line bg-surface px-4 py-6 text-center text-sm text-ink-2">Tego dnia nie ma zajęć.</p>
         ) : (
           <div className="overflow-hidden rounded-2xl border border-line bg-surface">
@@ -89,7 +92,15 @@ export function PhoneMonth({ onPick }: { onPick: () => void }) {
               if (isTodaySelected && live.current?.id === block.id) state = 'live';
               else if (live.next?.id === block.id) state = 'next';
               return (
-                <ClassRow key={block.id} block={block} state={state} progress={live.progress} remainingMin={live.remainingMin} untilLabel={live.untilNextLabel} />
+                <ClassRow
+                  key={block.id}
+                  block={block}
+                  state={state}
+                  progress={live.progress}
+                  remainingMin={live.remainingMin}
+                  untilLabel={live.untilNextLabel}
+                  onOpen={isClass(block) ? () => onOpenClass(block) : undefined}
+                />
               );
             })}
           </div>
