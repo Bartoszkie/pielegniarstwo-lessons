@@ -136,7 +136,8 @@ function ConfirmBar({ selected, results, previousDate, onConfirm, onRemove }: {
     <div
       role="region"
       aria-label="Wybrany termin"
-      className="fixed inset-x-0 bottom-0 z-30 flex flex-col gap-3 rounded-t-[26px] bg-surface px-4 pb-[max(20px,env(safe-area-inset-bottom))] pt-3.5 shadow-[0_-12px_32px_rgba(28,25,23,.12),0_-1px_0_rgba(28,25,23,.06)]"
+      // The ::after runs the bar below the screen, so a bar iOS lifts off the bottom edge leaves no gap
+      className="fixed inset-x-0 bottom-0 z-30 flex flex-col gap-3 rounded-t-[26px] bg-surface px-4 pb-[max(20px,env(safe-area-inset-bottom))] pt-3.5 shadow-[0_-12px_32px_rgba(28,25,23,.12),0_-1px_0_rgba(28,25,23,.06)] after:absolute after:inset-x-0 after:top-full after:h-[120px] after:bg-surface"
     >
       {selected ? (
         <div className="grid grid-cols-[26px_minmax(0,1fr)_auto] items-center gap-x-3">

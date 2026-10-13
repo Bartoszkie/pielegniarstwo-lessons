@@ -9,6 +9,8 @@ import { CalendarGrid, Check, ChevronLeft, ChevronRight, FileUp, Help, Info, Mor
 
 const HUMP_WIDTH = 340;
 const BAR_TOP = 58;
+/** The bar runs this far below the screen, so a dock iOS lifts off the bottom edge leaves no gap */
+const BOTTOM_BLEED = 120;
 const SHORT_DAYS = ['NDZ', 'PON', 'WT', 'ŚR', 'CZW', 'PT', 'SOB'];
 
 /**
@@ -37,7 +39,7 @@ export function BottomDock({ landOn }: { /** Days a new month may open on; by de
     <nav aria-label="Nawigacja planu" className="pointer-events-none fixed inset-x-0 bottom-0 z-30">
       <div className="relative" style={{ height: `calc(116px + env(safe-area-inset-bottom))` }}>
         <div aria-hidden="true" className="absolute inset-0" style={{ filter: 'drop-shadow(0 -8px 20px rgba(28,25,23,.07)) drop-shadow(0 -1px 2px rgba(28,25,23,.04))' }}>
-          <div className="absolute inset-x-0 bottom-0 bg-surface" style={{ top: BAR_TOP }} />
+          <div className="absolute inset-x-0 bg-surface" style={{ top: BAR_TOP, bottom: -BOTTOM_BLEED }} />
           <div className="absolute left-0 h-px bg-line" style={{ top: BAR_TOP, right: `calc(50% + ${HUMP_WIDTH / 2}px)` }} />
           <div className="absolute right-0 h-px bg-line" style={{ top: BAR_TOP, left: `calc(50% + ${HUMP_WIDTH / 2}px)` }} />
           <svg width={HUMP_WIDTH} height="116" viewBox={`0 0 ${HUMP_WIDTH} 116`} className="absolute left-1/2 top-0 -translate-x-1/2 overflow-visible">
