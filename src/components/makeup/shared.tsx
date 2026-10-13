@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { MakeupFlow, useApp } from '../../app/AppContext';
 import { ClassBlock } from '../../utils/blocks';
-import { addDays, daysBetween, formatDate, isSameMonth, parseDate, shortDateLabel } from '../../utils/dateUtils';
+import { daysBetween, parseDate, shortDateLabel } from '../../utils/dateUtils';
 import { createSavedMakeup, makeupOptions, MakeupOption } from '../../utils/makeup';
 import { ChevronRight, Close, Redo } from '../ui/icons';
 
@@ -207,25 +207,6 @@ export function useConfirmMakeup(flow: ResultsFlow, results: MakeupResults) {
   };
 
   return { confirm, remove, previous };
-}
-
-/** Previous or next week or month; a new month opens on today, else on its first date in `landOn` */
-export function usePeriodStep(landOn: string[]) {
-  const { calendar, now } = useApp();
-  return (direction: 1 | -1) => {
-    if (calendar.view === 'week') {
-      calendar.setCursor(addDays(calendar.weekStart, 7 * direction));
-      return;
-    }
-    const month = new Date(calendar.cursor.getFullYear(), calendar.cursor.getMonth() + direction, 1);
-    if (isSameMonth(now, month)) {
-      calendar.goToToday();
-      return;
-    }
-    const prefix = formatDate(month).slice(0, 8);
-    const first = landOn.filter(date => date.startsWith(prefix)).sort()[0];
-    calendar.setCursor(first ? parseDate(first) : month);
-  };
 }
 
 /** Status line for the picked date, under its title */

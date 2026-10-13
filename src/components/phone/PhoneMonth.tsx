@@ -1,20 +1,17 @@
 import { useApp } from '../../app/AppContext';
 import { ClassBlock, isClass } from '../../utils/blocks';
-import { getGroupColor } from '../../constants/groupColors';
-import { classesLabel, formatDate, getDayLabel, getMonthDays, isSameDay, isSameMonth, capitalize, WEEKDAYS_NARROW } from '../../utils/dateUtils';
-import { GroupId } from '../../types';
-import { Redo } from '../ui/icons';
+import { classesLabel, formatDate, getDayLabel, capitalize } from '../../utils/dateUtils';
 import { ClassRow, rowState } from '../ClassRow';
 import { EmptyState } from './EmptyState';
 import { FreeDayCard } from './FreeDayCard';
+import { MonthCarousel } from './MonthCarousel';
 
-/** Phone month view: a compact grid with group dots and the chosen day's classes below it. */
+/** Phone month view: a compact grid with group dots (swiped sideways to change month) and the chosen day's classes below it. */
 export function PhoneMonth({ onPick, onOpenClass }: { onPick: () => void; onOpenClass: (block: ClassBlock) => void }) {
   const { calendar, visibleByDate, todayKey, live, hasSelection, kind } = useApp();
   if (!hasSelection) return <EmptyState kind="no-selection" onPick={onPick} />;
 
   const { cursor } = calendar;
-  const days = getMonthDays(cursor.getFullYear(), cursor.getMonth());
   const cursorKey = formatDate(cursor);
   const selected = visibleByDate[cursorKey] ?? [];
   const selectedClasses = selected.filter(isClass);
@@ -22,67 +19,7 @@ export function PhoneMonth({ onPick, onOpenClass }: { onPick: () => void; onOpen
 
   return (
     <div className="flex flex-col gap-4">
-      {/* A new month (or filter) fades the grid in; a newly picked day fades its list in */}
-      <div key={`${cursor.getFullYear()}-${cursor.getMonth()}|${kind}`} className="enter rounded-2xl border border-line bg-surface px-2 pb-2 pt-2.5">
-        <div className="grid grid-cols-7 pb-1.5">
-          {WEEKDAYS_NARROW.map(day => (
-            <span key={day} className="text-center text-xs font-medium text-ink-2">{day}</span>
-          ))}
-        </div>
-        <div className="grid grid-cols-7 gap-y-0.5">
-          {days.map(date => {
-            const key = formatDate(date);
-            const inMonth = isSameMonth(date, cursor);
-            const blocks = inMonth ? visibleByDate[key] ?? [] : [];
-            const classes = blocks.filter(isClass);
-            const hasInfo = blocks.length > classes.length;
-            const groups: GroupId[] = [];
-            classes.filter(b => !b.makeup).forEach(b => b.groups.forEach(g => { if (!groups.includes(g)) groups.push(g); }));
-            const hasMakeup = classes.some(b => b.makeup);
-            const isToday = key === todayKey;
-            const isSel = isSameDay(date, cursor);
-            const numberClass = isToday
-              ? 'bg-ink text-bg font-semibold'
-              : isSel
-                ? 'shadow-[inset_0_0_0_1.5px_rgb(var(--ink))] font-semibold'
-                : !inMonth
-                  ? 'text-line-strong'
-                  : classes.length
-                    ? 'font-semibold'
-                    : 'text-ink-3';
-            return (
-              <button
-                key={key}
-                type="button"
-                disabled={!inMonth}
-                aria-pressed={isSel}
-                aria-label={`${getDayLabel(date)}${classes.length ? `, ${classesLabel(classes.length)}` : ''}${hasMakeup ? ', odrabianie' : ''}`}
-                onClick={() => calendar.setCursor(date)}
-                className="flex h-[52px] flex-col items-center gap-1 pt-0.5"
-              >
-                <span
-                  className={`grid h-[34px] w-[34px] place-items-center rounded-full text-[15px] ${numberClass} ${
-                    isToday && isSel ? 'shadow-[0_0_0_2px_rgb(var(--surface)),0_0_0_3.5px_rgb(var(--ink))]' : ''
-                  }`}
-                >
-                  {date.getDate()}
-                </span>
-                <span className="flex h-1.5 items-center gap-[3px]">
-                  {hasMakeup && (
-                    <span className="-my-[3px] grid h-3 w-[18px] place-items-center rounded-full bg-hero text-hero-ink">
-                      <Redo size={9} strokeWidth={3} />
-                    </span>
-                  )}
-                  {groups.slice(0, hasMakeup ? 2 : 3).map(g => (
-                    <span key={g} className="h-1.5 w-1.5 rounded-full" style={{ background: getGroupColor(g) }} />
-                  ))}
-                  {!classes.length && hasInfo && <span className="h-0.5 w-2.5 self-center rounded-full bg-ink-3" />}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      <MonthCarousel />
 
       <section key={`${cursorKey}|${kind}`} className="enter-quick flex flex-col gap-2" style={{ '--i': 2 } as React.CSSProperties}>
         <h2 className="flex items-baseline justify-between gap-2 px-2 text-[15px] font-semibold leading-[22px]">

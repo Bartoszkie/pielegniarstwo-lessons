@@ -1,8 +1,8 @@
 import * as Popover from '@radix-ui/react-popover';
 import { useState } from 'react';
 import { useApp } from '../../app/AppContext';
-import { isClass } from '../../utils/blocks';
-import { addDays, formatDate, getDayLabel, getMonthLabel, getWeekLabel, isSameMonth, parseDate } from '../../utils/dateUtils';
+import { usePeriodStep } from '../../hooks/usePeriodStep';
+import { addDays, formatDate, getDayLabel, getMonthLabel, getWeekLabel, isSameMonth } from '../../utils/dateUtils';
 import { ViewType } from '../../types';
 import { ThemeToggle } from '../ui/ThemeToggle';
 import { CalendarGrid, Check, ChevronLeft, ChevronRight, FileUp, Help, Info, MoreVertical, Rows } from '../ui/icons';
@@ -17,30 +17,14 @@ const SHORT_DAYS = ['NDZ', 'PON', 'WT', 'ŚR', 'CZW', 'PT', 'SOB'];
  * pressed while today is on screen, raised to bring you back otherwise.
  */
 export function BottomDock({ landOn }: { /** Days a new month may open on; by default the days with classes */ landOn?: string[] } = {}) {
-  const { calendar, visibleByDate, schedule, now, todayKey, openFilePicker, openHowItWorks, openWarnings } = useApp();
+  const { calendar, schedule, now, todayKey, openFilePicker, openHowItWorks, openWarnings } = useApp();
   const [menuOpen, setMenuOpen] = useState(false);
   const isWeek = calendar.view === 'week';
   const todayShown = isWeek
     ? todayKey >= formatDate(calendar.weekStart) && todayKey <= formatDate(addDays(calendar.weekStart, 6))
     : isSameMonth(now, calendar.cursor);
 
-  const step = (direction: 1 | -1) => {
-    if (isWeek) {
-      // Land on the Monday, so the new week opens at the top
-      calendar.setCursor(addDays(calendar.weekStart, 7 * direction));
-      return;
-    }
-    // A new month opens on today when it's in it, else on its first day with classes
-    const month = new Date(calendar.cursor.getFullYear(), calendar.cursor.getMonth() + direction, 1);
-    if (isSameMonth(now, month)) {
-      calendar.goToToday();
-      return;
-    }
-    const prefix = formatDate(month).slice(0, 8);
-    const candidates = landOn ?? Object.keys(visibleByDate).filter(k => visibleByDate[k].some(isClass));
-    const firstWithClasses = candidates.filter(k => k.startsWith(prefix)).sort()[0];
-    calendar.setCursor(firstWithClasses ? parseDate(firstWithClasses) : month);
-  };
+  const step = usePeriodStep(landOn);
 
   const chooseView = (view: ViewType) => {
     calendar.setView(view);

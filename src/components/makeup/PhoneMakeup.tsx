@@ -13,8 +13,9 @@ import { ModeBadge } from '../ui/ModeBadge';
 import { SlideToConfirm } from '../ui/SlideToConfirm';
 import {
   KIND_SHORT, MakeupBar, MakeupResults, NoOptions, optionStatus, OptionStatus, pickedNote, termsLabel,
-  useConfirmMakeup, useMakeupResults, useOptionFilter, useOptionSelection, usePeriodStep, whenLabel,
+  useConfirmMakeup, useMakeupResults, useOptionFilter, useOptionSelection, whenLabel,
 } from './shared';
+import { usePeriodStep } from '../../hooks/usePeriodStep';
 
 type ResultsFlow = Extract<MakeupFlow, { step: 'results' }>;
 
