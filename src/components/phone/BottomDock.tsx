@@ -7,7 +7,7 @@ import { ViewType } from '../../types';
 import { ThemeToggle } from '../ui/ThemeToggle';
 import { CalendarGrid, Check, ChevronLeft, ChevronRight, FileUp, Help, Info, MoreVertical, Rows } from '../ui/icons';
 
-const HUMP_WIDTH = 310;
+const HUMP_WIDTH = 340;
 const BAR_TOP = 58;
 const SHORT_DAYS = ['NDZ', 'PON', 'WT', 'ŚR', 'CZW', 'PT', 'SOB'];
 
@@ -57,27 +57,27 @@ export function BottomDock({ landOn }: { /** Days a new month may open on; by de
           <div className="absolute left-0 h-px bg-line" style={{ top: BAR_TOP, right: `calc(50% + ${HUMP_WIDTH / 2}px)` }} />
           <div className="absolute right-0 h-px bg-line" style={{ top: BAR_TOP, left: `calc(50% + ${HUMP_WIDTH / 2}px)` }} />
           <svg width={HUMP_WIDTH} height="116" viewBox={`0 0 ${HUMP_WIDTH} 116`} className="absolute left-1/2 top-0 -translate-x-1/2 overflow-visible">
-            <path d="M0 58 C38 58 42 34 84 34 H226 C268 34 272 58 310 58 V116 H0 Z" style={{ fill: 'rgb(var(--surface))' }} />
-            <path d="M0 58.5 C38 58.5 42 34.5 84 34.5 H226 C268 34.5 272 58.5 310 58.5" style={{ fill: 'none', stroke: 'rgb(var(--line))', strokeWidth: 1 }} />
+            <path d="M0 58 C38 58 42 34 84 34 H256 C298 34 302 58 340 58 V116 H0 Z" style={{ fill: 'rgb(var(--surface))' }} />
+            <path d="M0 58.5 C38 58.5 42 34.5 84 34.5 H256 C298 34.5 302 58.5 340 58.5" style={{ fill: 'none', stroke: 'rgb(var(--line))', strokeWidth: 1 }} />
           </svg>
         </div>
 
-        <div className="pointer-events-auto absolute left-1/2 top-4 flex -translate-x-1/2 items-start gap-3.5">
-          <button type="button" aria-label={isWeek ? 'Poprzedni tydzień' : 'Poprzedni miesiąc'} onClick={() => step(-1)} className="raised mt-1.5 grid h-11 w-11 place-items-center rounded-full">
-            <ChevronLeft size={20} strokeWidth={2.2} />
+        <div className="pointer-events-auto absolute left-1/2 top-3 flex -translate-x-1/2 items-start gap-4">
+          <button type="button" aria-label={isWeek ? 'Poprzedni tydzień' : 'Poprzedni miesiąc'} onClick={() => step(-1)} className="raised mt-2 grid h-12 w-12 place-items-center rounded-full">
+            <ChevronLeft size={24} strokeWidth={2.2} />
           </button>
           <button
             type="button"
             aria-pressed={todayShown}
             aria-label={`${todayShown ? 'Dziś' : 'Wróć do dziś'}: ${getDayLabel(now)}`}
             onClick={calendar.goToToday}
-            className={`flex h-14 w-14 flex-col items-center justify-center gap-px rounded-2xl ${todayShown ? 'pressed' : 'raised -translate-y-0.5'}`}
+            className={`flex h-16 w-16 flex-col items-center justify-center gap-px rounded-[18px] ${todayShown ? 'pressed' : 'raised -translate-y-0.5'}`}
           >
-            <span className="text-[10px] font-extrabold leading-3 tracking-[.06em] text-accent">{SHORT_DAYS[now.getDay()]}</span>
-            <span className="text-2xl font-bold leading-[26px] tracking-[-0.02em]">{now.getDate()}</span>
+            <span className="text-[11px] font-extrabold leading-[13px] tracking-[.06em] text-accent">{SHORT_DAYS[now.getDay()]}</span>
+            <span className="text-[28px] font-bold leading-[30px] tracking-[-0.02em]">{now.getDate()}</span>
           </button>
-          <button type="button" aria-label={isWeek ? 'Następny tydzień' : 'Następny miesiąc'} onClick={() => step(1)} className="raised mt-1.5 grid h-11 w-11 place-items-center rounded-full">
-            <ChevronRight size={20} strokeWidth={2.2} />
+          <button type="button" aria-label={isWeek ? 'Następny tydzień' : 'Następny miesiąc'} onClick={() => step(1)} className="raised mt-2 grid h-12 w-12 place-items-center rounded-full">
+            <ChevronRight size={24} strokeWidth={2.2} />
           </button>
         </div>
 
@@ -86,10 +86,10 @@ export function BottomDock({ landOn }: { /** Days a new month may open on; by de
             <button
               type="button"
               aria-label="Więcej: widok, plik z planem, pomoc"
-              className={`pointer-events-auto absolute right-3.5 top-16 grid h-10 w-10 place-items-center rounded-full ${menuOpen ? 'text-ink' : 'text-ink-2'}`}
+              className={`pointer-events-auto absolute right-3 top-[62px] grid h-12 w-12 place-items-center rounded-full ${menuOpen ? 'text-ink' : 'text-ink-2'}`}
             >
-              <MoreVertical size={18} />
-              {hasWarnings && <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-warn ring-2 ring-surface" />}
+              <MoreVertical size={22} />
+              {hasWarnings && <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-warn ring-2 ring-surface" />}
             </button>
           </Popover.Trigger>
           <Popover.Portal>
