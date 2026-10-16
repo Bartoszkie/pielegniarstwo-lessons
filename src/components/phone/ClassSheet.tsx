@@ -163,7 +163,7 @@ function SheetBody({ block, onJump, onClose }: { block: ClassBlock; onJump: (dat
           className="relative isolate flex flex-col gap-2.5 overflow-hidden rounded-[14px] p-3.5"
           style={{ boxShadow: `0 10px 22px -12px color-mix(in oklab, ${accent} 75%, transparent), 0 1px 2px rgba(28,25,23,.06)` }}
         >
-          <span aria-hidden="true" className="pointer-events-none absolute inset-0 -z-20 overflow-hidden">
+          <span aria-hidden="true" className="pointer-events-none absolute inset-0 -z-20 overflow-hidden rounded-[inherit] [clip-path:inset(0_round_14px)]">
             <span className="absolute -left-12 -top-24 h-[200px] w-[200px] rounded-full opacity-50 blur-[40px]" style={{ background: accent }} />
             <span className="absolute -bottom-28 -right-10 h-[200px] w-[200px] rounded-full opacity-40 blur-[44px]" style={{ background: accent2 }} />
           </span>

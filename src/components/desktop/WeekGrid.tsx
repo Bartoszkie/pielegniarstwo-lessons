@@ -183,7 +183,7 @@ function GridBlock({ block, top, lane, lanes, state, progress, remainingMin, unt
       >
         {live ? (
           <>
-            <span aria-hidden="true" className="pointer-events-none absolute inset-0 -z-20 overflow-hidden rounded-[inherit]">
+            <span aria-hidden="true" className="pointer-events-none absolute inset-0 -z-20 overflow-hidden rounded-[inherit] [clip-path:inset(0_round_10px)]">
               <span className="absolute -left-9 -top-11 h-[130px] w-[130px] rounded-full opacity-60 blur-[28px]" style={{ background: accent }} />
               <span className="absolute -bottom-14 -right-9 h-[130px] w-[130px] rounded-full opacity-50 blur-[30px]" style={{ background: accent2 }} />
             </span>

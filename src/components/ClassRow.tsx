@@ -78,7 +78,8 @@ export function ClassRow({ block, state = 'none', progress = 0, remainingMin = 0
     >
       {live && (
         <>
-          <span aria-hidden="true" className="pointer-events-none absolute inset-0 -z-20 overflow-hidden">
+          {/* iOS Safari ignores a rounded overflow:hidden for blurred children, so the blobs are clipped with clip-path. */}
+          <span aria-hidden="true" className="pointer-events-none absolute inset-0 -z-20 overflow-hidden rounded-[inherit] [clip-path:inset(0_round_14px)]">
             <span className="absolute -left-12 -top-20 h-[200px] w-[200px] rounded-full opacity-[.55] blur-[38px]" style={{ background: accent }} />
             <span className="absolute -bottom-24 -right-10 h-[190px] w-[190px] rounded-full opacity-[.45] blur-[42px]" style={{ background: accent2 }} />
           </span>
