@@ -91,7 +91,8 @@ function SheetBody({ block, onJump, onClose }: { block: ClassBlock; onJump: (dat
   };
 
   return (
-    <div className="flex min-h-0 flex-col gap-4 overflow-y-auto px-5 pb-[calc(28px+env(safe-area-inset-bottom))] pt-2">
+    // Sections keep their height and the sheet scrolls; otherwise overflow-hidden cards (the live one) get squashed
+    <div className="flex min-h-0 flex-col gap-4 overflow-y-auto px-5 [&>*]:shrink-0 pb-[calc(28px+env(safe-area-inset-bottom))] pt-2">
       <div className="flex items-center justify-between gap-3">
         <span className="text-sm text-ink-2">{capitalize(getDayLabel(parseDate(block.date)))}</span>
         <Drawer.Close aria-label="Zamknij" className="raised grid h-9 w-9 shrink-0 place-items-center rounded-full">
