@@ -35,8 +35,8 @@ interface Drag {
 type Direction = 1 | -1 | 0;
 
 /**
- * The month grid as a carousel: swipe right for the next month (it comes in from the left),
- * left for the previous one. The neighbouring month only shows while dragging, under the fixed
+ * The month grid as a carousel: swipe left for the next month (it comes in from the right),
+ * right for the previous one. The neighbouring month only shows while dragging, under the fixed
  * row of weekdays; a drag that stops short springs back. Taps still pick a day, and vertical
  * drags still scroll the page.
  */
@@ -46,7 +46,7 @@ export function MonthCarousel() {
   const step = usePeriodStep();
   const monthKey = `${formatDate(cursor).slice(0, 7)}|${kind}`;
 
-  // Which neighbour is mounted: +1 the next month (on the left), -1 the previous one (on the right)
+  // Which neighbour is mounted: +1 the next month (on the right), -1 the previous one (on the left)
   const [dir, setDirState] = useState<Direction>(0);
   const dirRef = useRef<Direction>(0);
   const viewport = useRef<HTMLDivElement>(null);
@@ -123,7 +123,7 @@ export function MonthCarousel() {
 
   const snap = (direction: 1 | -1, width: number, height: number) => {
     const target = neighbour.current?.offsetHeight ?? height;
-    move(direction * (width + GAP), SNAP_MS);
+    move(-direction * (width + GAP), SNAP_MS);
     if (viewport.current) {
       viewport.current.style.transition = `height ${SNAP_MS}ms ${EASE}`;
       viewport.current.style.height = `${target}px`;
@@ -163,7 +163,7 @@ export function MonthCarousel() {
     d.dx = Math.max(-d.width, Math.min(d.width, dx));
     d.samples.push({ t: e.timeStamp, x: e.clientX });
     while (d.samples.length > 2 && e.timeStamp - d.samples[0].t > 100) d.samples.shift();
-    if (d.dx) setDir(d.dx > 0 ? 1 : -1);
+    if (d.dx) setDir(d.dx < 0 ? 1 : -1);
     cancelAnimationFrame(frame.current);
     frame.current = requestAnimationFrame(() => move(d.dx, 0, Math.min(1, Math.abs(d.dx) / (d.width * COMMIT_RATIO))));
   };
@@ -182,7 +182,7 @@ export function MonthCarousel() {
     const velocity = recent.length > 1 ? (last.x - first.x) / Math.max(1, last.t - first.t) : 0;
     const direction = dirRef.current;
     // Speed towards the neighbour: a flick commits, a flick back cancels
-    const towards = velocity * direction;
+    const towards = -velocity * direction;
     const commit = direction !== 0 && (towards > FLICK_SPEED || (Math.abs(d.dx) > d.width * COMMIT_RATIO && towards > -FLICK_SPEED));
     if (commit) snap(direction, d.width, d.height);
     else springBack();
@@ -221,7 +221,7 @@ export function MonthCarousel() {
       >
         <div ref={track} className="relative">
           {neighbourMonth && (
-            <div ref={neighbour} inert aria-hidden="true" className="absolute top-0 w-full" style={{ [dir === 1 ? 'right' : 'left']: `calc(100% + ${GAP}px)` }}>
+            <div ref={neighbour} inert aria-hidden="true" className="absolute top-0 w-full" style={{ [dir === 1 ? 'left' : 'right']: `calc(100% + ${GAP}px)` }}>
               <MonthDays month={neighbourMonth} />
             </div>
           )}
