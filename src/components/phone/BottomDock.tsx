@@ -5,7 +5,7 @@ import { usePeriodStep } from '../../hooks/usePeriodStep';
 import { addDays, formatDate, getDayLabel, getMonthLabel, getWeekLabel, isSameMonth } from '../../utils/dateUtils';
 import { ViewType } from '../../types';
 import { ThemeToggle } from '../ui/ThemeToggle';
-import { CalendarGrid, Check, ChevronLeft, ChevronRight, FileUp, Help, Info, MoreVertical, Rows } from '../ui/icons';
+import { CalendarGrid, Check, ChevronLeft, ChevronRight, FileUp, Help, Info, InstallApp, MoreVertical, Rows } from '../ui/icons';
 
 const HUMP_WIDTH = 340;
 const BAR_TOP = 58;
@@ -19,7 +19,7 @@ const SHORT_DAYS = ['NDZ', 'PON', 'WT', 'ŚR', 'CZW', 'PT', 'SOB'];
  * pressed while today is on screen, raised to bring you back otherwise.
  */
 export function BottomDock({ landOn }: { /** Days a new month may open on; by default the days with classes */ landOn?: string[] } = {}) {
-  const { calendar, schedule, now, todayKey, openFilePicker, openHowItWorks, openWarnings } = useApp();
+  const { calendar, schedule, now, todayKey, openFilePicker, openHowItWorks, openWarnings, install, startInstall } = useApp();
   const [menuOpen, setMenuOpen] = useState(false);
   const isWeek = calendar.view === 'week';
   const todayShown = isWeek
@@ -84,6 +84,12 @@ export function BottomDock({ landOn }: { /** Days a new month may open on; by de
               <MenuItem selected={calendar.view === 'month'} onClick={() => chooseView('month')} icon={<CalendarGrid size={18} />}>Miesiąc</MenuItem>
               <MenuItem selected={calendar.view === 'week'} onClick={() => chooseView('week')} icon={<Rows size={18} />}>Tydzień</MenuItem>
               <div className="mx-2 my-1.5 h-px bg-line" />
+              {/* In a browser tab only; the browser's prompt where there is one, else the steps */}
+              {!install.standalone && (
+                <MenuItem onClick={() => { setMenuOpen(false); startInstall(); }} icon={<InstallApp size={18} className="text-accent" />}>
+                  Zainstaluj aplikację
+                </MenuItem>
+              )}
               <MenuItem onClick={() => { setMenuOpen(false); openFilePicker(); }} icon={<FileUp size={18} />}>Wczytaj nowy plan…</MenuItem>
               {hasWarnings && (
                 <MenuItem onClick={() => { setMenuOpen(false); openWarnings(); }} icon={<Info size={18} className="text-warn" />}>

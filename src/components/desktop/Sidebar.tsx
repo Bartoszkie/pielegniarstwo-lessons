@@ -7,9 +7,10 @@ import { AppLogo } from '../ui/AppLogo';
 import { FilePanel } from './FilePanel';
 import { ThemeToggle } from '../ui/ThemeToggle';
 import { MakeupEntry } from '../makeup/MakeupEntry';
+import { InstallApp } from '../ui/icons';
 
 export function Sidebar() {
-  const { schedule, stats, openHowItWorks } = useApp();
+  const { schedule, stats, openHowItWorks, install, startInstall } = useApp();
 
   return (
     <aside className="flex flex-[1_1_288px] flex-col gap-6 border-r border-line bg-surface px-5 py-6 lg:sticky lg:top-0 lg:h-dvh lg:max-w-[320px] lg:overflow-y-auto">
@@ -45,6 +46,12 @@ export function Sidebar() {
 
       <div className="mt-auto flex flex-col gap-2">
         <FilePanel />
+        {!install.standalone && (
+          <button type="button" onClick={startInstall} className="flex items-center gap-2 self-start py-1 text-[13px] font-medium text-ink-2 hover:text-ink">
+            <InstallApp size={16} className="text-accent" />
+            Zainstaluj aplikację
+          </button>
+        )}
         <div className="flex items-center justify-between gap-2">
           <button type="button" onClick={openHowItWorks} className="py-1 text-[13px] font-medium text-ink-2 hover:text-ink">
             Jak to działa?

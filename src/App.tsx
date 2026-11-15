@@ -7,6 +7,8 @@ import { useNow } from './hooks/useNow';
 import { useMediaQuery } from './hooks/useMediaQuery';
 import { useTheme } from './hooks/useTheme';
 import { useAppUpdate } from './hooks/useAppUpdate';
+import { useInstall } from './hooks/useInstall';
+import { getInstallState, promptInstall } from './utils/install';
 import { pluralPl } from './utils/dateUtils';
 import { isClockOverridden } from './utils/clock';
 import { Onboarding } from './components/Onboarding';
@@ -14,6 +16,8 @@ import { PhoneApp } from './components/phone/PhoneApp';
 import { DesktopApp } from './components/desktop/DesktopApp';
 import { HowItWorksDialog, WarningsDialog } from './components/Dialogs';
 import { MakeupWizard } from './components/makeup/MakeupWizard';
+import { InstallBanner } from './components/install/InstallBanner';
+import { InstallSheet } from './components/install/InstallSheet';
 
 function isExcelFile(file: File): boolean {
   return /\.(xls|xlsx)$/i.test(file.name) || [
@@ -31,6 +35,8 @@ export default function App() {
   const fileInput = useRef<HTMLInputElement>(null);
   const [howOpen, setHowOpen] = useState(false);
   const [warningsOpen, setWarningsOpen] = useState(false);
+  const [installOpen, setInstallOpen] = useState(false);
+  const install = useInstall();
   const { loadFile, isLoaded } = schedule;
   const { markPickerOpened, markPickerClosed } = useAppUpdate({ busy: schedule.isLoading });
 
@@ -54,6 +60,17 @@ export default function App() {
     }
   }, [loadFile, isLoaded]);
 
+  // Straight to the browser's prompt (still in the tap, as it requires), else the steps for this browser
+  const startInstall = useCallback(() => {
+    if (!getInstallState().canPrompt) {
+      setInstallOpen(true);
+      return;
+    }
+    void promptInstall().then(outcome => {
+      if (outcome === 'accepted') toast.success('Zainstalowano. Od teraz otwieraj plan z ikony Plan Zajęć.');
+    });
+  }, []);
+
   const actions = useMemo(() => ({
     openFilePicker: () => {
       markPickerOpened();
@@ -64,7 +81,9 @@ export default function App() {
     openWarnings: () => setWarningsOpen(true),
     theme,
     setTheme,
-  }), [handleFile, theme, setTheme, markPickerOpened]);
+    install,
+    startInstall,
+  }), [handleFile, theme, setTheme, markPickerOpened, install, startInstall]);
 
   return (
     <AppProvider schedule={schedule} calendar={calendar} now={now} actions={actions}>
@@ -97,6 +116,8 @@ export default function App() {
       {schedule.isLoaded && <MakeupWizard />}
       <HowItWorksDialog open={howOpen} onOpenChange={setHowOpen} />
       <WarningsDialog open={warningsOpen} onOpenChange={setWarningsOpen} warnings={schedule.warnings} />
+      <InstallSheet open={installOpen} onOpenChange={setInstallOpen} />
+      <InstallBanner />
       <Toaster
         position={isDesktop ? 'bottom-right' : 'top-center'}
         toastOptions={{

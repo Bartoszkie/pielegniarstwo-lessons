@@ -5,7 +5,7 @@ import { Close, ExternalLink } from './ui/icons';
 
 const GUIDE_URL = 'https://github.com/Bartoszkie/pielegniarstwo-lessons/blob/main/README.md';
 
-function Sheet({ open, onOpenChange, title, subtitle, children }: {
+export function Sheet({ open, onOpenChange, title, subtitle, children }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;

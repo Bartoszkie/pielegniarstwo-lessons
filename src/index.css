@@ -251,6 +251,40 @@
     animation: kind-spin .7s cubic-bezier(.34, 1.56, .64, 1);
   }
 
+  /* Install banner: drops in from the top with a spring and pings twice; the icon hops, a light sweeps the button */
+  .install-drop {
+    animation: install-drop .6s cubic-bezier(.34, 1.56, .64, 1) backwards;
+  }
+
+  .install-drop::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    box-shadow: 0 0 0 2px rgb(var(--accent));
+    opacity: 0;
+    pointer-events: none;
+    animation: install-ping 1.3s ease-out .55s 2;
+  }
+
+  .install-lift {
+    animation: install-lift .26s cubic-bezier(.4, 0, 1, 1) forwards;
+  }
+
+  .install-hop {
+    animation: install-hop .75s cubic-bezier(.34, 1.56, .64, 1) .4s backwards;
+  }
+
+  .install-cta::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 25%, rgb(var(--accent) / .28) 50%, transparent 75%);
+    transform: translateX(-100%);
+    pointer-events: none;
+    animation: install-shine 3s ease-in-out .9s infinite;
+  }
+
   .no-scrollbar {
     scrollbar-width: none;
   }
@@ -307,6 +341,31 @@
   0% { transform: perspective(220px) rotateY(0deg) scale(.85); }
   60% { transform: perspective(220px) rotateY(330deg) scale(1.12); }
   100% { transform: perspective(220px) rotateY(360deg) scale(1); }
+}
+
+@keyframes install-drop {
+  from { opacity: 0; transform: translateY(calc(-100% - 24px)); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes install-lift {
+  to { opacity: 0; transform: translateY(calc(-100% - 24px)); }
+}
+
+@keyframes install-ping {
+  0% { opacity: .9; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.06, 1.18); }
+}
+
+@keyframes install-hop {
+  0% { transform: scale(.6) rotate(-12deg); }
+  55% { transform: translateY(-5px) scale(1.08) rotate(4deg); }
+  100% { transform: none; }
+}
+
+@keyframes install-shine {
+  0% { transform: translateX(-100%); }
+  45%, 100% { transform: translateX(100%); }
 }
 
 @keyframes live-pulse {

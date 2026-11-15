@@ -8,6 +8,7 @@ import { applyMakeups, buildClassIndex, ClassIndex, ClassNumber, findNumber, Sav
 import { addDays, formatDate, getStartOfWeek, parseDate, isSameMonth, daysBetween, durationLabel, relativeDayLabel } from '../utils/dateUtils';
 import { normalizeForSearch } from '../utils/eventUtils';
 import { ThemePreference } from '../hooks/useTheme';
+import { InstallState } from '../utils/install';
 
 type Schedule = ReturnType<typeof useSchedule>;
 
@@ -49,6 +50,10 @@ interface AppActions {
   openWarnings: () => void;
   theme: ThemePreference;
   setTheme: (theme: ThemePreference) => void;
+  /** Whether and how the app can be installed from this browser */
+  install: InstallState;
+  /** Opens the browser's install prompt where there is one, else the steps for this browser */
+  startInstall: () => void;
 }
 
 interface AppContextValue extends AppActions {

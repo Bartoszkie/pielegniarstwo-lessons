@@ -48,6 +48,24 @@ export const Redo = (p: IconProps) => (
     <path d="M4 20v-4.5h4.5" />
   </Svg>
 );
+/** Install: an arrow down onto a phone */
+export const InstallApp = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="6" y="2.5" width="12" height="19" rx="3" />
+    <path d="M12 7v7" />
+    <path d="M9 11.5l3 3 3-3" />
+    <path d="M10.5 18.5h3" />
+  </Svg>
+);
+/** iOS Share: a box with an arrow out of its top */
+export const Share = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M12 3v12" />
+    <path d="M8 7l4-4 4 4" />
+    <path d="M8 10H6.5A1.5 1.5 0 0 0 5 11.5v8A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-8a1.5 1.5 0 0 0-1.5-1.5H16" />
+  </Svg>
+);
+export const Copy = (p: IconProps) => <Svg {...p}><rect x="8.5" y="8.5" width="12" height="12" rx="2.5" /><path d="M15.5 8.5V6a2.5 2.5 0 0 0-2.5-2.5H6A2.5 2.5 0 0 0 3.5 6v7A2.5 2.5 0 0 0 6 15.5h2.5" /></Svg>;
 export const Plus = (p: IconProps) => <Svg {...p}><path d="M12 5v14M5 12h14" /></Svg>;
 export const PlusCircle = (p: IconProps) => <Svg {...p}><circle cx="12" cy="12" r="9" /><path d="M12 8v8M8 12h8" /></Svg>;
 export const Warning = (p: IconProps) => <Svg {...p}><path d="M12 4l9 16H3z" /><path d="M12 10v4" /><path d="M12 17v.01" /></Svg>;

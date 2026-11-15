@@ -17,7 +17,7 @@ const STEPS = [
 
 /** First run: what to do, and the file picker. */
 export function Onboarding() {
-  const { schedule, openFilePicker, handleFile } = useApp();
+  const { schedule, openFilePicker, handleFile, install, startInstall } = useApp();
   const [dragOver, setDragOver] = useState(false);
 
   return (
@@ -100,10 +100,14 @@ export function Onboarding() {
         )}
       </div>
 
-      <p className="mt-auto text-center text-[13px] leading-[19px] text-ink-2">
-        Dodaj aplikację do ekranu głównego, żeby mieć plan zawsze pod ręką.{' '}
-        <a href={GUIDE_URL} target="_blank" rel="noopener noreferrer" className="font-semibold text-ink underline underline-offset-2">Jak to zrobić?</a>
-      </p>
+      {!install.standalone && (
+        <p className="mt-auto text-center text-[13px] leading-[19px] text-ink-2">
+          Dodaj aplikację do ekranu głównego, żeby mieć plan zawsze pod ręką.{' '}
+          <button type="button" onClick={startInstall} className="font-semibold text-ink underline underline-offset-2">
+            {install.canPrompt ? 'Zainstaluj teraz' : 'Jak to zrobić?'}
+          </button>
+        </p>
+      )}
     </div>
   );
 }
