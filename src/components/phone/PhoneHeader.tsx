@@ -103,7 +103,7 @@ export function PhoneHeader({
         <div className="grid grid-cols-3 gap-2 px-4 pb-1 pt-1.5">
           <SummaryTile value={String(stats.thisWeek)} label="w tym tygodniu" />
           <SummaryTile value={String(stats.remaining)} label="do końca semestru" />
-          <SummaryTile value={schedule.lastUpdated ? formatTimestamp(schedule.lastUpdated).slice(0, 5) : '—'} label="plan z dnia" />
+          <SummaryTile value={schedule.lastUpdated ? formatTimestamp(schedule.lastUpdated).slice(0, 5) : '-'} label="plan z dnia" />
         </div>
       </Collapse>
     </>

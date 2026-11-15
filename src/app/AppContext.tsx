@@ -196,7 +196,7 @@ export function AppProvider({
       }
     }
     const next = live.next;
-    const nextLabel = next ? `${relativeDayLabel(parseDate(next.date), parseDate(todayKey))}, ${next.start}` : '—';
+    const nextLabel = next ? `${relativeDayLabel(parseDate(next.date), parseDate(todayKey))}, ${next.start}` : '-';
     return { thisWeek, remaining, next, nextLabel };
   }, [blocksByDate, now, todayKey, nowMin, live.next]);
 
