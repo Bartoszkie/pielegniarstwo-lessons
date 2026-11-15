@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useApp } from '../../app/AppContext';
 import { usePeriodStep } from '../../hooks/usePeriodStep';
 import { isClass } from '../../utils/blocks';
@@ -34,17 +34,28 @@ interface Drag {
 
 type Direction = 1 | -1 | 0;
 
+interface MonthCarouselProps {
+  /** One month's day cells, for the month on screen and, while dragging, its neighbour; by default the classes with group dots */
+  renderMonth?: (month: Date) => ReactNode;
+  /** Days a new month may open on (see usePeriodStep); by default the days with classes */
+  landOn?: string[];
+  /** Anything besides the month whose change fades the grid in again, like a filter */
+  fadeKey?: string;
+  /** Under the grid, inside the card (a legend) */
+  children?: ReactNode;
+}
+
 /**
  * The month grid as a carousel: swipe left for the next month (it comes in from the right),
  * right for the previous one. The neighbouring month only shows while dragging, under the fixed
  * row of weekdays; a drag that stops short springs back. Taps still pick a day, and vertical
  * drags still scroll the page.
  */
-export function MonthCarousel() {
-  const { calendar, kind } = useApp();
+export function MonthCarousel({ renderMonth = month => <MonthDays month={month} />, landOn, fadeKey = '', children }: MonthCarouselProps) {
+  const { calendar } = useApp();
   const { cursor } = calendar;
-  const step = usePeriodStep();
-  const monthKey = `${formatDate(cursor).slice(0, 7)}|${kind}`;
+  const step = usePeriodStep(landOn);
+  const monthKey = `${formatDate(cursor).slice(0, 7)}|${fadeKey}`;
 
   // Which neighbour is mounted: +1 the next month (on the right), -1 the previous one (on the left)
   const [dir, setDirState] = useState<Direction>(0);
@@ -130,7 +141,7 @@ export function MonthCarousel() {
     }
     const month = new Date(cursor.getFullYear(), cursor.getMonth() + direction, 1);
     settle(() => {
-      swipedTo.current = `${formatDate(month).slice(0, 7)}|${kind}`;
+      swipedTo.current = `${formatDate(month).slice(0, 7)}|${fadeKey}`;
       step(direction);
     });
   };
@@ -222,12 +233,12 @@ export function MonthCarousel() {
         <div ref={track} className="relative">
           {neighbourMonth && (
             <div ref={neighbour} inert aria-hidden="true" className="absolute top-0 w-full" style={{ [dir === 1 ? 'left' : 'right']: `calc(100% + ${GAP}px)` }}>
-              <MonthDays month={neighbourMonth} />
+              {renderMonth(neighbourMonth)}
             </div>
           )}
           {/* A month reached any other way (or a new filter) fades in */}
           <div ref={current} key={monthKey} className={swipedTo.current === monthKey ? '' : 'enter'}>
-            <MonthDays month={cursor} />
+            {renderMonth(cursor)}
           </div>
         </div>
         <span
@@ -238,6 +249,7 @@ export function MonthCarousel() {
           {neighbourMonth && getMonthLabel(neighbourMonth)}
         </span>
       </div>
+      {children}
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { MakeupFlow, useApp } from '../../app/AppContext';
 import { ClassBlock } from '../../utils/blocks';
 import {
   addDays, capitalize, DAY_NAMES_FULL, formatDate, getMonthDays, getWeekLabelShort, isSameDay, isSameMonth,
-  MONTH_NAMES, MONTH_SHORT, parseDate, shortDateLabel, WEEKDAYS_NARROW,
+  MONTH_NAMES, MONTH_SHORT, parseDate, shortDateLabel,
 } from '../../utils/dateUtils';
 import { MakeupOption } from '../../utils/makeup';
 import { DisplayTitle } from '../ui/DisplayTitle';
@@ -16,6 +16,7 @@ import {
   useConfirmMakeup, useMakeupResults, useOptionFilter, useOptionSelection, whenLabel,
 } from './shared';
 import { usePeriodStep } from '../../hooks/usePeriodStep';
+import { MonthCarousel } from '../phone/MonthCarousel';
 
 type ResultsFlow = Extract<MakeupFlow, { step: 'results' }>;
 
@@ -396,12 +397,10 @@ function OptionRow({ option, status, results, flow, selected, divided, onSelect 
 }
 
 function MonthOptions({ results, shown, flow, picking }: { results: MakeupResults; shown: MakeupOption[]; flow: ResultsFlow; picking: Picking }) {
-  const { calendar, todayKey } = useApp();
+  const { calendar } = useApp();
   const { cursor } = calendar;
-  const days = getMonthDays(cursor.getFullYear(), cursor.getMonth());
   const cursorKey = formatDate(cursor);
   const ownKey = results.own?.date;
-  const pickedKey = picking.selected?.block.date;
   const dayOptions = shown.filter(o => o.block.date === cursorKey);
   const monthPrefix = cursorKey.slice(0, 8);
   const later = shown.filter(o => o.block.date > cursorKey && !o.block.date.startsWith(monthPrefix));
@@ -409,58 +408,17 @@ function MonthOptions({ results, shown, flow, picking }: { results: MakeupResult
 
   return (
     <div className="flex flex-col gap-4">
-      <div key={monthPrefix} className="enter rounded-2xl border border-line bg-surface px-2 pb-2 pt-2.5">
-        <div className="grid grid-cols-7 pb-1.5">
-          {WEEKDAYS_NARROW.map(day => (
-            <span key={day} className="text-center text-xs font-medium text-ink-2">{day}</span>
-          ))}
-        </div>
-        <div className="grid grid-cols-7 gap-y-0.5">
-          {days.map(date => {
-            const key = formatDate(date);
-            const inMonth = isSameMonth(date, cursor);
-            const options = inMonth ? shown.filter(o => o.block.date === key) : [];
-            const isOwn = inMonth && key === ownKey;
-            const isPicked = inMonth && key === pickedKey;
-            const isToday = key === todayKey;
-            const current = isSameDay(date, cursor);
-            return (
-              <button
-                key={key}
-                type="button"
-                disabled={!inMonth}
-                aria-pressed={current}
-                aria-label={`${date.getDate()} ${MONTH_SHORT[date.getMonth()]}${options.length ? `, ${termsLabel(options.length)}` : ''}${isOwn ? ', Twój termin' : ''}${isPicked ? ', tu jest wybrany termin' : ''}`}
-                onClick={() => calendar.setCursor(date)}
-                className={`flex h-[52px] flex-col items-center justify-center gap-0.5 rounded-xl ${current ? 'pressed' : ''}`}
-              >
-                <span
-                  className={`grid h-[30px] w-[30px] place-items-center rounded-full text-[15px] tabular-nums ${
-                    isPicked ? 'bg-ink font-bold text-bg' : isOwn ? 'border-[1.5px] border-dashed border-ink-2' : ''
-                  } ${isPicked ? '' : isToday ? 'font-extrabold text-accent' : !inMonth ? 'text-line-strong' : options.length || isOwn ? 'font-bold' : 'text-ink-3'}`}
-                >
-                  {date.getDate()}
-                </span>
-                <span aria-hidden="true" className="flex h-[7px] items-center gap-[3px]">
-                  {options.slice(0, 4).map(o => (
-                    <span
-                      key={o.id}
-                      className={`h-[7px] rounded-full ${
-                        o.id === picking.selected?.id ? 'w-[13px] bg-ink' : o.clashes.length ? 'w-[7px] border-2 border-warn' : 'w-[7px] bg-ink'
-                      }`}
-                    />
-                  ))}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-        <div className="mt-2 flex flex-wrap justify-center gap-x-3.5 gap-y-1 border-t border-line px-1 pt-2.5 text-xs text-ink-2">
+      {/* Swiped sideways to change month, like the plain calendar; a new month opens on its first date */}
+      <MonthCarousel
+        landOn={shown.map(o => o.block.date)}
+        renderMonth={month => <OptionDays month={month} shown={shown} ownKey={ownKey} picking={picking} />}
+      >
+        <div className="mb-1 mt-1 flex flex-wrap justify-center gap-x-3.5 gap-y-1 border-t border-line px-1 pt-2.5 text-xs text-ink-2">
           <span className="inline-flex items-center gap-1.5"><span className="h-[7px] w-[7px] rounded-full bg-ink" />bez kolizji</span>
           <span className="inline-flex items-center gap-1.5"><span className="h-[7px] w-[7px] rounded-full border-2 border-warn" />kolizja</span>
           <span className="inline-flex items-center gap-1.5"><span className="h-3.5 w-3.5 rounded-full border-[1.5px] border-dashed border-ink-2" />Twój termin</span>
         </div>
-      </div>
+      </MonthCarousel>
 
       <div key={cursorKey} className="enter-quick flex flex-col gap-4" style={{ '--i': 2 } as React.CSSProperties}>
         {dayOptions.length || cursorKey === ownKey ? (
@@ -480,6 +438,58 @@ function MonthOptions({ results, shown, flow, picking }: { results: MakeupResult
         )}
         {later.length > 0 && <JumpLink label="Później" options={later} onJump={date => calendar.setCursor(parseDate(date))} />}
       </div>
+    </div>
+  );
+}
+
+/** One month's day cells with a dot per date; the cursor's day is pressed when it falls in this month. */
+function OptionDays({ month, shown, ownKey, picking }: { month: Date; shown: MakeupOption[]; ownKey: string | undefined; picking: Picking }) {
+  const { calendar, todayKey } = useApp();
+  const { cursor } = calendar;
+  const days = getMonthDays(month.getFullYear(), month.getMonth());
+  const pickedKey = picking.selected?.block.date;
+
+  return (
+    // The padding matches the plain calendar's, so the pressed day sits inside the clipped viewport
+    <div className="grid grid-cols-7 gap-y-0.5 py-1">
+      {days.map(date => {
+        const key = formatDate(date);
+        const inMonth = isSameMonth(date, month);
+        const options = inMonth ? shown.filter(o => o.block.date === key) : [];
+        const isOwn = inMonth && key === ownKey;
+        const isPicked = inMonth && key === pickedKey;
+        const isToday = key === todayKey;
+        const current = isSameDay(date, cursor);
+        return (
+          <button
+            key={key}
+            type="button"
+            disabled={!inMonth}
+            aria-pressed={current}
+            aria-label={`${date.getDate()} ${MONTH_SHORT[date.getMonth()]}${options.length ? `, ${termsLabel(options.length)}` : ''}${isOwn ? ', Twój termin' : ''}${isPicked ? ', tu jest wybrany termin' : ''}`}
+            onClick={() => calendar.setCursor(date)}
+            className={`flex h-[52px] flex-col items-center justify-center gap-0.5 rounded-xl ${current ? 'pressed' : ''}`}
+          >
+            <span
+              className={`grid h-[30px] w-[30px] place-items-center rounded-full text-[15px] tabular-nums ${
+                isPicked ? 'bg-ink font-bold text-bg' : isOwn ? 'border-[1.5px] border-dashed border-ink-2' : ''
+              } ${isPicked ? '' : isToday ? 'font-extrabold text-accent' : !inMonth ? 'text-line-strong' : options.length || isOwn ? 'font-bold' : 'text-ink-3'}`}
+            >
+              {date.getDate()}
+            </span>
+            <span aria-hidden="true" className="flex h-[7px] items-center gap-[3px]">
+              {options.slice(0, 4).map(o => (
+                <span
+                  key={o.id}
+                  className={`h-[7px] rounded-full ${
+                    o.id === picking.selected?.id ? 'w-[13px] bg-ink' : o.clashes.length ? 'w-[7px] border-2 border-warn' : 'w-[7px] bg-ink'
+                  }`}
+                />
+              ))}
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 }

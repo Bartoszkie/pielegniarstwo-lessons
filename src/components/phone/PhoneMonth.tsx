@@ -19,7 +19,7 @@ export function PhoneMonth({ onPick, onOpenClass }: { onPick: () => void; onOpen
 
   return (
     <div className="flex flex-col gap-4">
-      <MonthCarousel />
+      <MonthCarousel fadeKey={kind} />
 
       <section key={`${cursorKey}|${kind}`} className="enter-quick flex flex-col gap-2" style={{ '--i': 2 } as React.CSSProperties}>
         <h2 className="flex items-baseline justify-between gap-2 px-2 text-[15px] font-semibold leading-[22px]">
